@@ -94,3 +94,25 @@ export async function activateProductAction(id: string): Promise<ActionResult> {
   revalidatePath("/admin/products");
   return { ok: true };
 }
+
+export async function duplicateProductAction(id: string): Promise<never> {
+  await requireAdmin();
+  const original = await prisma.product.findUnique({ where: { id } });
+  if (!original) {
+    throw new Error("Original product not found.");
+  }
+  // Reuse the same image URL — the duplicate references the same file in
+  // Storage. Editing one won't affect the other; deleting the original's
+  // image would only happen via the explicit replace flow on the edit page.
+  const copy = await prisma.product.create({
+    data: {
+      name: `${original.name} (copy)`,
+      description: original.description,
+      imageUrl: original.imageUrl,
+      basePrice: original.basePrice,
+      isActive: original.isActive,
+    },
+  });
+  revalidatePath("/admin/products");
+  redirect(`/admin/products/${copy.id}/edit`);
+}

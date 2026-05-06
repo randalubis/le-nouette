@@ -228,7 +228,14 @@ export function OrdersTable({
                     />
                   </TableCell>
                   <TableCell className="font-mono text-sm">{o.shortCode}</TableCell>
-                  <TableCell className="font-medium">{o.customerName}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/admin/customers/${encodeURIComponent(o.customerWhatsApp)}`}
+                      className="hover:underline"
+                    >
+                      {o.customerName}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <a
                       href={formatWhatsAppLink(

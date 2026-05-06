@@ -72,7 +72,12 @@ export default async function AdminOrderDetail({
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-zinc-500">Name</span>
-              <span className="font-medium">{order.customerName}</span>
+              <Link
+                href={`/admin/customers/${encodeURIComponent(order.customerWhatsApp)}`}
+                className="font-medium hover:underline"
+              >
+                {order.customerName}
+              </Link>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">WhatsApp</span>

@@ -112,7 +112,14 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
                     month: "short",
                   })}
                 </TableCell>
-                <TableCell className="font-medium">{o.customerName}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/admin/customers/${encodeURIComponent(o.customerWhatsApp)}`}
+                    className="hover:underline"
+                  >
+                    {o.customerName}
+                  </Link>
+                </TableCell>
                 <TableCell>
                   <a
                     href={formatWhatsAppLink(
