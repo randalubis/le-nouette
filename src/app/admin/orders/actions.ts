@@ -36,59 +36,78 @@ export async function setOrderStatusAction(
   shortCode: string,
   status: z.infer<typeof statusSchema>,
 ): Promise<ActionResult> {
-  const adminUser = await requireAdmin();
-  const adminEmail = typeof adminUser === "string" ? adminUser : (adminUser as { email?: string }).email ?? "admin";
+  const adminEmail = await requireAdmin();
   const parsed = statusSchema.safeParse(status);
   if (!parsed.success) return { ok: false, error: "Invalid status" };
 
-  const order = await prisma.order.findUnique({
-    where: { shortCode },
-    include: { items: true },
-  });
-  if (!order) return { ok: false, error: "Pesanan tidak ditemukan." };
+  let roundId: string;
+  try {
+    roundId = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { shortCode },
+        include: { items: true, payment: { select: { proofImageUrl: true } } },
+      });
+      if (!order) throw new ActionError("Pesanan tidak ditemukan.");
 
-  await prisma.$transaction(async (tx) => {
-    if (parsed.data === "CANCELLED" && order.status !== "CANCELLED") {
-      for (const it of order.items) {
-        await tx.roundProduct.update({
-          where: { id: it.roundProductId },
-          data: { stockSold: { decrement: it.quantity } },
+      if (
+        parsed.data === "PAID" &&
+        order.paymentMethod !== "COD" &&
+        !order.payment?.proofImageUrl
+      ) {
+        throw new ActionError(
+          "Tidak bisa tandai PAID tanpa bukti pembayaran. Minta pelanggan upload dulu.",
+        );
+      }
+
+      if (parsed.data === "CANCELLED" && order.status !== "CANCELLED") {
+        for (const it of order.items) {
+          await tx.roundProduct.update({
+            where: { id: it.roundProductId },
+            data: { stockSold: { decrement: it.quantity } },
+          });
+        }
+      } else if (order.status === "CANCELLED" && parsed.data !== "CANCELLED") {
+        for (const it of order.items) {
+          await tx.roundProduct.update({
+            where: { id: it.roundProductId },
+            data: { stockSold: { increment: it.quantity } },
+          });
+        }
+      }
+
+      await tx.order.update({ where: { id: order.id }, data: { status: parsed.data } });
+
+      if (parsed.data === "PAID") {
+        await tx.payment.update({
+          where: { orderId: order.id },
+          data: { verifiedAt: new Date(), verifiedBy: adminEmail },
         });
       }
-    } else if (order.status === "CANCELLED" && parsed.data !== "CANCELLED") {
-      for (const it of order.items) {
-        await tx.roundProduct.update({
-          where: { id: it.roundProductId },
-          data: { stockSold: { increment: it.quantity } },
+
+      if (order.status !== parsed.data) {
+        await logStatusEvent(tx, {
+          orderId: order.id,
+          fromStatus: order.status,
+          toStatus: parsed.data,
+          actor: adminEmail,
         });
       }
-    }
 
-    await tx.order.update({ where: { id: order.id }, data: { status: parsed.data } });
-
-    if (parsed.data === "PAID") {
-      await tx.payment.update({
-        where: { orderId: order.id },
-        data: { verifiedAt: new Date(), verifiedBy: adminEmail },
-      });
-    }
-
-    if (order.status !== parsed.data) {
-      await logStatusEvent(tx, {
-        orderId: order.id,
-        fromStatus: order.status,
-        toStatus: parsed.data,
-        actor: adminEmail,
-      });
-    }
-  });
+      return order.roundId;
+    });
+  } catch (e) {
+    if (e instanceof ActionError) return { ok: false, error: e.message };
+    throw e;
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${shortCode}`);
-  revalidatePath(`/admin/rounds/${order.roundId}/orders`);
+  revalidatePath(`/admin/rounds/${roundId}/orders`);
   return { ok: true };
 }
+
+class ActionError extends Error {}
 
 const bulkStatusSchema = z.enum(["CONFIRMED", "CANCELLED"]);
 
@@ -96,8 +115,7 @@ export async function bulkSetOrderStatusAction(
   shortCodes: string[],
   status: z.infer<typeof bulkStatusSchema>,
 ): Promise<ActionResult> {
-  const adminUser = await requireAdmin();
-  const adminEmail = typeof adminUser === "string" ? adminUser : (adminUser as { email?: string }).email ?? "admin";
+  const adminEmail = await requireAdmin();
   const parsedStatus = bulkStatusSchema.safeParse(status);
   if (!parsedStatus.success) return { ok: false, error: "Invalid status" };
   if (!Array.isArray(shortCodes) || shortCodes.length === 0) {
@@ -223,8 +241,7 @@ export async function deleteOrderAction(shortCode: string): Promise<never> {
 }
 
 export async function bulkMarkDeliveredAction(roundId: string): Promise<ActionResult> {
-  const adminUser = await requireAdmin();
-  const adminEmail = typeof adminUser === "string" ? adminUser : (adminUser as { email?: string }).email ?? "admin";
+  const adminEmail = await requireAdmin();
   const eligible = await prisma.order.findMany({
     where: { roundId, status: { in: ["PAID", "CONFIRMED"] } },
     select: { id: true, status: true },

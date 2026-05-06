@@ -119,11 +119,21 @@ export async function POST(request: NextRequest) {
 
 class BadRequest extends Error {}
 
+// 26 chars, no 0/O/1/I to keep codes easy to read aloud over WhatsApp.
+const SHORT_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function randomSuffix(len: number): string {
+  const bytes = new Uint8Array(len);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < len; i++) out += SHORT_CODE_ALPHABET[bytes[i] % SHORT_CODE_ALPHABET.length];
+  return out;
+}
+
 async function nextShortCodeTx(tx: Prisma.TransactionClient): Promise<string> {
   const counter = await tx.orderCounter.upsert({
     where: { id: 1 },
     create: { id: 1, value: 1 },
     update: { value: { increment: 1 } },
   });
-  return `LN-${String(counter.value).padStart(4, "0")}`;
+  return `LN-${String(counter.value).padStart(4, "0")}-${randomSuffix(5)}`;
 }
