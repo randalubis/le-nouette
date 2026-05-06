@@ -8,15 +8,16 @@ Complete one-time setup to wire Le Nouette to a fresh Supabase project. ~15 minu
 
 ## 0. What we're connecting
 
-The app uses three Supabase services:
+The app uses **two** Supabase services:
 
 | Service | Purpose |
 |---|---|
 | **Postgres** | Stores products, rounds, orders. Accessed via Prisma. |
-| **Auth** | Admin sign-in via passwordless magic links. |
-| **Storage** | Holds product images (and later QRIS image + payment proofs). |
+| **Storage** | Holds product images, QRIS image, payment proofs. |
 
-By the end of this guide you'll have eight env vars in `.env.local` and a working `npm run dev`.
+> **Auth is NOT done via Supabase** in this app. Admin sign-in uses a single email + password from `.env.local`, gated by an HMAC-signed cookie. There's exactly one admin (you), so we don't need a third-party auth provider. Customers don't sign in at all — they identify by name + WhatsApp number at checkout.
+
+By the end of this guide you'll have the env vars in `.env.local` and a working `npm run dev`.
 
 ---
 
@@ -103,27 +104,9 @@ That's it — no policies to write. Public buckets get a default read-allowed-fo
 
 ---
 
-## 5. Configure Auth redirect URLs
+## 5. (Skipped) Auth redirect URLs
 
-Magic links email a one-time URL that Supabase rewrites to your site. You must whitelist your site's URLs or the redirect fails with a generic error after the user clicks the email.
-
-1. Sidebar → **Authentication** → **URL Configuration**.
-2. **Site URL**: set to `http://localhost:3000` for now. You'll update this to your Vercel URL when you deploy.
-3. **Redirect URLs**: add **both** of these (click **Add URL** for each):
-   ```
-   http://localhost:3000/admin/auth/callback
-   http://localhost:3000/**
-   ```
-   The first is the exact callback path; the second is a globstar wildcard that lets Supabase redirect to any path on your dev server (useful for the `?next=` param after login). Wildcards: `*` matches any non-`./`, `**` matches anything.
-4. Click **Save changes**.
-
-> **For production:** come back here after deploying and add `https://<your-app>.vercel.app/admin/auth/callback` and `https://<your-app>.vercel.app/**` as additional redirect URLs. Keep the localhost ones too.
-
-### 5b. (Optional) Magic-link email template
-
-1. **Authentication** → **Emails** → **Magic Link**.
-2. The default template works. Edit if you want Bahasa wording or custom branding.
-3. **Free-tier note:** Supabase's built-in email is rate-limited to ~30 sends/hour. For one admin this is fine. If you ever onboard customer logins (we won't, by design), set up custom SMTP under **Authentication → Emails → SMTP Settings** (Resend / AWS SES / etc.).
+Earlier versions of this app used Supabase Auth (magic links), which required configuring redirect URLs. **The current code does not** — admin signs in with email + password from `.env.local`, and the session is held in an HMAC-signed cookie. You can ignore Supabase's Authentication section entirely.
 
 ---
 
@@ -152,8 +135,13 @@ SUPABASE_SERVICE_ROLE_KEY="sb_secret_..."
 # Step 4 (default works)
 SUPABASE_STORAGE_BUCKET="le-nouette"
 
+# Admin credentials (single hardcoded admin)
+ADMIN_EMAIL="you@example.com"
+ADMIN_PASSWORD="a-strong-password"
+# Generate with:  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ADMIN_SESSION_SECRET="<32-byte-hex-secret>"
+
 # App config
-ADMIN_EMAILS="you@example.com"             # comma-separated allowlist
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 NEXT_PUBLIC_BUSINESS_WHATSAPP="628123456789"  # E.164, no leading + or spaces
 ```
@@ -203,20 +191,11 @@ npm run dev
 
 ### Sign in for the first time
 
-1. Enter the email you put in `ADMIN_EMAILS`.
-2. Click **Send magic link**.
-3. Check your inbox. Subject: usually "Magic Link". Open it on the same machine.
-4. The link redirects to `/admin/auth/callback?code=...&next=/admin`, exchanges the code for a session, and lands you on the dashboard.
+1. Enter the email you put in `ADMIN_EMAIL` and the password you put in `ADMIN_PASSWORD`.
+2. Click **Sign in**. The signed cookie is set (`le_nouette_admin`, httpOnly, 30-day expiry) and you land on the dashboard.
 
-If the email never arrives:
-- Check spam.
-- Sidebar → **Authentication** → **Logs** in Supabase shows every auth attempt and email delivery status.
-
-If you click the link and get bounced back to login with `?error=not_authorized`:
-- The email isn't in `ADMIN_EMAILS`. Add it to `.env.local` (case-insensitive) and restart `npm run dev`.
-
-If you click the link and get bounced with `?error=exchange_failed` or a Supabase-hosted error page:
-- Your **Redirect URLs** list (step 5) doesn't include the callback URL. Re-check.
+If sign-in fails:
+- "Invalid email or password" — exactly that. The values must match `.env.local` (case-insensitive on email, exact match on password). Restart `npm run dev` after changing env vars.
 
 ### Test image upload
 
@@ -242,38 +221,20 @@ You're done. 🎉
 
 | File | What it does |
 |---|---|
-| [`src/lib/supabase/server.ts`](../src/lib/supabase/server.ts) | Server Components / Server Actions — uses publishable key, reads session from cookies. |
-| [`src/lib/supabase/client.ts`](../src/lib/supabase/client.ts) | Browser-side (login form) — uses publishable key, manages session in cookies. |
-| [`src/lib/supabase/middleware.ts`](../src/lib/supabase/middleware.ts) | Refreshes the session on every request, redirects unauthorized admins to login. |
 | [`src/lib/supabase/admin.ts`](../src/lib/supabase/admin.ts) | Secret-key client — only for server-side image uploads via [`src/lib/storage.ts`](../src/lib/storage.ts). |
 | [`src/lib/db.ts`](../src/lib/db.ts) | Prisma client singleton — talks to Postgres via `DATABASE_URL`. |
 | [`prisma/schema.prisma`](../prisma/schema.prisma) | Source of truth for the database schema. |
-
-The Auth flow:
-
-```
-Browser                  Next.js                Supabase
-   │                        │                       │
-   │── enter email ────────▶│                       │
-   │                        │── signInWithOtp ─────▶│
-   │                        │                       │  emails magic link
-   │── click link ─────────────────────────────────▶│
-   │◀── 302 to /admin/auth/callback?code=… ────────│
-   │── GET callback ───────▶│                       │
-   │                        │── exchangeCodeForSession ▶
-   │                        │◀── session JWT ───────│
-   │◀── 302 + cookies ──────│                       │
-   │── GET /admin ─────────▶│ middleware reads cookie, allows
-```
+| [`src/lib/auth.ts`](../src/lib/auth.ts) | Admin auth (cookie-based, env-driven) — does **not** touch Supabase. |
 
 ---
 
 ## Deploying to Vercel later
 
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full walkthrough. Short version:
+
 1. **Vercel project settings → Environment Variables**: paste every var from `.env.local` (set them for Production, Preview, and Development).
 2. **Update `NEXT_PUBLIC_SITE_URL`** to your Vercel URL (`https://<project>.vercel.app`).
-3. **Back in Supabase → Authentication → URL Configuration**: add `https://<project>.vercel.app/admin/auth/callback` and `https://<project>.vercel.app/**` to the redirect allowlist. Optionally update the Site URL too.
-4. Future schema changes: run `npx prisma migrate deploy` in Vercel's build command, or run migrations locally before deploying. (Already in `postinstall`: `prisma generate` only, not `migrate`.)
+3. Future schema changes: run `npx prisma migrate deploy` from a network that allows port 5432 to your Supabase pooler, or run migrations locally before deploying. (`postinstall` only runs `prisma generate`, not `migrate`.)
 
 ---
 
@@ -283,8 +244,7 @@ Browser                  Next.js                Supabase
 npx prisma migrate reset    # drops + recreates all tables (DELETES DATA)
 ```
 
-Storage objects survive — wipe them via Storage → bucket → select all → delete.
-Auth users survive — wipe via Authentication → Users → delete.
+Storage objects survive — wipe them via Storage → bucket → select all → delete. (Supabase Auth is not used by this app, so there are no auth users to manage.)
 
 ---
 
@@ -293,11 +253,9 @@ Auth users survive — wipe via Authentication → Users → delete.
 | Symptom | Likely cause |
 |---|---|
 | `Missing required environment variable: ...` at boot | `.env.local` not loaded — restart `npm run dev`. |
-| Login email never arrives | Free-tier rate limit hit, or wrong Site URL. Check Authentication → Logs. |
-| `?error=not_authorized` after clicking magic link | Email isn't in `ADMIN_EMAILS`. |
-| `?error=exchange_failed` or Supabase error page | Callback URL not in **Redirect URLs** list. |
-| Images don't render on storefront | Bucket isn't public, or `next.config.ts` `remotePatterns` doesn't match the host. |
-| `Can't reach database server` | Wrong hostname/region, or password contains unencoded special chars. |
+| `Invalid email or password` at admin login | Mismatch with `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env.local`. Restart dev server after changes. |
+| Images don't render on storefront | Bucket isn't public, or `next.config.ts` `remotePatterns` doesn't match the host (we use `unoptimized: true` so this is unlikely). |
+| `Can't reach database server` | Wrong hostname/region, or password contains unencoded special chars. Some networks (corporate firewalls) block port 5432; switch to a network that doesn't. |
 | Build fails on Vercel: `Module not found: @prisma/client` | Ensure `postinstall: prisma generate` is in `package.json` (it is). |
 
 ---
@@ -309,7 +267,6 @@ Supabase reorganizes the dashboard every few months. If a step in this guide doe
 1. Use the dashboard search (`Cmd/Ctrl-K`) — most things are findable by name.
 2. Connection strings: always behind the **Connect** button at the top of any project page.
 3. API keys: always under **Settings** somewhere — search "API Keys".
-4. Auth redirect URLs: always under **Authentication** → search "URL Configuration".
-5. Storage: always a top-level sidebar item.
+4. Storage: always a top-level sidebar item.
 
 The env vars and what they do don't change — only where you click to copy them.
