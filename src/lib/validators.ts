@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeWhatsApp } from "@/lib/utils";
 
 export const productSchema = z.object({
   name: z.string().min(1).max(100),
@@ -31,7 +32,14 @@ export const checkoutSchema = z.object({
     .string()
     .min(8)
     .max(20)
-    .regex(/^\+?\d+$/, "Nomor WhatsApp hanya boleh angka (boleh diawali +)"),
+    .regex(
+      /^[\d+\s-]+$/,
+      "Nomor WhatsApp hanya boleh angka (boleh diawali +, 0, atau 62)",
+    )
+    .transform((v) => normalizeWhatsApp(v))
+    .refine((v) => v.length >= 10 && v.length <= 15, {
+      message: "Nomor WhatsApp tidak valid",
+    }),
   paymentMethod: z.enum(["QRIS", "BANK_TRANSFER", "COD"]),
   notes: z.string().max(500).optional().nullable(),
   items: z

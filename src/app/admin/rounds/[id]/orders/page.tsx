@@ -23,17 +23,32 @@ const statusVariant: Record<
   CANCELLED: "destructive",
 };
 
+type FilterKey = "all" | "needs-verify" | "awaiting-payment" | "ready-to-deliver";
+
+const filterLabels: Record<FilterKey, string> = {
+  all: "All active",
+  "needs-verify": "Needs payment verify",
+  "awaiting-payment": "Awaiting payment",
+  "ready-to-deliver": "Ready to deliver",
+};
+
 export default async function RoundOrdersPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ show?: string }>;
+  searchParams: Promise<{ show?: string; filter?: string }>;
 }) {
   await requireAdmin();
   const { id } = await params;
-  const { show } = await searchParams;
+  const { show, filter } = await searchParams;
   const includeCancelled = show === "all";
+  const activeFilter: FilterKey =
+    filter === "needs-verify" ||
+    filter === "awaiting-payment" ||
+    filter === "ready-to-deliver"
+      ? filter
+      : "all";
 
   const round = await prisma.preorderRound.findUnique({
     where: { id },
@@ -46,9 +61,26 @@ export default async function RoundOrdersPage({
   });
   if (!round) notFound();
 
-  const activeOrders = round.orders.filter((o) => o.status !== "CANCELLED");
-  const cancelledOrders = round.orders.filter((o) => o.status === "CANCELLED");
-  const visibleOrders = includeCancelled ? round.orders : activeOrders;
+  const allOrders = round.orders;
+  const activeOrders = allOrders.filter((o) => o.status !== "CANCELLED");
+  const cancelledOrders = allOrders.filter((o) => o.status === "CANCELLED");
+
+  type OrderRow = (typeof allOrders)[number];
+  function matchesFilter(o: OrderRow): boolean {
+    switch (activeFilter) {
+      case "needs-verify":
+        return o.status === "PENDING_PAYMENT" && !!o.payment?.proofImageUrl;
+      case "awaiting-payment":
+        return o.status === "PENDING_PAYMENT" && !o.payment?.proofImageUrl;
+      case "ready-to-deliver":
+        return o.status === "PAID" || o.status === "CONFIRMED";
+      default:
+        return true;
+    }
+  }
+
+  const baseList = includeCancelled ? allOrders : activeOrders;
+  const visibleOrders = baseList.filter(matchesFilter);
 
   const totals = activeOrders.reduce(
     (acc, o) => {
@@ -85,12 +117,31 @@ export default async function RoundOrdersPage({
         </div>
       </div>
 
+      {activeFilter !== "all" && (
+        <div className="flex items-center justify-between rounded-md border border-zinc-200 bg-white p-3 text-sm">
+          <span>
+            Filter: <span className="font-medium">{filterLabels[activeFilter]}</span> ·{" "}
+            <span className="text-zinc-500">{visibleOrders.length} match</span>
+          </span>
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/admin/rounds/${id}/orders${includeCancelled ? "?show=all" : ""}`}>
+              Clear filter
+            </Link>
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-base">Orders</CardTitle>
           {cancelledOrders.length > 0 && (
             <Button asChild variant="ghost" size="sm">
-              <Link href={`/admin/rounds/${id}/orders${includeCancelled ? "" : "?show=all"}`}>
+              <Link
+                href={`/admin/rounds/${id}/orders?${new URLSearchParams({
+                  ...(includeCancelled ? {} : { show: "all" }),
+                  ...(activeFilter !== "all" ? { filter: activeFilter } : {}),
+                }).toString()}`}
+              >
                 {includeCancelled
                   ? "Hide cancelled"
                   : `Show ${cancelledOrders.length} cancelled`}
