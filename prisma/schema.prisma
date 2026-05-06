@@ -62,6 +62,7 @@ model Order {
   status           OrderStatus   @default(PENDING_PAYMENT)
   totalAmount      Int
   notes            String?
+  adminNotes       String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   round            PreorderRound @relation(fields: [roundId], references: [id])
@@ -99,6 +100,16 @@ model Payment {
 model OrderCounter {
   id    Int @id @default(1)
   value Int @default(0)
+}
+
+model BusinessSettings {
+  id               Int      @id @default(1)
+  businessName     String   @default("Le Nouette")
+  whatsappNumber   String?
+  deliveryLocation String?
+  aboutBlurb       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 enum RoundStatus {

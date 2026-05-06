@@ -141,6 +141,30 @@ export async function bulkSetOrderStatusAction(
   return { ok: true };
 }
 
+export async function updateAdminNotesAction(
+  shortCode: string,
+  notes: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const trimmed = notes.trim();
+  if (trimmed.length > 2000) {
+    return { ok: false, error: "Notes too long (max 2000 chars)." };
+  }
+  const order = await prisma.order.findUnique({
+    where: { shortCode },
+    select: { id: true, roundId: true },
+  });
+  if (!order) return { ok: false, error: "Pesanan tidak ditemukan." };
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { adminNotes: trimmed.length > 0 ? trimmed : null },
+  });
+  revalidatePath(`/admin/orders/${shortCode}`);
+  revalidatePath(`/admin/rounds/${order.roundId}/orders`);
+  return { ok: true };
+}
+
 export async function deleteOrderAction(shortCode: string): Promise<never> {
   await requireAdmin();
   const order = await prisma.order.findUnique({

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { OrderStatusActions } from "./status-actions";
+import { AdminNotesForm } from "./admin-notes-form";
 
 export const dynamic = "force-dynamic";
 
@@ -197,6 +198,18 @@ export default async function AdminOrderDetail({
             <span className="font-medium">Total</span>
             <span className="text-lg font-semibold">{formatIDR(order.totalAmount)}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Internal notes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminNotesForm
+            shortCode={order.shortCode}
+            initial={order.adminNotes ?? ""}
+          />
         </CardContent>
       </Card>
 
