@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   Package,
+  Receipt,
   Settings,
   X,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/rounds", label: "Rounds", icon: CalendarDays },
+  { href: "/admin/orders", label: "All orders", icon: Receipt },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

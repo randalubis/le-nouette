@@ -68,9 +68,23 @@ model Order {
   round            PreorderRound @relation(fields: [roundId], references: [id])
   items            OrderItem[]
   payment          Payment?
+  statusEvents     OrderStatusEvent[]
 
   @@index([roundId])
   @@index([status])
+}
+
+model OrderStatusEvent {
+  id         String       @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  actor      String
+  note       String?
+  createdAt  DateTime     @default(now())
+  order      Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }
 
 model OrderItem {

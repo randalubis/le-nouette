@@ -172,7 +172,7 @@ export async function setRoundStatusAction(
 }
 
 export async function cancelRoundAction(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  const adminEmail = await requireAdmin();
 
   const round = await prisma.preorderRound.findUnique({
     where: { id },
@@ -196,9 +196,19 @@ export async function cancelRoundAction(id: string): Promise<ActionResult> {
           data: { stockSold: { decrement: item.quantity } },
         });
       }
+      const previous = order.status;
       await tx.order.update({
         where: { id: order.id },
         data: { status: "CANCELLED" },
+      });
+      await tx.orderStatusEvent.create({
+        data: {
+          orderId: order.id,
+          fromStatus: previous,
+          toStatus: "CANCELLED",
+          actor: adminEmail,
+          note: "Round cancelled",
+        },
       });
     }
     await tx.preorderRound.update({ where: { id }, data: { status: "CANCELLED" } });
