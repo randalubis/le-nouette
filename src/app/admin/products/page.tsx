@@ -73,7 +73,97 @@ export default async function ProductsPage() {
         </Button>
       </div>
 
-      <Card>
+      {/* Mobile card list */}
+      <div className="space-y-3 md:hidden">
+        {products.length === 0 ? (
+          <Card className="py-8 text-center text-sm text-zinc-500">
+            No products yet.
+          </Card>
+        ) : (
+          products.map((p) => {
+            const sold = soldByProduct.get(p.id) ?? 0;
+            const inRound = inRoundByProduct.get(p.id);
+            const lastSold = lastSoldByProduct.get(p.id);
+            return (
+              <Card key={p.id} className="p-3">
+                <div className="flex gap-3">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                    <Image
+                      src={p.imageUrl}
+                      alt={p.name}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="truncate font-medium">{p.name}</p>
+                      <ActiveToggle id={p.id} initialActive={p.isActive} />
+                    </div>
+                    <p className="text-sm text-zinc-700">{formatIDR(p.basePrice)}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                      <span>
+                        Sold:{" "}
+                        <span
+                          className={
+                            sold > 0 ? "font-medium text-zinc-700" : "text-zinc-400"
+                          }
+                        >
+                          {sold}
+                        </span>
+                      </span>
+                      {lastSold !== undefined && (
+                        <span
+                          title={
+                            lastSold === p.basePrice
+                              ? "Same as base price"
+                              : `Differs from base price (${formatIDR(p.basePrice)})`
+                          }
+                        >
+                          Last sold:{" "}
+                          <span
+                            className={
+                              lastSold === p.basePrice
+                                ? "text-zinc-500"
+                                : "text-zinc-700"
+                            }
+                          >
+                            {formatIDR(lastSold)}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                    {inRound ? (
+                      <div className="mt-2">
+                        <Badge
+                          variant={inRound.left > 0 ? "success" : "destructive"}
+                          title={`${formatIDR(inRound.price)} · ${inRound.left}/${inRound.limit} left`}
+                        >
+                          {inRound.left > 0
+                            ? `In round · ${inRound.left} left`
+                            : "Sold out"}
+                        </Badge>
+                      </div>
+                    ) : openRound ? (
+                      <p className="mt-2 text-xs text-zinc-400">Not in open round</p>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end gap-1.5 border-t border-zinc-100 pt-3">
+                  <DuplicateButton id={p.id} />
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/admin/products/${p.id}/edit`}>Edit</Link>
+                  </Button>
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <Card className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
