@@ -13,11 +13,11 @@ import { bulkSetOrderStatusAction } from "@/app/admin/orders/actions";
 
 const statusVariant: Record<
   string,
-  "default" | "secondary" | "success" | "warning" | "destructive" | "outline"
+  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
 > = {
   PENDING_PAYMENT: "warning",
   PAID: "success",
-  CONFIRMED: "default",
+  CONFIRMED: "info",
   DELIVERED: "outline",
   CANCELLED: "destructive",
 };
@@ -178,7 +178,7 @@ export function OrdersTable({
       )}
 
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 z-10 bg-zinc-50">
           <TableRow>
             <TableHead className="w-10">
               <input

@@ -15,11 +15,11 @@ export const dynamic = "force-dynamic";
 
 const statusVariant: Record<
   string,
-  "default" | "secondary" | "success" | "warning" | "destructive" | "outline"
+  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
 > = {
   PENDING_PAYMENT: "warning",
   PAID: "success",
-  CONFIRMED: "default",
+  CONFIRMED: "info",
   DELIVERED: "outline",
   CANCELLED: "destructive",
 };
@@ -38,6 +38,7 @@ export default async function AdminOrderDetail({
       round: { select: { id: true, title: true, deliveryDate: true } },
       items: { include: { roundProduct: { include: { product: true } } } },
       payment: true,
+      statusEvents: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!order) notFound();
@@ -198,6 +199,48 @@ export default async function AdminOrderDetail({
             <span className="font-medium">Total</span>
             <span className="text-lg font-semibold">{formatIDR(order.totalAmount)}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Status history</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="relative space-y-3 border-l border-zinc-200 pl-4">
+            <li className="relative">
+              <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-zinc-300" />
+              <p className="text-sm">
+                <span className="font-medium">Order created</span>
+                <span className="ml-2 text-xs text-zinc-500">
+                  {order.createdAt.toLocaleString("en-GB", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </span>
+              </p>
+            </li>
+            {order.statusEvents.map((ev) => (
+              <li key={ev.id} className="relative">
+                <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-zinc-900" />
+                <p className="text-sm">
+                  <span className="font-medium">
+                    {ev.fromStatus
+                      ? `${ev.fromStatus.replace("_", " ")} → ${ev.toStatus.replace("_", " ")}`
+                      : ev.toStatus.replace("_", " ")}
+                  </span>
+                  <span className="ml-2 text-xs text-zinc-500">
+                    {ev.createdAt.toLocaleString("en-GB", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}{" "}
+                    · {ev.actor}
+                    {ev.note ? ` · ${ev.note}` : ""}
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ol>
         </CardContent>
       </Card>
 

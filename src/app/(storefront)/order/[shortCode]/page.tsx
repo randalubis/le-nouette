@@ -23,11 +23,11 @@ const statusLabel: Record<string, string> = {
 
 const statusVariant: Record<
   string,
-  "default" | "secondary" | "success" | "warning" | "destructive"
+  "default" | "secondary" | "success" | "info" | "warning" | "destructive"
 > = {
   PENDING_PAYMENT: "warning",
   PAID: "success",
-  CONFIRMED: "default",
+  CONFIRMED: "info",
   DELIVERED: "success",
   CANCELLED: "destructive",
 };

@@ -83,7 +83,17 @@ export async function POST(request: NextRequest) {
             },
             payment: { create: {} },
           },
-          select: { shortCode: true, totalAmount: true, paymentMethod: true },
+          select: { id: true, shortCode: true, totalAmount: true, paymentMethod: true },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId: order.id,
+            fromStatus: null,
+            toStatus: initialStatus,
+            actor: "customer",
+            note: "Order created",
+          },
         });
 
         return { ...order, roundTitle: round.title };

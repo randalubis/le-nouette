@@ -24,11 +24,11 @@ export const dynamic = "force-dynamic";
 
 const orderStatusVariant: Record<
   string,
-  "default" | "secondary" | "success" | "warning" | "destructive" | "outline"
+  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
 > = {
   PENDING_PAYMENT: "warning",
   PAID: "success",
-  CONFIRMED: "default",
+  CONFIRMED: "info",
   DELIVERED: "outline",
   CANCELLED: "destructive",
 };

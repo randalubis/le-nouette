@@ -1,0 +1,160 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { MessageCircle, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
+
+const statusVariant: Record<
+  string,
+  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
+> = {
+  PENDING_PAYMENT: "warning",
+  PAID: "success",
+  CONFIRMED: "info",
+  DELIVERED: "outline",
+  CANCELLED: "destructive",
+};
+
+export type GlobalOrderRow = {
+  id: string;
+  shortCode: string;
+  customerName: string;
+  customerWhatsApp: string;
+  paymentMethod: "QRIS" | "BANK_TRANSFER" | "COD";
+  status: "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+  totalAmount: number;
+  itemCount: number;
+  createdAt: string;
+  roundTitle: string;
+  roundId: string;
+  needsAttention: boolean;
+};
+
+export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
+  const [query, setQuery] = useState("");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.shortCode.toLowerCase().includes(q) ||
+        r.customerName.toLowerCase().includes(q) ||
+        r.customerWhatsApp.toLowerCase().includes(q) ||
+        r.roundTitle.toLowerCase().includes(q),
+    );
+  }, [rows, query]);
+
+  return (
+    <>
+      <div className="border-b border-zinc-200 p-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search code, name, WhatsApp, or round…"
+            className="pl-9"
+          />
+        </div>
+        {query && (
+          <p className="mt-1 px-1 text-xs text-zinc-500">
+            {visible.length} of {rows.length} match
+          </p>
+        )}
+      </div>
+
+      <Table>
+        <TableHeader className="sticky top-0 z-10 bg-zinc-50">
+          <TableRow>
+            <TableHead>Code</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>WhatsApp</TableHead>
+            <TableHead>Round</TableHead>
+            <TableHead>Items</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Method</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {visible.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={10} className="py-8 text-center text-sm text-zinc-500">
+                {rows.length === 0 ? "No orders in this range." : "No orders match the search."}
+              </TableCell>
+            </TableRow>
+          ) : (
+            visible.map((o) => (
+              <TableRow key={o.id} className={o.status === "CANCELLED" ? "opacity-50" : ""}>
+                <TableCell className="font-mono text-sm">
+                  <span className="inline-flex items-center gap-1.5">
+                    {o.shortCode}
+                    {o.needsAttention && (
+                      <span
+                        className="inline-block h-2 w-2 rounded-full bg-amber-500"
+                        title="Proof uploaded — needs verification"
+                      />
+                    )}
+                  </span>
+                </TableCell>
+                <TableCell className="text-xs text-zinc-500">
+                  {new Date(o.createdAt).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </TableCell>
+                <TableCell className="font-medium">{o.customerName}</TableCell>
+                <TableCell>
+                  <a
+                    href={formatWhatsAppLink(
+                      o.customerWhatsApp,
+                      `Halo ${o.customerName}, soal pesanan ${o.shortCode}…`,
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    {o.customerWhatsApp}
+                  </a>
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href={`/admin/rounds/${o.roundId}/orders`}
+                    className="text-xs text-zinc-700 hover:underline"
+                  >
+                    {o.roundTitle}
+                  </Link>
+                </TableCell>
+                <TableCell>{o.itemCount}</TableCell>
+                <TableCell>{formatIDR(o.totalAmount)}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{o.paymentMethod}</Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={statusVariant[o.status]}>
+                    {o.status.replace("_", " ")}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/admin/orders/${o.shortCode}`}>Open</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </>
+  );
+}

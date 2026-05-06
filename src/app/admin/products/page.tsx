@@ -3,6 +3,7 @@ import Image from "next/image";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils";
@@ -25,6 +26,27 @@ export default async function ProductsPage() {
     soldByProduct.set(id, (soldByProduct.get(id) ?? 0) + it.quantity);
   }
 
+  // Find products attached to the currently OPEN round
+  const openRound = await prisma.preorderRound.findFirst({
+    where: { status: "OPEN" },
+    select: {
+      id: true,
+      items: {
+        select: { productId: true, price: true, stockLimit: true, stockSold: true },
+      },
+    },
+  });
+  const inRoundByProduct = new Map<string, { price: number; left: number; limit: number }>();
+  if (openRound) {
+    for (const it of openRound.items) {
+      inRoundByProduct.set(it.productId, {
+        price: it.price,
+        left: it.stockLimit - it.stockSold,
+        limit: it.stockLimit,
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -41,6 +63,7 @@ export default async function ProductsPage() {
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Base price</TableHead>
+              <TableHead>In open round</TableHead>
               <TableHead className="text-right">Sold</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -49,13 +72,14 @@ export default async function ProductsPage() {
           <TableBody>
             {products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-sm text-zinc-500">
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-zinc-500">
                   No products yet.
                 </TableCell>
               </TableRow>
             ) : (
               products.map((p) => {
                 const sold = soldByProduct.get(p.id) ?? 0;
+                const inRound = inRoundByProduct.get(p.id);
                 return (
                   <TableRow key={p.id}>
                     <TableCell>
@@ -71,6 +95,20 @@ export default async function ProductsPage() {
                     </TableCell>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{formatIDR(p.basePrice)}</TableCell>
+                    <TableCell>
+                      {inRound ? (
+                        <Badge
+                          variant={inRound.left > 0 ? "success" : "destructive"}
+                          title={`${formatIDR(inRound.price)} · ${inRound.left}/${inRound.limit} left`}
+                        >
+                          {inRound.left > 0 ? `${inRound.left} left` : "Sold out"}
+                        </Badge>
+                      ) : openRound ? (
+                        <span className="text-xs text-zinc-400">Not in round</span>
+                      ) : (
+                        <span className="text-xs text-zinc-400">No open round</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">
                       <span className={sold > 0 ? "font-medium" : "text-zinc-400"}>
                         {sold}
