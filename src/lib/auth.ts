@@ -46,7 +46,7 @@ export async function createAdminSession(): Promise<void> {
   cookieStore.set(COOKIE_NAME, `${email}${COOKIE_SEPARATOR}${sig}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     maxAge: COOKIE_MAX_AGE,
   });
