@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
-import { readCustomer, writeCustomer } from "@/lib/cart";
+import { readCustomer, writeCustomer, saveOrderToHistory } from "@/lib/cart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,14 @@ export default function CheckoutPage() {
 
     const shortCode: string = result.shortCode;
     setSubmitted(true);
+    saveOrderToHistory({
+      shortCode,
+      totalAmount: totalAmount,
+      paymentMethod: method,
+      itemCount: totalItems,
+      roundTitle: result.roundTitle ?? "",
+      createdAt: new Date().toISOString(),
+    });
     toast.success(
       isPayNow(method)
         ? `Pesanan ${shortCode} dibuat. Lanjut ke pembayaran.`

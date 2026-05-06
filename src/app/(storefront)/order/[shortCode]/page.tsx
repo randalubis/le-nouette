@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { buildWhatsAppMessage, paymentMethodLabel } from "@/lib/orders";
 import { env } from "@/lib/env";
+import { OrderHistoryRecorder } from "./history-recorder";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,8 @@ export default async function OrderConfirmationPage({
     quantity: it.quantity,
   }));
 
+  const orderUrl = `${env.siteUrl().replace(/\/$/, "")}/order/${order.shortCode}`;
+
   const waMessage = buildWhatsAppMessage({
     shortCode: order.shortCode,
     customerName: order.customerName,
@@ -58,13 +61,26 @@ export default async function OrderConfirmationPage({
     paymentMethod: order.paymentMethod,
     items: itemsForMsg,
     round: order.round,
+    orderUrl,
   });
 
   const businessNumber = env.businessWhatsApp();
   const waLink = businessNumber ? formatWhatsAppLink(businessNumber, waMessage) : null;
 
+  const totalItemCount = order.items.reduce((sum, it) => sum + it.quantity, 0);
+
   return (
     <div className="space-y-5 py-2">
+      <OrderHistoryRecorder
+        order={{
+          shortCode: order.shortCode,
+          totalAmount: order.totalAmount,
+          paymentMethod: order.paymentMethod,
+          itemCount: totalItemCount,
+          roundTitle: order.round.title,
+          createdAt: order.createdAt.toISOString(),
+        }}
+      />
       <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#f0fae0] via-[var(--surface)] to-[#fef1de] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--success)]/15">
           <CheckCircle2 className="h-8 w-8 text-[var(--success)]" />
