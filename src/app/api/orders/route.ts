@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         }
 
         const shortCode = await nextShortCodeTx(tx);
-        const initialStatus = data.paymentMethod === "QRIS" ? "PENDING_PAYMENT" : "CONFIRMED";
+        const initialStatus = data.paymentMethod === "COD" ? "CONFIRMED" : "PENDING_PAYMENT";
 
         const order = await tx.order.create({
           data: {
