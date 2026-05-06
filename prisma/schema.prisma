@@ -106,6 +106,7 @@ enum RoundStatus {
   OPEN
   CLOSED
   DELIVERED
+  CANCELLED
 }
 
 enum PaymentMethod {

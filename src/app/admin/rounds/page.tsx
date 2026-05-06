@@ -13,6 +13,7 @@ const statusVariant = {
   OPEN: "success",
   CLOSED: "warning",
   DELIVERED: "outline",
+  CANCELLED: "destructive",
 } as const;
 
 export default async function RoundsPage() {

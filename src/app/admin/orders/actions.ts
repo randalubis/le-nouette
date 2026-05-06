@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -57,6 +58,24 @@ export async function setOrderStatusAction(
   revalidatePath(`/admin/orders/${shortCode}`);
   revalidatePath(`/admin/rounds/${order.roundId}/orders`);
   return { ok: true };
+}
+
+export async function deleteOrderAction(shortCode: string): Promise<never> {
+  await requireAdmin();
+  const order = await prisma.order.findUnique({
+    where: { shortCode },
+    select: { id: true, status: true, roundId: true },
+  });
+  if (!order) {
+    throw new Error("Pesanan tidak ditemukan.");
+  }
+  if (order.status !== "CANCELLED") {
+    throw new Error("Hanya pesanan yang sudah dibatalkan yang bisa dihapus permanen.");
+  }
+  await prisma.order.delete({ where: { id: order.id } });
+  revalidatePath("/admin");
+  revalidatePath(`/admin/rounds/${order.roundId}/orders`);
+  redirect(`/admin/rounds/${order.roundId}/orders`);
 }
 
 export async function bulkMarkDeliveredAction(roundId: string): Promise<ActionResult> {

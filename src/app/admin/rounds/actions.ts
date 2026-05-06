@@ -146,7 +146,7 @@ export async function updateRoundAction(
   redirect("/admin/rounds");
 }
 
-const statusSchema = z.enum(["DRAFT", "OPEN", "CLOSED", "DELIVERED"]);
+const statusSchema = z.enum(["DRAFT", "OPEN", "CLOSED", "DELIVERED", "CANCELLED"]);
 
 export async function setRoundStatusAction(
   id: string,
@@ -167,6 +167,46 @@ export async function setRoundStatusAction(
 
   await prisma.preorderRound.update({ where: { id }, data: { status: parsed.data } });
   revalidatePath("/admin/rounds");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function cancelRoundAction(id: string): Promise<ActionResult> {
+  await requireAdmin();
+
+  const round = await prisma.preorderRound.findUnique({
+    where: { id },
+    include: {
+      orders: {
+        where: { status: { not: "CANCELLED" } },
+        include: { items: true },
+      },
+    },
+  });
+  if (!round) return { ok: false, error: "Round not found." };
+  if (round.status === "DELIVERED") {
+    return { ok: false, error: "Cannot cancel a delivered round." };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    for (const order of round.orders) {
+      for (const item of order.items) {
+        await tx.roundProduct.update({
+          where: { id: item.roundProductId },
+          data: { stockSold: { decrement: item.quantity } },
+        });
+      }
+      await tx.order.update({
+        where: { id: order.id },
+        data: { status: "CANCELLED" },
+      });
+    }
+    await tx.preorderRound.update({ where: { id }, data: { status: "CANCELLED" } });
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/rounds");
+  revalidatePath(`/admin/rounds/${id}/orders`);
   revalidatePath("/");
   return { ok: true };
 }

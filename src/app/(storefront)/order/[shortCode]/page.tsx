@@ -129,6 +129,18 @@ export default async function OrderConfirmationPage({
 
           <div className="space-y-2 border-t border-[var(--border)] pt-4 text-sm">
             <div className="flex justify-between">
+              <span className="text-[var(--muted)]">Tanggal pemesanan</span>
+              <span className="font-medium">
+                {order.createdAt.toLocaleString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-[var(--muted)]">Pembayaran</span>
               <span className="font-medium">{paymentMethodLabel(order.paymentMethod)}</span>
             </div>

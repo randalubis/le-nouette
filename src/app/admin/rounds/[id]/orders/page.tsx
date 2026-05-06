@@ -25,11 +25,15 @@ const statusVariant: Record<
 
 export default async function RoundOrdersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ show?: string }>;
 }) {
   await requireAdmin();
   const { id } = await params;
+  const { show } = await searchParams;
+  const includeCancelled = show === "all";
 
   const round = await prisma.preorderRound.findUnique({
     where: { id },
@@ -42,16 +46,18 @@ export default async function RoundOrdersPage({
   });
   if (!round) notFound();
 
-  const totals = round.orders
-    .filter((o) => o.status !== "CANCELLED")
-    .reduce(
-      (acc, o) => {
-        acc.revenue += o.totalAmount;
-        acc.itemsTotal += o.items.reduce((s, it) => s + it.quantity, 0);
-        return acc;
-      },
-      { revenue: 0, itemsTotal: 0 },
-    );
+  const activeOrders = round.orders.filter((o) => o.status !== "CANCELLED");
+  const cancelledOrders = round.orders.filter((o) => o.status === "CANCELLED");
+  const visibleOrders = includeCancelled ? round.orders : activeOrders;
+
+  const totals = activeOrders.reduce(
+    (acc, o) => {
+      acc.revenue += o.totalAmount;
+      acc.itemsTotal += o.items.reduce((s, it) => s + it.quantity, 0);
+      return acc;
+    },
+    { revenue: 0, itemsTotal: 0 },
+  );
 
   return (
     <div className="space-y-6">
@@ -59,7 +65,14 @@ export default async function RoundOrdersPage({
         <div>
           <h1 className="text-2xl font-semibold">{round.title}</h1>
           <p className="text-sm text-zinc-500">
-            {round.orders.length} orders · {totals.itemsTotal} items · {formatIDR(totals.revenue)}
+            {activeOrders.length} active orders · {totals.itemsTotal} items ·{" "}
+            {formatIDR(totals.revenue)}
+            {cancelledOrders.length > 0 && (
+              <span className="text-zinc-400">
+                {" "}
+                · {cancelledOrders.length} cancelled
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -73,8 +86,17 @@ export default async function RoundOrdersPage({
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-base">Orders</CardTitle>
+          {cancelledOrders.length > 0 && (
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/admin/rounds/${id}/orders${includeCancelled ? "" : "?show=all"}`}>
+                {includeCancelled
+                  ? "Hide cancelled"
+                  : `Show ${cancelledOrders.length} cancelled`}
+              </Link>
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -91,22 +113,28 @@ export default async function RoundOrdersPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {round.orders.length === 0 ? (
+              {visibleOrders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="py-8 text-center text-sm text-zinc-500">
-                    No orders yet.
+                    {round.orders.length === 0
+                      ? "No orders yet."
+                      : "No active orders. All orders here are cancelled."}
                   </TableCell>
                 </TableRow>
               ) : (
-                round.orders.map((o) => {
+                visibleOrders.map((o) => {
                   const itemsCount = o.items.reduce((s, it) => s + it.quantity, 0);
+                  const isCancelled = o.status === "CANCELLED";
                   return (
-                    <TableRow key={o.id}>
+                    <TableRow key={o.id} className={isCancelled ? "opacity-50" : ""}>
                       <TableCell className="font-mono text-sm">{o.shortCode}</TableCell>
                       <TableCell className="font-medium">{o.customerName}</TableCell>
                       <TableCell>
                         <a
-                          href={formatWhatsAppLink(o.customerWhatsApp, `Halo ${o.customerName}, soal pesanan ${o.shortCode}…`)}
+                          href={formatWhatsAppLink(
+                            o.customerWhatsApp,
+                            `Halo ${o.customerName}, soal pesanan ${o.shortCode}…`,
+                          )}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
