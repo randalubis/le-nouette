@@ -25,8 +25,26 @@ export function formatIDRInput(value: number | string): string {
   return new Intl.NumberFormat("id-ID").format(num);
 }
 
+/**
+ * Normalize an Indonesian phone number to international E.164 form
+ * without the leading `+`. Accepts inputs like:
+ *   +628123456789  ->  628123456789
+ *   628123456789   ->  628123456789
+ *   08123456789    ->  628123456789  (replace local 0 with 62)
+ *   8123456789     ->  628123456789  (assume Indonesian)
+ *   "" / non-digits-only -> ""
+ */
+export function normalizeWhatsApp(input: string): string {
+  if (!input) return "";
+  const digits = input.replace(/[^\d]/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("0")) return "62" + digits.slice(1);
+  if (digits.startsWith("62")) return digits;
+  return "62" + digits;
+}
+
 export function formatWhatsAppLink(phone: string, message: string): string {
-  const clean = phone.replace(/[^\d]/g, "");
+  const clean = normalizeWhatsApp(phone);
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
