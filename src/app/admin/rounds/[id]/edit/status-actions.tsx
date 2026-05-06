@@ -1,11 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { setRoundStatusAction } from "../../actions";
+import { setRoundStatusAction, cancelRoundAction } from "../../actions";
 
-const transitions: Record<string, { label: string; next: "OPEN" | "CLOSED" | "DELIVERED" | "DRAFT" }[]> = {
+type Status = "DRAFT" | "OPEN" | "CLOSED" | "DELIVERED" | "CANCELLED";
+type NextStatus = "OPEN" | "CLOSED" | "DELIVERED" | "DRAFT";
+
+const transitions: Record<Status, { label: string; next: NextStatus }[]> = {
   DRAFT: [{ label: "Open round", next: "OPEN" }],
   OPEN: [{ label: "Close round", next: "CLOSED" }],
   CLOSED: [
@@ -13,6 +16,7 @@ const transitions: Record<string, { label: string; next: "OPEN" | "CLOSED" | "DE
     { label: "Mark delivered", next: "DELIVERED" },
   ],
   DELIVERED: [],
+  CANCELLED: [],
 };
 
 export function RoundStatusActions({
@@ -20,33 +24,80 @@ export function RoundStatusActions({
   status,
 }: {
   id: string;
-  status: "DRAFT" | "OPEN" | "CLOSED" | "DELIVERED";
+  status: Status;
 }) {
   const [pending, startTransition] = useTransition();
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const options = transitions[status] ?? [];
-
-  if (options.length === 0) {
-    return <p className="text-sm text-zinc-500">No further transitions.</p>;
-  }
+  const canCancel = status === "DRAFT" || status === "OPEN" || status === "CLOSED";
 
   return (
-    <div className="flex gap-2">
-      {options.map((opt) => (
-        <Button
-          key={opt.next}
-          variant="outline"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const result = await setRoundStatusAction(id, opt.next);
-              if (!result.ok) toast.error(result.error);
-              else toast.success(`Round → ${opt.next}`);
-            })
-          }
-        >
-          {opt.label}
-        </Button>
-      ))}
+    <div className="space-y-4">
+      {options.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt) => (
+            <Button
+              key={opt.next}
+              variant="outline"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  const result = await setRoundStatusAction(id, opt.next);
+                  if (!result.ok) toast.error(result.error);
+                  else toast.success(`Round → ${opt.next}`);
+                })
+              }
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {options.length === 0 && !canCancel && (
+        <p className="text-sm text-zinc-500">No further transitions.</p>
+      )}
+
+      {canCancel && (
+        <div className="border-t border-zinc-200 pt-4">
+          <p className="mb-2 text-sm font-medium text-zinc-700">Danger zone</p>
+          {!confirmingCancel ? (
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => setConfirmingCancel(true)}
+            >
+              Cancel round
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                This cancels every non-cancelled order in this round and restores their stock.
+                Customers&apos; orders will be marked as cancelled. This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await cancelRoundAction(id);
+                      setConfirmingCancel(false);
+                      if (!result.ok) toast.error(result.error);
+                      else toast.success("Round cancelled.");
+                    })
+                  }
+                >
+                  Yes, cancel everything
+                </Button>
+                <Button variant="outline" onClick={() => setConfirmingCancel(false)}>
+                  Keep round
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

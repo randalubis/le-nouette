@@ -1,9 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { setOrderStatusAction } from "../actions";
+import { setOrderStatusAction, deleteOrderAction } from "../actions";
 
 type Status = "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
 
@@ -40,37 +40,84 @@ export function OrderStatusActions({
   hasProof: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const options = transitions[status];
 
-  if (options.length === 0) {
-    return <p className="text-sm text-zinc-500">No further transitions.</p>;
-  }
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {paymentMethod !== "COD" && status === "PENDING_PAYMENT" && !hasProof && (
         <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
           Customer hasn&apos;t uploaded payment proof yet.
         </p>
       )}
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => (
-          <Button
-            key={opt.next}
-            variant={opt.variant ?? "default"}
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                const result = await setOrderStatusAction(shortCode, opt.next);
-                if (!result.ok) toast.error(result.error);
-                else toast.success(`Status → ${opt.next.replace("_", " ")}`);
-              })
-            }
-          >
-            {opt.label}
-          </Button>
-        ))}
-      </div>
+
+      {options.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt) => (
+            <Button
+              key={opt.next}
+              variant={opt.variant ?? "default"}
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  const result = await setOrderStatusAction(shortCode, opt.next);
+                  if (!result.ok) toast.error(result.error);
+                  else toast.success(`Status → ${opt.next.replace("_", " ")}`);
+                })
+              }
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {options.length === 0 && status !== "CANCELLED" && (
+        <p className="text-sm text-zinc-500">No further transitions.</p>
+      )}
+
+      {status === "CANCELLED" && (
+        <div className="border-t border-zinc-200 pt-4">
+          <p className="mb-2 text-sm font-medium text-zinc-700">Danger zone</p>
+          {!confirmingDelete ? (
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete order permanently
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                Permanently removes this cancelled order and its line items from the database.
+                This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      try {
+                        await deleteOrderAction(shortCode);
+                      } catch (e) {
+                        if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) return;
+                        toast.error(e instanceof Error ? e.message : "Failed to delete.");
+                      }
+                    })
+                  }
+                >
+                  Yes, delete
+                </Button>
+                <Button variant="outline" onClick={() => setConfirmingDelete(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
