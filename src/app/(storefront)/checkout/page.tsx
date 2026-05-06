@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("QRIS");
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     const saved = readCustomer();
@@ -33,13 +34,22 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
+    if (submitted) return;
     if (hydrated && (!cart || cart.items.length === 0)) {
       router.replace("/keranjang");
     }
-  }, [hydrated, cart, router]);
+  }, [hydrated, cart, router, submitted]);
+
+  if (submitted) {
+    return (
+      <p className="py-10 text-center text-sm text-[var(--muted)]">
+        Memproses pesanan…
+      </p>
+    );
+  }
 
   if (!hydrated || !cart || cart.items.length === 0) {
-    return <p className="py-10 text-center text-sm text-zinc-500">Memuat...</p>;
+    return <p className="py-10 text-center text-sm text-[var(--muted)]">Memuat...</p>;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -74,6 +84,12 @@ export default function CheckoutPage() {
     }
 
     const shortCode: string = result.shortCode;
+    setSubmitted(true);
+    toast.success(
+      method === "QRIS"
+        ? `Pesanan ${shortCode} dibuat. Lanjut ke pembayaran QRIS.`
+        : `Pesanan ${shortCode} berhasil dibuat!`,
+    );
     clear();
     if (method === "QRIS") {
       router.replace(`/order/${shortCode}/bayar`);

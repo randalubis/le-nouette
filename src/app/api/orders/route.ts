@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
         return order;
       },
-      { timeout: 20_000, maxWait: 5_000 },
+      { timeout: 20_000, maxWait: 15_000 },
     );
 
     return NextResponse.json({
