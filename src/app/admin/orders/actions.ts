@@ -60,6 +60,87 @@ export async function setOrderStatusAction(
   return { ok: true };
 }
 
+const bulkStatusSchema = z.enum(["CONFIRMED", "CANCELLED"]);
+
+export async function bulkSetOrderStatusAction(
+  shortCodes: string[],
+  status: z.infer<typeof bulkStatusSchema>,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const parsedStatus = bulkStatusSchema.safeParse(status);
+  if (!parsedStatus.success) return { ok: false, error: "Invalid status" };
+  if (!Array.isArray(shortCodes) || shortCodes.length === 0) {
+    return { ok: false, error: "Tidak ada pesanan yang dipilih." };
+  }
+
+  const orders = await prisma.order.findMany({
+    where: { shortCode: { in: shortCodes } },
+    include: { items: true },
+  });
+  if (orders.length === 0) return { ok: false, error: "Pesanan tidak ditemukan." };
+
+  let changed = 0;
+  let skipped = 0;
+  await prisma.$transaction(
+    async (tx) => {
+      for (const order of orders) {
+        if (order.status === parsedStatus.data) {
+          skipped++;
+          continue;
+        }
+        if (order.status === "DELIVERED") {
+          // Don't move out of a terminal state via bulk action
+          skipped++;
+          continue;
+        }
+
+        const isCancelling = parsedStatus.data === "CANCELLED" && order.status !== "CANCELLED";
+        const isReactivating = parsedStatus.data !== "CANCELLED" && order.status === "CANCELLED";
+
+        if (isCancelling) {
+          for (const item of order.items) {
+            await tx.roundProduct.update({
+              where: { id: item.roundProductId },
+              data: { stockSold: { decrement: item.quantity } },
+            });
+          }
+        } else if (isReactivating) {
+          for (const item of order.items) {
+            await tx.roundProduct.update({
+              where: { id: item.roundProductId },
+              data: { stockSold: { increment: item.quantity } },
+            });
+          }
+        }
+
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: parsedStatus.data },
+        });
+        changed++;
+      }
+    },
+    { timeout: 30_000, maxWait: 15_000 },
+  );
+
+  const affectedRoundIds = new Set(orders.map((o) => o.roundId));
+  for (const roundId of affectedRoundIds) {
+    revalidatePath(`/admin/rounds/${roundId}/orders`);
+  }
+  revalidatePath("/admin");
+  for (const o of orders) {
+    revalidatePath(`/admin/orders/${o.shortCode}`);
+  }
+
+  if (changed === 0) {
+    return {
+      ok: false,
+      error: skipped > 0 ? "Pesanan terpilih sudah berada di status itu." : "Tidak ada perubahan.",
+    };
+  }
+  return { ok: true };
+}
+
 export async function deleteOrderAction(shortCode: string): Promise<never> {
   await requireAdmin();
   const order = await prisma.order.findUnique({
