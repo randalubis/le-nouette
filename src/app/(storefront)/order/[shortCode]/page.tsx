@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { buildWhatsAppMessage, paymentMethodLabel } from "@/lib/orders";
 import { env } from "@/lib/env";
+import { getBusinessSettings } from "@/lib/settings";
 import { OrderHistoryRecorder } from "./history-recorder";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +65,8 @@ export default async function OrderConfirmationPage({
     orderUrl,
   });
 
-  const businessNumber = env.businessWhatsApp();
+  const settings = await getBusinessSettings();
+  const businessNumber = settings.whatsappNumber;
   const waLink = businessNumber ? formatWhatsAppLink(businessNumber, waMessage) : null;
 
   const totalItemCount = order.items.reduce((sum, it) => sum + it.quantity, 0);

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { CheckCircle2, MessageCircle, X } from "lucide-react";
+import { CheckCircle2, MessageCircle, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { bulkSetOrderStatusAction } from "@/app/admin/orders/actions";
@@ -42,10 +43,22 @@ export function OrdersTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const visibleOrders = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter(
+      (o) =>
+        o.shortCode.toLowerCase().includes(q) ||
+        o.customerName.toLowerCase().includes(q) ||
+        o.customerWhatsApp.toLowerCase().includes(q),
+    );
+  }, [orders, query]);
 
   const selectableShortCodes = useMemo(
-    () => orders.filter((o) => o.status !== "DELIVERED").map((o) => o.shortCode),
-    [orders],
+    () => visibleOrders.filter((o) => o.status !== "DELIVERED").map((o) => o.shortCode),
+    [visibleOrders],
   );
   const allSelected =
     selectableShortCodes.length > 0 && selected.size === selectableShortCodes.length;
@@ -85,6 +98,24 @@ export function OrdersTable({
 
   return (
     <>
+      <div className="border-b border-zinc-200 p-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by code, name, or WhatsApp…"
+            className="pl-9"
+          />
+        </div>
+        {query && (
+          <p className="mt-1 px-1 text-xs text-zinc-500">
+            {visibleOrders.length} of {orders.length} match
+          </p>
+        )}
+      </div>
+
       {selected.size > 0 && (
         <div className="sticky top-14 z-10 -mx-2 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-white shadow-md md:top-0">
           <div className="flex items-center gap-2 text-sm">
@@ -173,14 +204,14 @@ export function OrdersTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.length === 0 ? (
+          {visibleOrders.length === 0 ? (
             <TableRow>
               <TableCell colSpan={9} className="py-8 text-center text-sm text-zinc-500">
-                {emptyMessage}
+                {orders.length === 0 ? emptyMessage : "No orders match the search."}
               </TableCell>
             </TableRow>
           ) : (
-            orders.map((o) => {
+            visibleOrders.map((o) => {
               const isCancelled = o.status === "CANCELLED";
               const isDelivered = o.status === "DELIVERED";
               const isSelected = selected.has(o.shortCode);
