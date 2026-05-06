@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { uploadImage } from "@/lib/storage";
+import { normalizeWhatsApp } from "@/lib/utils";
 
 export async function POST(
   request: NextRequest,
@@ -10,7 +11,12 @@ export async function POST(
 
   const order = await prisma.order.findUnique({
     where: { shortCode },
-    select: { id: true, status: true, paymentMethod: true },
+    select: {
+      id: true,
+      status: true,
+      paymentMethod: true,
+      customerWhatsApp: true,
+    },
   });
   if (!order) {
     return NextResponse.json({ ok: false, error: "Pesanan tidak ditemukan." }, { status: 404 });
@@ -33,6 +39,25 @@ export async function POST(
     formData = await request.formData();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid form data." }, { status: 400 });
+  }
+
+  const submittedWhatsApp = String(formData.get("whatsapp") ?? "");
+  if (!submittedWhatsApp) {
+    return NextResponse.json(
+      { ok: false, error: "Nomor WhatsApp diperlukan untuk verifikasi." },
+      { status: 400 },
+    );
+  }
+  const normalizedSubmitted = normalizeWhatsApp(submittedWhatsApp);
+  if (normalizedSubmitted !== order.customerWhatsApp) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Nomor WhatsApp tidak cocok dengan pesanan ini. Pakai nomor yang sama saat checkout.",
+      },
+      { status: 403 },
+    );
   }
 
   const proof = formData.get("proof");
