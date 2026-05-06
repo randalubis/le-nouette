@@ -1,0 +1,44 @@
+import { z } from "zod";
+
+export const productSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(1000).optional().nullable(),
+  basePrice: z.coerce.number().int().min(0).max(100_000_000),
+  isActive: z.boolean().default(true),
+});
+
+export const roundItemSchema = z.object({
+  productId: z.string().min(1),
+  price: z.coerce.number().int().min(0).max(100_000_000),
+  stockLimit: z.coerce.number().int().min(0).max(10_000),
+});
+
+export const roundSchema = z.object({
+  title: z.string().min(1).max(100),
+  opensAt: z.coerce.date(),
+  closesAt: z.coerce.date(),
+  deliveryDate: z.coerce.date(),
+  items: z.array(roundItemSchema).min(1),
+});
+
+export const checkoutSchema = z.object({
+  roundId: z.string().min(1),
+  customerName: z.string().min(1).max(100),
+  customerWhatsApp: z
+    .string()
+    .min(8)
+    .max(20)
+    .regex(/^\+?\d+$/, "Nomor WhatsApp hanya boleh angka (boleh diawali +)"),
+  paymentMethod: z.enum(["QRIS", "COD"]),
+  notes: z.string().max(500).optional().nullable(),
+  items: z
+    .array(
+      z.object({
+        roundProductId: z.string().min(1),
+        quantity: z.coerce.number().int().min(1).max(100),
+      }),
+    )
+    .min(1),
+});
+
+export type CheckoutInput = z.infer<typeof checkoutSchema>;

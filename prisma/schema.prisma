@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String
+  basePrice   Int
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  roundItems  RoundProduct[]
+}
+
+model PreorderRound {
+  id           String         @id @default(cuid())
+  title        String
+  opensAt      DateTime
+  closesAt     DateTime
+  deliveryDate DateTime
+  status       RoundStatus    @default(DRAFT)
+  qrisImageUrl String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  items        RoundProduct[]
+  orders       Order[]
+}
+
+model RoundProduct {
+  id         String        @id @default(cuid())
+  roundId    String
+  productId  String
+  price      Int
+  stockLimit Int
+  stockSold  Int           @default(0)
+  round      PreorderRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  product    Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  orderItems OrderItem[]
+
+  @@unique([roundId, productId])
+  @@index([roundId])
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  shortCode        String        @unique
+  roundId          String
+  customerName     String
+  customerWhatsApp String
+  paymentMethod    PaymentMethod
+  status           OrderStatus   @default(PENDING_PAYMENT)
+  totalAmount      Int
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  round            PreorderRound @relation(fields: [roundId], references: [id])
+  items            OrderItem[]
+  payment          Payment?
+
+  @@index([roundId])
+  @@index([status])
+}
+
+model OrderItem {
+  id             String       @id @default(cuid())
+  orderId        String
+  roundProductId String
+  quantity       Int
+  unitPrice      Int
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  roundProduct   RoundProduct @relation(fields: [roundProductId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  orderId       String    @unique
+  proofImageUrl String?
+  paidAt        DateTime?
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderCounter {
+  id    Int @id @default(1)
+  value Int @default(0)
+}
+
+enum RoundStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  DELIVERED
+}
+
+enum PaymentMethod {
+  QRIS
+  COD
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}

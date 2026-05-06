@@ -1,0 +1,113 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { formatIDRInput, parseIDR } from "@/lib/utils";
+
+type Initial = {
+  id?: string;
+  name?: string;
+  description?: string | null;
+  basePrice?: number;
+  isActive?: boolean;
+  imageUrl?: string;
+};
+
+type ActionResult = { ok: true } | { ok: false; error: string };
+
+export function ProductForm({
+  initial,
+  action,
+}: {
+  initial?: Initial;
+  action: (formData: FormData) => Promise<ActionResult>;
+}) {
+  const [price, setPrice] = useState<string>(
+    initial?.basePrice ? formatIDRInput(initial.basePrice) : "",
+  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initial?.imageUrl ?? null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    const fd = new FormData(e.currentTarget);
+    fd.set("basePrice", String(parseIDR(price)));
+    const result = await action(fd);
+    setSubmitting(false);
+    if (result && !result.ok) {
+      toast.error(result.error);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input id="name" name="name" required defaultValue={initial?.name} maxLength={100} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          name="description"
+          defaultValue={initial?.description ?? ""}
+          maxLength={1000}
+          rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="basePrice">Base price (IDR)</Label>
+        <Input
+          id="basePrice"
+          inputMode="numeric"
+          value={price}
+          onChange={(e) => setPrice(formatIDRInput(e.target.value))}
+          placeholder="15.000"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="image">Product image {initial ? "(leave empty to keep current)" : "*"}</Label>
+        <Input
+          id="image"
+          name="image"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          required={!initial}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) setPreviewUrl(URL.createObjectURL(f));
+          }}
+        />
+        {previewUrl && (
+          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md bg-zinc-100">
+            <Image src={previewUrl} alt="Preview" fill className="object-cover" sizes="160px" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          id="isActive"
+          name="isActive"
+          type="checkbox"
+          defaultChecked={initial?.isActive ?? true}
+          className="h-4 w-4 rounded border-zinc-300"
+        />
+        <Label htmlFor="isActive">Active (available to add to rounds)</Label>
+      </div>
+
+      <Button type="submit" disabled={submitting}>
+        {submitting ? "Saving..." : "Save"}
+      </Button>
+    </form>
+  );
+}
