@@ -21,17 +21,20 @@ model Product {
 }
 
 model PreorderRound {
-  id           String         @id @default(cuid())
-  title        String
-  opensAt      DateTime
-  closesAt     DateTime
-  deliveryDate DateTime
-  status       RoundStatus    @default(DRAFT)
-  qrisImageUrl String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  items        RoundProduct[]
-  orders       Order[]
+  id                String         @id @default(cuid())
+  title             String
+  opensAt           DateTime
+  closesAt          DateTime
+  deliveryDate      DateTime
+  status            RoundStatus    @default(DRAFT)
+  qrisImageUrl      String?
+  bankName          String?
+  bankAccountNumber String?
+  bankAccountHolder String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  items             RoundProduct[]
+  orders            Order[]
 }
 
 model RoundProduct {
@@ -107,6 +110,7 @@ enum RoundStatus {
 
 enum PaymentMethod {
   QRIS
+  BANK_TRANSFER
   COD
 }
 

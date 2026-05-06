@@ -19,11 +19,18 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 
 function parseFormData(formData: FormData) {
   const items = JSON.parse(String(formData.get("items") ?? "[]"));
+  const trim = (v: FormDataEntryValue | null) => {
+    const s = String(v ?? "").trim();
+    return s.length > 0 ? s : null;
+  };
   return roundSchema.safeParse({
     title: formData.get("title"),
     opensAt: formData.get("opensAt"),
     closesAt: formData.get("closesAt"),
     deliveryDate: formData.get("deliveryDate"),
+    bankName: trim(formData.get("bankName")),
+    bankAccountNumber: trim(formData.get("bankAccountNumber")),
+    bankAccountHolder: trim(formData.get("bankAccountHolder")),
     items,
   });
 }

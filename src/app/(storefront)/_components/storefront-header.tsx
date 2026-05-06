@@ -14,7 +14,7 @@ export function StorefrontHeader() {
             Le Nouette
           </span>
           <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
-            cemilan
+            bites
           </span>
         </Link>
         <Link

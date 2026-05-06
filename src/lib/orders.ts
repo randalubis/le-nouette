@@ -10,14 +10,27 @@ export async function nextShortCode(): Promise<string> {
   return generateShortCode(counter.value);
 }
 
+type PaymentMethodLabel = "QRIS" | "BANK_TRANSFER" | "COD";
+
 type OrderForMessage = {
   shortCode: string;
   customerName: string;
   totalAmount: number;
-  paymentMethod: "QRIS" | "COD";
+  paymentMethod: PaymentMethodLabel;
   items: Array<{ name: string; quantity: number }>;
   round: { title: string; deliveryDate: Date };
 };
+
+export function paymentMethodLabel(method: PaymentMethodLabel): string {
+  switch (method) {
+    case "QRIS":
+      return "QRIS";
+    case "BANK_TRANSFER":
+      return "Bank Transfer";
+    case "COD":
+      return "Cash on Delivery";
+  }
+}
 
 export function buildWhatsAppMessage(order: OrderForMessage): string {
   const lines = [
@@ -26,7 +39,7 @@ export function buildWhatsAppMessage(order: OrderForMessage): string {
     `Nama: ${order.customerName}`,
     `Ronde: ${order.round.title}`,
     `Pengantaran: ${order.round.deliveryDate.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}`,
-    `Pembayaran: ${order.paymentMethod}`,
+    `Pembayaran: ${paymentMethodLabel(order.paymentMethod)}`,
     ``,
     `Items:`,
     ...order.items.map((it) => `- ${it.quantity}× ${it.name}`),

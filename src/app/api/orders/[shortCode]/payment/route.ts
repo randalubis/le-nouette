@@ -15,9 +15,9 @@ export async function POST(
   if (!order) {
     return NextResponse.json({ ok: false, error: "Pesanan tidak ditemukan." }, { status: 404 });
   }
-  if (order.paymentMethod !== "QRIS") {
+  if (order.paymentMethod === "COD") {
     return NextResponse.json(
-      { ok: false, error: "Pesanan ini tidak butuh bukti QRIS." },
+      { ok: false, error: "Pesanan COD tidak butuh upload bukti pembayaran." },
       { status: 400 },
     );
   }

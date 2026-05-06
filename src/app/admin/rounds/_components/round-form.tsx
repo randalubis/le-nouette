@@ -30,6 +30,9 @@ type Initial = {
   closesAt?: Date;
   deliveryDate?: Date;
   qrisImageUrl?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountHolder?: string | null;
   items?: LineItem[];
 };
 
@@ -156,6 +159,49 @@ export function RoundForm({
             <Image src={qrisPreview} alt="QRIS preview" fill className="object-contain" sizes="160px" />
           </div>
         )}
+      </div>
+
+      <div className="space-y-3 rounded-md border border-zinc-200 bg-white p-4">
+        <Label className="text-sm font-medium">Bank Transfer details (optional)</Label>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="bankName" className="text-xs text-zinc-500">
+              Bank name
+            </Label>
+            <Input
+              id="bankName"
+              name="bankName"
+              defaultValue={initial?.bankName ?? ""}
+              placeholder="Bank Mandiri"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="bankAccountNumber" className="text-xs text-zinc-500">
+              Account number
+            </Label>
+            <Input
+              id="bankAccountNumber"
+              name="bankAccountNumber"
+              defaultValue={initial?.bankAccountNumber ?? ""}
+              placeholder="1234567890"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="bankAccountHolder" className="text-xs text-zinc-500">
+              Account holder
+            </Label>
+            <Input
+              id="bankAccountHolder"
+              name="bankAccountHolder"
+              defaultValue={initial?.bankAccountHolder ?? ""}
+              placeholder="Randa Lubis"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-zinc-500">
+          Leave empty if you don&apos;t want to offer Bank Transfer for this round.
+        </p>
       </div>
 
       <div className="space-y-3">
