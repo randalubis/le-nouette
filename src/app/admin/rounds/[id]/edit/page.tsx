@@ -48,6 +48,9 @@ export default async function EditRoundPage({ params }: { params: Promise<{ id: 
               closesAt: round.closesAt,
               deliveryDate: round.deliveryDate,
               qrisImageUrl: round.qrisImageUrl,
+              bankName: round.bankName,
+              bankAccountNumber: round.bankAccountNumber,
+              bankAccountHolder: round.bankAccountHolder,
               items: round.items,
             }}
             products={products}

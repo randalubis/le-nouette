@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
-import { buildWhatsAppMessage } from "@/lib/orders";
+import { buildWhatsAppMessage, paymentMethodLabel } from "@/lib/orders";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -114,9 +114,7 @@ export default async function OrderConfirmationPage({
           <div className="space-y-2 border-t border-[var(--border)] pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-[var(--muted)]">Pembayaran</span>
-              <span className="font-medium">
-                {order.paymentMethod === "QRIS" ? "QRIS" : "Cash on Delivery"}
-              </span>
+              <span className="font-medium">{paymentMethodLabel(order.paymentMethod)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--muted)]">Pengantaran</span>

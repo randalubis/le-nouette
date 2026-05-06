@@ -36,7 +36,7 @@ export function OrderStatusActions({
 }: {
   shortCode: string;
   status: Status;
-  paymentMethod: "QRIS" | "COD";
+  paymentMethod: "QRIS" | "BANK_TRANSFER" | "COD";
   hasProof: boolean;
 }) {
   const [pending, startTransition] = useTransition();
@@ -48,7 +48,7 @@ export function OrderStatusActions({
 
   return (
     <div className="space-y-3">
-      {paymentMethod === "QRIS" && status === "PENDING_PAYMENT" && !hasProof && (
+      {paymentMethod !== "COD" && status === "PENDING_PAYMENT" && !hasProof && (
         <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
           Customer hasn&apos;t uploaded payment proof yet.
         </p>

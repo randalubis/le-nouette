@@ -13,7 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatIDR } from "@/lib/utils";
 
-type PaymentMethod = "QRIS" | "COD";
+type PaymentMethod = "QRIS" | "BANK_TRANSFER" | "COD";
+
+function isPayNow(m: PaymentMethod) {
+  return m === "QRIS" || m === "BANK_TRANSFER";
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -86,12 +90,12 @@ export default function CheckoutPage() {
     const shortCode: string = result.shortCode;
     setSubmitted(true);
     toast.success(
-      method === "QRIS"
-        ? `Pesanan ${shortCode} dibuat. Lanjut ke pembayaran QRIS.`
+      isPayNow(method)
+        ? `Pesanan ${shortCode} dibuat. Lanjut ke pembayaran.`
         : `Pesanan ${shortCode} berhasil dibuat!`,
     );
     clear();
-    if (method === "QRIS") {
+    if (isPayNow(method)) {
       router.replace(`/order/${shortCode}/bayar`);
     } else {
       router.replace(`/order/${shortCode}`);
@@ -148,14 +152,54 @@ export default function CheckoutPage() {
           <CardHeader>
             <CardTitle>Metode pembayaran</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <PaymentOption
-              value="QRIS"
-              current={method}
-              onSelect={setMethod}
-              label="QRIS"
-              description="Bayar sekarang dan upload bukti transfer."
-            />
+          <CardContent className="space-y-3">
+            <div
+              className={`rounded-lg border p-3 transition-colors ${
+                isPayNow(method)
+                  ? "border-[var(--primary)] bg-[#f3ede1]/40"
+                  : "border-[var(--border)]"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setMethod("QRIS")}
+                className="flex w-full items-start gap-3 text-left"
+              >
+                <span
+                  className={`mt-1 h-4 w-4 shrink-0 rounded-full border-2 ${
+                    isPayNow(method)
+                      ? "border-[var(--primary)] bg-[var(--primary)]"
+                      : "border-[var(--border)]"
+                  }`}
+                />
+                <div>
+                  <p className="font-medium">Bayar sekarang</p>
+                  <p className="text-sm text-[var(--muted)]">
+                    Bayar lalu upload bukti transfer.
+                  </p>
+                </div>
+              </button>
+
+              {isPayNow(method) && (
+                <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3 pl-7">
+                  <SubMethodOption
+                    value="QRIS"
+                    current={method}
+                    onSelect={setMethod}
+                    label="QRIS"
+                    description="Scan kode QR dari aplikasi pembayaran kamu."
+                  />
+                  <SubMethodOption
+                    value="BANK_TRANSFER"
+                    current={method}
+                    onSelect={setMethod}
+                    label="Bank Transfer"
+                    description="Transfer ke rekening yang akan ditampilkan."
+                  />
+                </div>
+              )}
+            </div>
+
             <PaymentOption
               value="COD"
               current={method}
@@ -226,18 +270,53 @@ function PaymentOption({
     <button
       type="button"
       onClick={() => onSelect(value)}
-      className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors ${
-        selected ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 hover:border-zinc-300"
+      className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
+        selected
+          ? "border-[var(--primary)] bg-[#f3ede1]/40"
+          : "border-[var(--border)] hover:border-[var(--primary)]/40"
       }`}
     >
       <span
         className={`mt-1 h-4 w-4 shrink-0 rounded-full border-2 ${
-          selected ? "border-zinc-900 bg-zinc-900" : "border-zinc-300"
+          selected ? "border-[var(--primary)] bg-[var(--primary)]" : "border-[var(--border)]"
         }`}
       />
       <div>
         <p className="font-medium">{label}</p>
-        <p className="text-sm text-zinc-500">{description}</p>
+        <p className="text-sm text-[var(--muted)]">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function SubMethodOption({
+  value,
+  current,
+  onSelect,
+  label,
+  description,
+}: {
+  value: PaymentMethod;
+  current: PaymentMethod;
+  onSelect: (v: PaymentMethod) => void;
+  label: string;
+  description: string;
+}) {
+  const selected = current === value;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(value)}
+      className="flex w-full items-start gap-3 rounded-md py-1.5 text-left"
+    >
+      <span
+        className={`mt-1 h-3.5 w-3.5 shrink-0 rounded-full border-2 ${
+          selected ? "border-[var(--primary)] bg-[var(--primary)]" : "border-[var(--border)]"
+        }`}
+      />
+      <div>
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-[var(--muted)]">{description}</p>
       </div>
     </button>
   );

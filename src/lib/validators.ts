@@ -18,6 +18,9 @@ export const roundSchema = z.object({
   opensAt: z.coerce.date(),
   closesAt: z.coerce.date(),
   deliveryDate: z.coerce.date(),
+  bankName: z.string().max(100).optional().nullable(),
+  bankAccountNumber: z.string().max(50).optional().nullable(),
+  bankAccountHolder: z.string().max(100).optional().nullable(),
   items: z.array(roundItemSchema).min(1),
 });
 
@@ -29,7 +32,7 @@ export const checkoutSchema = z.object({
     .min(8)
     .max(20)
     .regex(/^\+?\d+$/, "Nomor WhatsApp hanya boleh angka (boleh diawali +)"),
-  paymentMethod: z.enum(["QRIS", "COD"]),
+  paymentMethod: z.enum(["QRIS", "BANK_TRANSFER", "COD"]),
   notes: z.string().max(500).optional().nullable(),
   items: z
     .array(

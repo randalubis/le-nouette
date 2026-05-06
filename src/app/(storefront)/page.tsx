@@ -44,13 +44,10 @@ export default async function StorefrontHome() {
 
   return (
     <div className="space-y-5">
-      <div className="space-y-1 pt-2">
+      <div className="pt-2">
         <h1 className="font-serif text-3xl font-semibold leading-tight text-[var(--primary)]">
           Cemilan minggu ini
         </h1>
-        <p className="text-sm text-[var(--muted)]">
-          Pilih cemilanmu, tambah ke keranjang, kirim pesananmu.
-        </p>
       </div>
 
       <RoundBanner
