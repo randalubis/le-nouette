@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           select: { shortCode: true, totalAmount: true, paymentMethod: true },
         });
 
-        return order;
+        return { ...order, roundTitle: round.title };
       },
       { timeout: 20_000, maxWait: 15_000 },
     );
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
       shortCode: result.shortCode,
       totalAmount: result.totalAmount,
       paymentMethod: result.paymentMethod,
+      roundTitle: result.roundTitle,
     });
   } catch (e) {
     if (e instanceof BadRequest) {

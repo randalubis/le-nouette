@@ -19,6 +19,7 @@ type OrderForMessage = {
   paymentMethod: PaymentMethodLabel;
   items: Array<{ name: string; quantity: number }>;
   round: { title: string; deliveryDate: Date };
+  orderUrl?: string;
 };
 
 export function paymentMethodLabel(method: PaymentMethodLabel): string {
@@ -45,6 +46,7 @@ export function buildWhatsAppMessage(order: OrderForMessage): string {
     ...order.items.map((it) => `- ${it.quantity}× ${it.name}`),
     ``,
     `Total: ${formatIDR(order.totalAmount)}`,
+    ...(order.orderUrl ? [``, `Cek pesanan: ${order.orderUrl}`] : []),
   ];
   return lines.join("\n");
 }

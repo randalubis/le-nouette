@@ -71,3 +71,44 @@ export function writeCustomer(c: SavedCustomer): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(c));
 }
+
+export const ORDER_HISTORY_STORAGE_KEY = "le-nouette-orders-v1";
+
+export type SavedOrder = {
+  shortCode: string;
+  totalAmount: number;
+  paymentMethod: "QRIS" | "BANK_TRANSFER" | "COD";
+  itemCount: number;
+  roundTitle: string;
+  createdAt: string; // ISO timestamp
+};
+
+export function readOrderHistory(): SavedOrder[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(ORDER_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed as SavedOrder[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveOrderToHistory(order: SavedOrder): void {
+  if (typeof window === "undefined") return;
+  const existing = readOrderHistory();
+  // Dedupe by shortCode (in case the same order is saved twice)
+  const filtered = existing.filter((o) => o.shortCode !== order.shortCode);
+  // Newest first; cap at 50 to avoid unbounded growth
+  const next = [order, ...filtered].slice(0, 50);
+  window.localStorage.setItem(ORDER_HISTORY_STORAGE_KEY, JSON.stringify(next));
+}
+
+export function removeOrderFromHistory(shortCode: string): void {
+  if (typeof window === "undefined") return;
+  const existing = readOrderHistory();
+  const next = existing.filter((o) => o.shortCode !== shortCode);
+  window.localStorage.setItem(ORDER_HISTORY_STORAGE_KEY, JSON.stringify(next));
+}
