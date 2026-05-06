@@ -1,114 +1,175 @@
 # Le Nouette
 
-Preorder web app for an office snack micro-business. Replaces a WhatsApp + Google Sheets workflow.
+A preorder ordering app for a small office snack business. Friends in the same office browse a weekly catalog, place orders, pay via QRIS or cash on delivery, and the owner manages everything from a single back office.
 
-**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind 4 · Prisma · Supabase (Postgres + Auth + Storage) · Vercel.
+Built to replace a manual workflow of taking orders over WhatsApp and tracking them in Google Sheets.
 
-## What ships in Slice 1 (this scaffold)
+## How it works
 
-- Admin login (Supabase magic link, allowlist via `ADMIN_EMAILS`)
-- Admin dashboard, products CRUD with image upload, preorder rounds CRUD, status transitions
-- Storefront landing page that lists products in the currently `OPEN` round (read-only)
-- IDR currency formatting, Bahasa storefront / English admin
+The business runs in **rounds**. Each round has:
 
-## What ships next
+- An **open time** (when ordering starts) and a **close time** (cutoff)
+- A **delivery date** (typically Friday or Monday)
+- A list of **products** with per-round pricing and stock
 
-- **Slice 2** — cart + checkout + order creation + WA deep link, payment proof upload
-- **Slice 3** — admin order list + payment verification + CSV export + i18n polish
+Customers visit the storefront, see the open round and its menu, fill their cart, check out, and (for QRIS) upload payment proof. The admin reviews orders, marks them paid + delivered, and exports the round to CSV when it's done.
 
-## Getting started
+Only one round can be `OPEN` at a time. When no round is open, the storefront shows a "preorder ditutup" message.
 
-> **Detailed Supabase setup walkthrough:** [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) — recommended for first-time setup. The summary below is a recap.
+## Features
 
-### 1. Create a Supabase project
+### Storefront (Bahasa Indonesia, customer-facing)
 
-1. Sign up at [supabase.com](https://supabase.com) (free tier is fine).
-2. Create a project. Wait for provisioning (~2 min).
-3. From **Project Settings → Database**, copy the connection string. You need two:
-   - **Pooler (port 6543)** for `DATABASE_URL` — used at runtime.
-   - **Direct (port 5432)** for `DIRECT_URL` — used by `prisma migrate`.
-4. From **Project Settings → API**, copy:
-   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon` public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only — never ship to the client)
-5. From **Storage**, create a bucket named `le-nouette` (or change `SUPABASE_STORAGE_BUCKET`). **Mark it public** so storefront images load.
-6. From **Authentication → Providers**, leave Email enabled (default). The app uses passwordless magic links.
-7. From **Authentication → URL Configuration**, add your site URL (e.g. `http://localhost:3000` and later your Vercel URL) under **Redirect URLs**.
+- Product grid with the current round's countdown banner
+- Cart persisted to `localStorage` (survives page reloads, no account required)
+- Checkout flow capturing name + WhatsApp number, choice of QRIS or COD
+- For QRIS: payment proof upload screen
+- Order confirmation with a one-tap **WhatsApp deep link** that opens a chat to the owner with a prefilled order summary
+- Mobile-first design with a Playfair + Geist type pairing on a cream/coffee palette
 
-### 2. Configure env vars
+### Back office (English, admin-facing)
 
-```bash
-cp .env.example .env.local
-# fill in the values from step 1
-```
+- **Products** — CRUD with image upload to Supabase Storage
+- **Preorder rounds** — create, edit, set open/close/delivery dates, attach products with per-round price + stock, upload a QRIS image
+- **Round lifecycle** — Draft → Open → Closed → Delivered, with a guard that only one round can be open at a time
+- **Orders per round** — table with status filters, per-row WhatsApp link to message the customer
+- **Order detail** — view payment proof, verify payment, transition through statuses (`PENDING_PAYMENT` → `PAID` → `CONFIRMED` → `DELIVERED`), or cancel and auto-restore stock
+- **Bulk action** — mark all paid/confirmed orders as delivered at once
+- **CSV export** per round (the spreadsheet replacement)
+- **Order short codes** like `LN-0042` for human-readable references in WhatsApp follow-ups
 
-`ADMIN_EMAILS` is a comma-separated allowlist. Anyone outside it gets bounced from `/admin`.
+### Auth
 
-### 3. Install + migrate + run
+A single-admin model. Credentials live in `.env.local` and the session is held in an HMAC-signed `httpOnly` cookie (Web Crypto, 30-day expiry). No email magic links, no third-party auth provider — kept simple because there's exactly one operator. Customers don't need accounts.
 
-```bash
-npm install
-npx prisma migrate dev --name init   # creates the tables
-npm run dev
-```
+## Tech stack
 
-- Storefront → http://localhost:3000
-- Admin → http://localhost:3000/admin
+- **Framework**: Next.js 16 (App Router) · TypeScript · React 19
+- **Styling**: Tailwind CSS v4 · custom token system · Playfair Display + Geist
+- **Database**: Postgres on Supabase, accessed via Prisma 6
+- **Image storage**: Supabase Storage (single public bucket)
+- **Hosting**: Vercel (free tier)
+- **Validation**: Zod
+- **Currency**: IDR with `id-ID` locale formatting (no decimals, dot separators)
 
-### 4. First-time setup walkthrough
+## Quick start
 
-1. Open `/admin/login`, enter your email (must be in `ADMIN_EMAILS`), click the magic link in your inbox.
-2. Go to **Products** → **New product**, upload images, set base prices.
-3. Go to **Rounds** → **New round**, give it a title, set open/close/delivery dates, add products with per-round price + stock.
-4. From the round edit page, click **Open round**.
-5. Visit `/` to see the storefront.
+> Full first-time walkthrough lives in **[docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)** — recommended for the initial setup. This is the recap.
 
-## Project layout
+1. Create a Supabase project and copy connection strings + the publishable/secret API keys.
+2. Create a public Storage bucket named `le-nouette`.
+3. Configure env vars:
+   ```bash
+   cp .env.example .env.local
+   # fill in DATABASE_URL, DIRECT_URL, NEXT_PUBLIC_SUPABASE_URL,
+   # SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAIL, ADMIN_PASSWORD,
+   # ADMIN_SESSION_SECRET, NEXT_PUBLIC_BUSINESS_WHATSAPP
+   ```
+   Generate the session secret with:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+4. Install, migrate, run:
+   ```bash
+   npm install
+   npx prisma migrate dev --name init
+   npm run dev
+   ```
+5. Open the admin at http://localhost:3000/admin and add some products + a round.
+
+## Project structure
 
 ```
 src/
   app/
-    page.tsx                       # storefront (Bahasa)
-    layout.tsx
-    admin/
-      layout.tsx                   # auth-gated shell
-      login/page.tsx               # magic link form
-      auth/callback/route.ts       # OAuth/OTP exchange
-      page.tsx                     # dashboard
-      products/                    # products CRUD
-      rounds/                      # rounds CRUD
+    layout.tsx                       # root layout, fonts, providers
+    globals.css                      # design tokens
+    (storefront)/                    # customer pages (Bahasa)
+      layout.tsx                     # storefront chrome (header)
+      page.tsx                       # landing — current round + product grid
+      keranjang/page.tsx             # cart
+      checkout/page.tsx              # checkout form
+      order/[shortCode]/             # order confirmation + payment proof upload
+      _components/                   # storefront-specific components
+    admin/                           # back office (English, auth-gated)
+      layout.tsx                     # admin shell (sidebar)
+      login/page.tsx                 # email + password form
+      page.tsx                       # dashboard
+      products/                      # product CRUD
+      rounds/                        # round CRUD + status transitions
+      orders/[shortCode]/            # order detail + status actions
       settings/page.tsx
-  components/ui/                   # shadcn-style primitives
+      _components/                   # admin-specific components
+    api/
+      admin/login | logout/          # cookie-based session endpoints
+      admin/rounds/[id]/orders.csv   # CSV export
+      orders/                        # order creation
+      orders/[shortCode]/payment/    # payment proof upload
+  components/
+    cart-provider.tsx                # cart context + localStorage sync
+    providers.tsx                    # client-side provider wrapper
+    ui/                              # shadcn-style primitives
   lib/
-    db.ts                          # Prisma client singleton
-    auth.ts                        # requireAdmin / getAdminUser
-    storage.ts                     # Supabase storage upload helpers
-    supabase/                      # browser, server, middleware, admin clients
-    validators.ts                  # Zod schemas
-    utils.ts                       # cn, formatIDR, parseIDR, etc.
-  middleware.ts                    # session refresh + admin route guard
-prisma/schema.prisma
+    auth.ts                          # HMAC cookie session helpers
+    cart.ts                          # cart types + localStorage helpers
+    db.ts                            # Prisma client singleton
+    env.ts                           # required-env-var accessors
+    orders.ts                        # short-code generation, WA message builder
+    storage.ts                       # Supabase Storage upload/delete
+    supabase/admin.ts                # service-role Supabase client (uploads only)
+    utils.ts                         # cn, formatIDR, parseIDR, formatWhatsAppLink
+    validators.ts                    # Zod schemas
+  middleware.ts                      # admin route guard
+prisma/
+  schema.prisma                      # 7 models: Product, PreorderRound, RoundProduct,
+                                     # Order, OrderItem, Payment, OrderCounter
+  migrations/                        # versioned schema changes
+docs/
+  SUPABASE_SETUP.md                  # detailed first-time setup
+  DEPLOYMENT.md                      # Vercel deployment walkthrough
 ```
 
-## Deployment (Vercel)
+## Data model
 
-1. Push to GitHub.
-2. Import the repo on Vercel.
-3. Set the same env vars from `.env.local` in the Vercel project settings.
-4. Add the Vercel URL to Supabase **Authentication → URL Configuration → Redirect URLs**.
-5. Update `NEXT_PUBLIC_SITE_URL` to your Vercel URL.
+Seven Prisma models. Read [`prisma/schema.prisma`](prisma/schema.prisma) for the full source of truth:
+
+- **Product** — the catalog. Reused across rounds.
+- **PreorderRound** — a single round with `opensAt`, `closesAt`, `deliveryDate`, `status`, optional QRIS image.
+- **RoundProduct** — join between a product and a round, snapshotting price + stock per round so prices can change between rounds without breaking history.
+- **Order** + **OrderItem** + **Payment** — a customer's order, its line items (with snapshotted unit prices), and the payment record (with proof URL for QRIS).
+- **OrderCounter** — a single-row table that hands out sequential `LN-0001`, `LN-0002`, … codes inside the order-creation transaction.
+
+## Deployment
+
+Walkthrough: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** (Vercel + Supabase, ~30 min for the first deploy).
+
+The short version:
+
+1. Push to GitHub
+2. Import the repo on Vercel — it auto-detects Next.js
+3. Paste env vars (use a fresh `ADMIN_SESSION_SECRET` for production)
+4. Vercel builds; the same Supabase project serves both dev and prod
+5. After the first deploy, set `NEXT_PUBLIC_SITE_URL` to your Vercel URL and redeploy
+
+Schema changes flow as: edit `prisma/schema.prisma` → `npx prisma migrate dev --name <change>` → commit migration files → push.
 
 ## Useful commands
 
 ```bash
-npm run dev              # local dev
+npm run dev              # local dev server (Next.js + Turbopack)
 npm run build            # production build
-npm run db:migrate       # create + apply a migration
-npm run db:push          # push schema without migrations (prototyping)
-npm run db:studio        # open Prisma Studio
+npm run db:generate      # regenerate Prisma client
+npm run db:migrate       # create + apply a migration (dev)
+npm run db:studio        # open Prisma Studio (DB browser)
 ```
 
-## Known follow-ups
+## Design decisions worth knowing
 
-- Next.js 16 deprecated the `middleware.ts` filename in favor of `proxy.ts`. Functionally equivalent; rename when convenient.
-- Order management UI ships in Slice 3.
+- **Stock decrements at order placement**, not at payment. Simpler reasoning, and the small scale doesn't warrant a hold/release flow. Cancelled orders auto-restore stock.
+- **One Supabase project, two Vercel envs.** Saves cost and complexity at this scale. Production data and dev data share a database — handle with care.
+- **`images.unoptimized: true`** in `next.config.ts`. The Supabase URLs are served directly. Avoids a Next 16 quirk with `remotePatterns` and isn't a meaningful cost at <30 product images.
+- **Prisma transaction timeout = 20s** on order creation, to absorb pooler latency from Indonesia to the Supabase region. Default of 5s wasn't enough.
+
+## License
+
+[MIT](LICENSE).
