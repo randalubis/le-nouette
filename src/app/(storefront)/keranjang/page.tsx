@@ -47,7 +47,8 @@ export default function CartPage() {
             className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[0_1px_2px_rgba(58,38,16,0.04)]"
           >
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[#f3ede1]">
-              <Image src={it.imageUrl} alt={it.name} fill className="object-cover" sizes="80px" />
+              {/* alt="" — name is announced from the adjacent text (N-13). */}
+              <Image src={it.imageUrl} alt="" fill className="object-cover" sizes="80px" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{it.name}</p>

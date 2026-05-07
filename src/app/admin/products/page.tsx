@@ -88,9 +88,10 @@ export default async function ProductsPage() {
               <Card key={p.id} className="p-3">
                 <div className="flex gap-3">
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                    {/* alt="" — name is announced from the adjacent text (N-13). */}
                     <Image
                       src={p.imageUrl}
-                      alt={p.name}
+                      alt=""
                       fill
                       className="object-cover"
                       sizes="80px"
@@ -193,9 +194,10 @@ export default async function ProductsPage() {
                   <TableRow key={p.id}>
                     <TableCell>
                       <div className="relative h-16 w-16 overflow-hidden rounded-md bg-zinc-100">
+                        {/* alt="" — name is announced from the adjacent table cell (N-13). */}
                         <Image
                           src={p.imageUrl}
-                          alt={p.name}
+                          alt=""
                           fill
                           className="object-cover"
                           sizes="64px"

@@ -183,9 +183,10 @@ export default async function AdminOrderDetail({
           {order.items.map((it) => (
             <div key={it.id} className="flex items-center gap-3">
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                {/* alt="" — name is announced from the adjacent text (N-13). */}
                 <Image
                   src={it.roundProduct.product.imageUrl}
-                  alt={it.roundProduct.product.name}
+                  alt=""
                   fill
                   className="object-cover"
                   sizes="48px"
