@@ -7,26 +7,24 @@ import { setOrderStatusAction, deleteOrderAction } from "../actions";
 
 type Status = "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
 
-const transitions: Record<
+// Happy-path transitions only — cancel is rendered separately in the
+// Danger zone block below so it can't sit next to "Mark delivered" and
+// invite a misclick. (Plan ticket X-08.)
+const HAPPY_PATH: Record<
   Status,
-  Array<{ label: string; next: Status; variant?: "default" | "destructive" | "outline" }>
+  Array<{ label: string; next: Status; variant?: "default" | "outline" }>
 > = {
-  PENDING_PAYMENT: [
-    { label: "Verify payment", next: "PAID" },
-    { label: "Cancel order", next: "CANCELLED", variant: "destructive" },
-  ],
+  PENDING_PAYMENT: [{ label: "Verify payment", next: "PAID" }],
   PAID: [
     { label: "Mark confirmed", next: "CONFIRMED" },
     { label: "Mark delivered", next: "DELIVERED" },
-    { label: "Cancel order", next: "CANCELLED", variant: "destructive" },
   ],
-  CONFIRMED: [
-    { label: "Mark delivered", next: "DELIVERED" },
-    { label: "Cancel order", next: "CANCELLED", variant: "destructive" },
-  ],
+  CONFIRMED: [{ label: "Mark delivered", next: "DELIVERED" }],
   DELIVERED: [],
   CANCELLED: [{ label: "Reactivate (set to confirmed)", next: "CONFIRMED", variant: "outline" }],
 };
+
+const CAN_CANCEL: ReadonlySet<Status> = new Set(["PENDING_PAYMENT", "PAID", "CONFIRMED"]);
 
 export function OrderStatusActions({
   shortCode,
@@ -41,7 +39,10 @@ export function OrderStatusActions({
 }) {
   const [pending, startTransition] = useTransition();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const options = transitions[status];
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const happy = HAPPY_PATH[status];
+  const canCancel = CAN_CANCEL.has(status);
+  const canDelete = status === "CANCELLED";
 
   return (
     <div className="space-y-4">
@@ -51,9 +52,9 @@ export function OrderStatusActions({
         </p>
       )}
 
-      {options.length > 0 && (
+      {happy.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {options.map((opt) => (
+          {happy.map((opt) => (
             <Button
               key={opt.next}
               variant={opt.variant ?? "default"}
@@ -72,14 +73,56 @@ export function OrderStatusActions({
         </div>
       )}
 
-      {options.length === 0 && status !== "CANCELLED" && (
+      {happy.length === 0 && status !== "CANCELLED" && (
         <p className="text-sm text-[var(--muted)]">No further transitions.</p>
       )}
 
-      {status === "CANCELLED" && (
+      {(canCancel || canDelete) && (
         <div className="border-t border-[var(--border)] pt-4">
           <p className="mb-2 text-sm font-medium text-[var(--foreground)]">Danger zone</p>
-          {!confirmingDelete ? (
+
+          {canCancel && !confirmingCancel && (
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => setConfirmingCancel(true)}
+            >
+              Cancel order
+            </Button>
+          )}
+
+          {canCancel && confirmingCancel && (
+            <div className="space-y-2">
+              <p className="rounded-md bg-[var(--badge-destructive-bg)] p-3 text-sm text-[var(--badge-destructive-fg)]">
+                Cancel this order? Stock will be restored and the customer will need
+                to be notified via WhatsApp.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await setOrderStatusAction(shortCode, "CANCELLED");
+                      if (!result.ok) {
+                        toast.error(result.error);
+                        return;
+                      }
+                      toast.success("Order cancelled.");
+                      setConfirmingCancel(false);
+                    })
+                  }
+                >
+                  Yes, cancel
+                </Button>
+                <Button variant="outline" onClick={() => setConfirmingCancel(false)}>
+                  Back
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {canDelete && !confirmingDelete && (
             <Button
               variant="destructive"
               disabled={pending}
@@ -87,7 +130,9 @@ export function OrderStatusActions({
             >
               Delete order permanently
             </Button>
-          ) : (
+          )}
+
+          {canDelete && confirmingDelete && (
             <div className="space-y-2">
               <p className="rounded-md bg-[var(--badge-destructive-bg)] p-3 text-sm text-[var(--badge-destructive-fg)]">
                 Permanently removes this cancelled order and its line items from the database.
@@ -111,7 +156,7 @@ export function OrderStatusActions({
                   Yes, delete
                 </Button>
                 <Button variant="outline" onClick={() => setConfirmingDelete(false)}>
-                  Cancel
+                  Back
                 </Button>
               </div>
             </div>
