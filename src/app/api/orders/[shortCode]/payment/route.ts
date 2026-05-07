@@ -84,10 +84,19 @@ export async function POST(
     );
   }
 
-  await prisma.payment.update({
-    where: { orderId: order.id },
-    data: { proofImageUrl: imageUrl, paidAt: new Date() },
-  });
+  // X-04: clear the soft hold once proof is in. The order stays in
+  // PENDING_PAYMENT until the admin verifies; the reconciler will skip
+  // it because stockHoldExpiresAt is null.
+  await prisma.$transaction([
+    prisma.payment.update({
+      where: { orderId: order.id },
+      data: { proofImageUrl: imageUrl, paidAt: new Date() },
+    }),
+    prisma.order.update({
+      where: { id: order.id },
+      data: { stockHoldExpiresAt: null },
+    }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

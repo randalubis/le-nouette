@@ -3,13 +3,34 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
+import type { CartItem } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
 import { formatIDR } from "@/lib/utils";
 
 export default function CartPage() {
-  const { cart, hydrated, setQuantity, remove, totalAmount } = useCart();
+  const { cart, hydrated, setQuantity, remove, add, totalAmount } = useCart();
+
+  // X-14: soft-delete with a 5s undo toast. Removes immediately so the UI
+  // stays responsive; the toast action restores the same quantity.
+  function handleRemove(it: CartItem) {
+    if (!cart) return;
+    const roundId = cart.roundId;
+    const snapshot = { ...it };
+    remove(it.roundProductId);
+    toast(`${it.name} dihapus`, {
+      action: {
+        label: "Batalkan",
+        onClick: () => {
+          const { quantity, ...rest } = snapshot;
+          add(roundId, rest, quantity);
+        },
+      },
+      duration: 5000,
+    });
+  }
 
   if (!hydrated) {
     return (
@@ -85,7 +106,7 @@ export default function CartPage() {
               </p>
               <button
                 type="button"
-                onClick={() => remove(it.roundProductId)}
+                onClick={() => handleRemove(it)}
                 className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--destructive)]"
               >
                 <Trash2 className="h-3.5 w-3.5" />

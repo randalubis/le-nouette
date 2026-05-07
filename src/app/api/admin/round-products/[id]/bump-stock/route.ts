@@ -55,6 +55,7 @@ export async function POST(
 
     revalidatePath("/admin");
     revalidatePath(`/admin/rounds/${updated.roundId}/edit`);
+    revalidatePath("/"); // X-12: storefront stockLeft changed
     return NextResponse.json({
       ok: true,
       productName: updated.product.name,

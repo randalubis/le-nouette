@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { errorMessage } from "@/lib/errors";
 
@@ -59,5 +60,6 @@ export async function POST(
     return NextResponse.json({ ok: false, error: errorMessage("UNKNOWN") }, { status: 500 });
   }
 
+  revalidatePath("/"); // X-12: stock restored, refresh storefront cache
   return NextResponse.json({ ok: true });
 }

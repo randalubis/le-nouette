@@ -5,7 +5,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { setOrderStatusAction, deleteOrderAction } from "../actions";
 
-type Status = "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+type Status =
+  | "PENDING_PAYMENT"
+  | "PENDING_CONFIRMATION"
+  | "PAID"
+  | "CONFIRMED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "HOLD_EXPIRED";
 
 // Happy-path transitions only — cancel is rendered separately in the
 // Danger zone block below so it can't sit next to "Mark delivered" and
@@ -15,6 +22,8 @@ const HAPPY_PATH: Record<
   Array<{ label: string; next: Status; variant?: "default" | "outline" }>
 > = {
   PENDING_PAYMENT: [{ label: "Verify payment", next: "PAID" }],
+  // X-06: COD orders sit here until the admin confirms.
+  PENDING_CONFIRMATION: [{ label: "Confirm order", next: "CONFIRMED" }],
   PAID: [
     { label: "Mark confirmed", next: "CONFIRMED" },
     { label: "Mark delivered", next: "DELIVERED" },
@@ -22,9 +31,18 @@ const HAPPY_PATH: Record<
   CONFIRMED: [{ label: "Mark delivered", next: "DELIVERED" }],
   DELIVERED: [],
   CANCELLED: [{ label: "Reactivate (set to confirmed)", next: "CONFIRMED", variant: "outline" }],
+  // X-04: terminal state for soft-hold timeouts. No happy-path transitions —
+  // operator can still reactivate via the cancellation/reactivation pattern
+  // if the customer comes back, but that path goes through Cancel → reset.
+  HOLD_EXPIRED: [],
 };
 
-const CAN_CANCEL: ReadonlySet<Status> = new Set(["PENDING_PAYMENT", "PAID", "CONFIRMED"]);
+const CAN_CANCEL: ReadonlySet<Status> = new Set([
+  "PENDING_PAYMENT",
+  "PENDING_CONFIRMATION",
+  "PAID",
+  "CONFIRMED",
+]);
 
 export function OrderStatusActions({
   shortCode,
