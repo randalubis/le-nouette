@@ -13,8 +13,12 @@
   --border: #ebe3d4;
   --primary: #3d2e1f;
   --primary-foreground: #faf7f2;
-  --accent: #b85a2d;
-  --success: #5b7c45;
+  /* Accent and success darkened from #b85a2d / #5b7c45 to clear WCAG AA
+     for normal text on white/cream surfaces (was ~4.4:1 / ~4.6:1, now
+     ~5.4:1 / ~5.8:1). Still terracotta and olive — brand intent preserved.
+     White text on these colors as button bg also clears AA Large. */
+  --accent: #a04d24;
+  --success: #4a6738;
   --warning: #b8841f;
   --destructive: #b03434;
   --ring: #3d2e1f;
@@ -35,8 +39,12 @@
      button's resting state (matches --border but called out semantically). */
   --border-subtle-hover: #dfd3bd;
 
-  /* Communication brand: WhatsApp green for the deep-link CTAs. */
+  /* Communication brand: WhatsApp green for the deep-link CTAs.
+     --whatsapp-fg is the dark-green text color used on top of the green
+     bg — fixed value (not bound to --primary) so it stays readable in
+     both light and dark mode. ~9.7:1 on the green. */
   --whatsapp-green: #25d366;
+  --whatsapp-fg: #0a2f0a;
 
   /* Status badge pairs. Background + foreground designed together for
      AA contrast on the soft variants. */
@@ -158,6 +166,11 @@ body {
     --primary-foreground: #1f1610;
     --primary-hover: #ebe3d4;
     --ring: #faf7f2;
+    /* Brand accent + success lifted off the dark base so icons and link
+       text still clear AA. Original light-mode values (#a04d24 / #4a6738)
+       collapse to ~3:1 on dark; these lift to ~5.7:1 / ~7.3:1. */
+    --accent: #d97a4d;
+    --success: #8eb066;
 
     /* Surface variants warmed up against the dark base. */
     --surface-warm-1: #3a2a1c;
