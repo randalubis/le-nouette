@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 :root {
+  /* Light-only — opt out of OS dark-mode hints on form controls etc.
+     so the warm cream brand stays consistent across UAs. */
+  color-scheme: light;
+
   /* Brand palette — warm cream + deep coffee */
   --background: #faf7f2;
   --surface: #ffffff;
@@ -40,9 +44,8 @@
   --border-subtle-hover: #dfd3bd;
 
   /* Communication brand: WhatsApp green for the deep-link CTAs.
-     --whatsapp-fg is the dark-green text color used on top of the green
-     bg — fixed value (not bound to --primary) so it stays readable in
-     both light and dark mode. ~9.7:1 on the green. */
+     --whatsapp-fg is a fixed dark-green text color used on top of the
+     green bg (~9.7:1). */
   --whatsapp-green: #25d366;
   --whatsapp-fg: #0a2f0a;
 
@@ -147,45 +150,9 @@ body {
   color: var(--primary-foreground);
 }
 
-/* ============================================================
-   Dark mode (L-07)
-   Triggered by the OS-level prefers-color-scheme. Re-binds the
-   brand tokens to a darker palette designed to keep the same
-   warmth at night without losing AA contrast on body text.
-   The badge, success, warning, destructive accent colors stay
-   the same — only the surface stack and muted/foreground shift.
-   ============================================================ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1f1610;
-    --surface: #2a1f15;
-    --foreground: #faf7f2;
-    --muted: #b3a895;
-    --border: #3d2e1f;
-    --primary: #faf7f2;
-    --primary-foreground: #1f1610;
-    --primary-hover: #ebe3d4;
-    --ring: #faf7f2;
-    /* Brand accent + success lifted off the dark base so icons and link
-       text still clear AA. Original light-mode values (#a04d24 / #4a6738)
-       collapse to ~3:1 on dark; these lift to ~5.7:1 / ~7.3:1. */
-    --accent: #d97a4d;
-    --success: #8eb066;
-
-    /* Surface variants warmed up against the dark base. */
-    --surface-warm-1: #3a2a1c;
-    --surface-warm-2: #2f2218;
-    --surface-warm-3: #4a3826;
-    --surface-cool-1: #2a2018;
-    --surface-success-light: #2f3a23;
-    --border-subtle-hover: #4a3826;
-
-    /* Admin density variant flipped too so the back office stays
-       coherent in dark mode. */
-    --admin-bg: #1a120c;
-    --admin-surface: #2a1f15;
-  }
-}
+/* The L-07 dark-mode block was reverted on owner feedback — the brand
+   character lives in the warm cream palette. Light mode is now the only
+   color scheme. The reduced-motion block below stays. */
 
 /* ============================================================
    Reduced motion (L-07)
