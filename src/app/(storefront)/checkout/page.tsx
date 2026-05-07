@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Truck } from "lucide-react";
+import { Pencil, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
-import { readCustomer, writeCustomer, saveOrderToHistory } from "@/lib/cart";
+import {
+  clearCheckoutDraft,
+  readCheckoutDraft,
+  readCustomer,
+  saveOrderToHistory,
+  writeCheckoutDraft,
+  writeCustomer,
+} from "@/lib/cart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,14 +44,31 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
+  // Skip draft writes until the initial restore has run, so we don't clobber
+  // a stored draft with the empty initial state on first render.
+  const draftReadyRef = useRef(false);
 
   useEffect(() => {
-    const saved = readCustomer();
-    if (saved) {
-      setName(saved.name);
-      setWhatsapp(saved.whatsapp);
+    const draft = readCheckoutDraft();
+    if (draft) {
+      setName(draft.name);
+      setWhatsapp(draft.whatsapp);
+      setNotes(draft.notes);
+      setMethod(draft.paymentMethod);
+    } else {
+      const saved = readCustomer();
+      if (saved) {
+        setName(saved.name);
+        setWhatsapp(saved.whatsapp);
+      }
     }
+    draftReadyRef.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!draftReadyRef.current) return;
+    writeCheckoutDraft({ name, whatsapp, notes, paymentMethod: method });
+  }, [name, whatsapp, notes, method]);
 
   useEffect(() => {
     if (!cart?.roundId) return;
@@ -114,6 +139,7 @@ export default function CheckoutPage() {
 
     const shortCode: string = result.shortCode;
     setSubmitted(true);
+    clearCheckoutDraft();
     saveOrderToHistory({
       shortCode,
       totalAmount: totalAmount,
@@ -259,8 +285,15 @@ export default function CheckoutPage() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle>Ringkasan</CardTitle>
+            <Link
+              href="/keranjang"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit keranjang
+            </Link>
           </CardHeader>
           <CardContent className="space-y-2">
             {cart.items.map((it) => (

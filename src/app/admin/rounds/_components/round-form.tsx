@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatIDR, formatIDRInput, parseIDR } from "@/lib/utils";
+
+// "Cemilan Jumat 14 November". Indonesian capitalization: weekday and month
+// names are capitalized. Used to auto-fill the round title from delivery date.
+const ID_TITLE_FORMATTER = new Intl.DateTimeFormat("id-ID", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
+function autoTitleFromDate(value: string): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return `Cemilan ${ID_TITLE_FORMATTER.format(d)}`.slice(0, 100);
+}
 
 type Product = {
   id: string;
@@ -62,8 +77,22 @@ export function RoundForm({
   const [items, setItems] = useState<LineItem[]>(initial?.items ?? []);
   const [submitting, setSubmitting] = useState(false);
   const [qrisPreview, setQrisPreview] = useState<string | null>(initial?.qrisImageUrl ?? null);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  // Tracks the last value we auto-generated. As long as the title field still
+  // matches it, future delivery-date changes can overwrite. Once the operator
+  // edits the title manually, this no longer matches and auto-fill stops.
+  const lastAutoTitleRef = useRef<string>(initial?.title ?? "");
   const productMap = new Map(products.map((p) => [p.id, p]));
   const availableProducts = products.filter((p) => !items.find((it) => it.productId === p.id));
+
+  function handleDeliveryDateChange(value: string) {
+    const next = autoTitleFromDate(value);
+    if (!next) return;
+    if (title === "" || title === lastAutoTitleRef.current) {
+      setTitle(next);
+      lastAutoTitleRef.current = next;
+    }
+  }
 
   function addProduct(productId: string) {
     const p = productMap.get(productId);
@@ -104,9 +133,14 @@ export function RoundForm({
             id="title"
             name="title"
             required
-            defaultValue={initial?.title}
-            placeholder="Round #1 — Friday Snacks"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={100}
+            placeholder="Cemilan Jumat 14 November (otomatis dari tanggal antar)"
           />
+          <p className="text-xs text-zinc-500">
+            Judul ini akan dilihat customer di banner dan konfirmasi pesanan.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="opensAt">Opens at</Label>
@@ -136,6 +170,7 @@ export function RoundForm({
             type="date"
             required
             defaultValue={toDateInput(initial?.deliveryDate)}
+            onChange={(e) => handleDeliveryDateChange(e.target.value)}
           />
         </div>
       </div>

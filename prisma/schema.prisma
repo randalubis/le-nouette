@@ -112,6 +112,21 @@ model Payment {
   order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
+// Audit log for admin-driven stock changes outside the order flow (e.g.
+// the dashboard's "+5 stok" button). Order-driven changes already write
+// OrderStatusEvent. (Plan ticket N-06.)
+model StockAdjustment {
+  id        String   @id @default(cuid())
+  productId String
+  roundId   String
+  delta     Int
+  actor     String
+  createdAt DateTime @default(now())
+
+  @@index([roundId])
+  @@index([productId])
+}
+
 model OrderCounter {
   id    Int @id @default(1)
   value Int @default(0)
