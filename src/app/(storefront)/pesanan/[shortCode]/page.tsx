@@ -232,9 +232,7 @@ export default async function OrderConfirmationPage({
           target="_blank"
           rel="noopener noreferrer"
           // White on #25d366 is only ~2:1 (fails AA Large). Dark green
-          // text on the same green clears ~9.7:1 in both light and dark
-          // mode — token --whatsapp-fg is fixed (not bound to --primary)
-          // so the dark-mode override doesn't flip it back to light.
+          // text on the same green clears ~9.7:1.
           className="flex items-center justify-center gap-2 rounded-full bg-[var(--whatsapp-green)] px-6 py-3.5 text-sm font-semibold text-[var(--whatsapp-fg)] shadow-sm transition-all hover:brightness-105 active:scale-[0.99]"
         >
           <MessageCircle className="h-5 w-5" />
