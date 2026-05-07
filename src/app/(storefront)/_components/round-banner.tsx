@@ -35,7 +35,7 @@ export function RoundBanner({
   const remaining = closesAtDate.getTime() - now;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#fff8eb] via-[var(--surface)] to-[#fef1de] p-5 shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
+    <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--surface-warm-2)] via-[var(--surface)] to-[var(--surface-warm-3)] p-5 shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
       <p className="font-serif text-xl italic text-[var(--primary)]">{title}</p>
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--foreground)]">
         <span className="inline-flex items-center gap-1.5">

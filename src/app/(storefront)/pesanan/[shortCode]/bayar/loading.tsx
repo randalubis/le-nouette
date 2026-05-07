@@ -14,14 +14,14 @@ export default function Loading() {
 
         <div className="mt-6 space-y-4 animate-pulse">
           <div className="space-y-2">
-            <div className="h-3 w-24 rounded-full bg-[#f3ede1]" />
-            <div className="h-8 w-40 rounded-full bg-[#f3ede1]" />
+            <div className="h-3 w-24 rounded-full bg-[var(--surface-warm-1)]" />
+            <div className="h-8 w-40 rounded-full bg-[var(--surface-warm-1)]" />
           </div>
-          <div className="aspect-square w-full max-w-xs rounded-xl bg-[#f3ede1]" />
+          <div className="aspect-square w-full max-w-xs rounded-xl bg-[var(--surface-warm-1)]" />
           <div className="space-y-2">
-            <div className="h-3 w-full rounded-full bg-[#f3ede1]" />
-            <div className="h-3 w-5/6 rounded-full bg-[#f3ede1]" />
-            <div className="h-3 w-4/6 rounded-full bg-[#f3ede1]" />
+            <div className="h-3 w-full rounded-full bg-[var(--surface-warm-1)]" />
+            <div className="h-3 w-5/6 rounded-full bg-[var(--surface-warm-1)]" />
+            <div className="h-3 w-4/6 rounded-full bg-[var(--surface-warm-1)]" />
           </div>
         </div>
       </div>

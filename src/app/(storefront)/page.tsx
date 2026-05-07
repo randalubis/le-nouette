@@ -84,7 +84,7 @@ async function ClosedRoundTeaser() {
       {/* Hero */}
       <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
         {heroImage ? (
-          <div className="relative aspect-[5/3] w-full bg-[#f3ede1]">
+          <div className="relative aspect-[5/3] w-full bg-[var(--surface-warm-1)]">
             {/* alt="" — decorative; the heading conveys the meaning. */}
             <Image
               src={heroImage}
@@ -97,7 +97,7 @@ async function ClosedRoundTeaser() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           </div>
         ) : (
-          <div className="aspect-[5/3] w-full bg-gradient-to-br from-[#fff8eb] to-[#fef1de]" />
+          <div className="aspect-[5/3] w-full bg-gradient-to-br from-[var(--surface-warm-2)] to-[var(--surface-warm-3)]" />
         )}
         <div className="space-y-2 p-5 text-center">
           <h1 className="font-serif text-2xl italic text-[var(--primary)]">
@@ -129,7 +129,7 @@ async function ClosedRoundTeaser() {
                   key={it.id}
                   className="w-32 shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2"
                 >
-                  <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-[#f3ede1]">
+                  <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                     {/* alt="" — name is the adjacent text below. */}
                     <Image
                       src={it.product.imageUrl}

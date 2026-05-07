@@ -20,7 +20,7 @@ export default function CartPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f3ede1]">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-warm-1)]">
           <ShoppingBag className="h-8 w-8 text-[var(--accent)]" />
         </div>
         <h1 className="font-serif text-2xl italic text-[var(--primary)]">
@@ -48,7 +48,7 @@ export default function CartPage() {
             key={it.roundProductId}
             className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[0_1px_2px_rgba(58,38,16,0.04)]"
           >
-            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[#f3ede1]">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-warm-1)]">
               {/* alt="" — name is announced from the adjacent text (N-13). */}
               <Image src={it.imageUrl} alt="" fill className="object-cover" sizes="80px" />
             </div>
@@ -106,7 +106,7 @@ export default function CartPage() {
           </div>
           <Link
             href="/pembayaran"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-[var(--primary-foreground)] shadow-sm transition-colors hover:bg-[#1f1610]"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-[var(--primary-foreground)] shadow-sm transition-colors hover:bg-[var(--primary-hover)]"
           >
             Lanjut ke pembayaran
             <ArrowRight className="h-4 w-4" />

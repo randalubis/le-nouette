@@ -52,7 +52,7 @@ export default function MyOrdersPage() {
   if (orders.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f3ede1]">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-warm-1)]">
           <Receipt className="h-8 w-8 text-[var(--accent)]" />
         </div>
         <h1 className="font-serif text-2xl italic text-[var(--primary)]">
@@ -87,7 +87,7 @@ export default function MyOrdersPage() {
                 href={`/pesanan/${o.shortCode}`}
                 className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3ede1]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--surface-warm-1)]">
                   <Receipt className="h-4 w-4 text-[var(--accent)]" />
                 </div>
                 <div className="min-w-0 flex-1">

@@ -93,7 +93,7 @@ export default async function OrderConfirmationPage({
           createdAt: order.createdAt.toISOString(),
         }}
       />
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#f0fae0] via-[var(--surface)] to-[#fef1de] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--surface-success-light)] via-[var(--surface)] to-[var(--surface-warm-3)] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--success)]/15">
           <CheckCircle2 className="h-8 w-8 text-[var(--success)]" />
         </div>
@@ -117,7 +117,7 @@ export default async function OrderConfirmationPage({
           <div className="space-y-3">
             {order.items.map((it) => (
               <div key={it.id} className="flex items-center gap-3">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f3ede1]">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--surface-warm-1)]">
                   {/* alt="" — name is announced from the adjacent text (N-13). */}
                   <Image
                     src={it.roundProduct.product.imageUrl}
@@ -182,7 +182,7 @@ export default async function OrderConfirmationPage({
           href={waLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-full bg-[#25d366] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-105 active:scale-[0.99]"
+          className="flex items-center justify-center gap-2 rounded-full bg-[var(--whatsapp-green)] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-105 active:scale-[0.99]"
         >
           <MessageCircle className="h-5 w-5" />
           Kirim ke admin via WhatsApp
