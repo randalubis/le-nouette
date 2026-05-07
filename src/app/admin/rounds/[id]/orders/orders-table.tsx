@@ -43,6 +43,7 @@ export function OrdersTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [confirmingConfirmed, setConfirmingConfirmed] = useState(false);
   const [query, setQuery] = useState("");
 
   const visibleOrders = useMemo(() => {
@@ -93,6 +94,7 @@ export function OrdersTable({
       );
       setSelected(new Set());
       setConfirmingCancel(false);
+      setConfirmingConfirmed(false);
     });
   }
 
@@ -125,6 +127,7 @@ export function OrdersTable({
               onClick={() => {
                 setSelected(new Set());
                 setConfirmingCancel(false);
+                setConfirmingConfirmed(false);
               }}
               className="text-xs text-[var(--muted)] underline-offset-2 hover:underline"
             >
@@ -132,26 +135,7 @@ export function OrdersTable({
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {!confirmingCancel ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={pending}
-                  onClick={() => runBulk("CONFIRMED")}
-                >
-                  <CheckCircle2 className="h-4 w-4" /> Mark confirmed
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={pending}
-                  onClick={() => setConfirmingCancel(true)}
-                >
-                  <X className="h-4 w-4" /> Cancel
-                </Button>
-              </>
-            ) : (
+            {confirmingCancel ? (
               <>
                 <span className="self-center text-xs">
                   Cancel {selected.size} pesanan dan kembalikan stok?
@@ -170,6 +154,46 @@ export function OrdersTable({
                   onClick={() => setConfirmingCancel(false)}
                 >
                   Back
+                </Button>
+              </>
+            ) : confirmingConfirmed ? (
+              <>
+                <span className="self-center text-xs">
+                  Mark {selected.size} pesanan sebagai confirmed?
+                </span>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={pending}
+                  onClick={() => runBulk("CONFIRMED")}
+                >
+                  Yes, confirm
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmingConfirmed(false)}
+                >
+                  Back
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={pending}
+                  onClick={() => setConfirmingConfirmed(true)}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Mark confirmed
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={pending}
+                  onClick={() => setConfirmingCancel(true)}
+                >
+                  <X className="h-4 w-4" /> Cancel
                 </Button>
               </>
             )}

@@ -96,7 +96,12 @@ export default async function RoundOrdersPage({
           </p>
         </div>
         <div className="flex gap-2">
-          <BulkDeliveredButton roundId={round.id} />
+          <BulkDeliveredButton
+            roundId={round.id}
+            eligibleCount={
+              activeOrders.filter((o) => o.status === "PAID" || o.status === "CONFIRMED").length
+            }
+          />
           <Button asChild variant="outline">
             <a href={`/api/admin/rounds/${round.id}/orders.csv`} download>
               <Download className="h-4 w-4" /> Export CSV
