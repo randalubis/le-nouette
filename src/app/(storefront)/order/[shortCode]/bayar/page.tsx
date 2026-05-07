@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Copy } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
 import { formatIDR } from "@/lib/utils";
 import { ProofUploader } from "./proof-uploader";
 import { CopyButton } from "./copy-button";
@@ -74,6 +75,7 @@ export default async function PayPage({
 
   return (
     <div className="space-y-4">
+      <CheckoutStepper current={2} />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">

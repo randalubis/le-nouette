@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
+import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
 import { formatIDR } from "@/lib/utils";
 
 export default function CartPage() {
@@ -35,7 +36,8 @@ export default function CartPage() {
 
   return (
     <div className="space-y-5 pb-32">
-      <div className="space-y-1 pt-2">
+      <CheckoutStepper current={0} />
+      <div className="space-y-1">
         <h1 className="font-serif text-2xl font-semibold text-[var(--primary)]">Keranjang</h1>
         <p className="text-sm text-[var(--muted)]">{cart.items.length} produk dipilih</p>
       </div>
