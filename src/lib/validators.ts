@@ -6,6 +6,9 @@ export const productSchema = z.object({
   description: z.string().max(1000).optional().nullable(),
   basePrice: z.coerce.number().int().min(0).max(100_000_000),
   isActive: z.boolean().default(true),
+  // L-04: 'square' | 'portrait', defaults to square at the form layer
+  // so existing products keep working without an explicit value.
+  aspectRatio: z.enum(["square", "portrait"]).default("square"),
 });
 
 export const roundItemSchema = z.object({
@@ -22,6 +25,8 @@ export const roundSchema = z.object({
   bankName: z.string().max(100).optional().nullable(),
   bankAccountNumber: z.string().max(50).optional().nullable(),
   bankAccountHolder: z.string().max(100).optional().nullable(),
+  // L-10: customer-visible "from the kitchen" note. Hidden when empty.
+  story: z.string().max(280).optional().nullable(),
   items: z.array(roundItemSchema).min(1),
 });
 

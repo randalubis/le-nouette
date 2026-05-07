@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Receipt, Trash2 } from "lucide-react";
 import { removeOrderFromHistory, type SavedOrder } from "@/lib/cart";
 import { useCart } from "@/components/cart-provider";
@@ -9,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { paymentMethodLabel } from "@/lib/orders";
 import { formatIDR } from "@/lib/utils";
+import { ReorderButton } from "./_components/reorder-button";
 
 function formatDate(iso: string): string {
   try {
@@ -27,6 +29,15 @@ function formatDate(iso: string): string {
 export default function MyOrdersPage() {
   // X-16: read from CartProvider; no separate localStorage round-trip.
   const { orderHistory: orders, hydrated, refreshOrderHistory } = useCart();
+  // L-03: gates the "Pesan lagi" button per row.
+  const [hasOpenRound, setHasOpenRound] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/rounds/open")
+      .then((r) => r.json())
+      .then((data) => setHasOpenRound(Boolean(data?.hasOpenRound)))
+      .catch(() => undefined);
+  }, []);
 
   function handleRemove(shortCode: string) {
     removeOrderFromHistory(shortCode);
@@ -101,15 +112,18 @@ export default function MyOrdersPage() {
                   <p className="text-xs text-[var(--muted)]">{o.itemCount} item</p>
                 </div>
               </Link>
-              <button
-                type="button"
-                onClick={() => handleRemove(o.shortCode)}
-                className="text-[var(--muted)] hover:text-[var(--destructive)]"
-                aria-label="Hapus dari riwayat"
-                title="Hapus dari riwayat"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {hasOpenRound && <ReorderButton shortCode={o.shortCode} />}
+                <button
+                  type="button"
+                  onClick={() => handleRemove(o.shortCode)}
+                  className="text-[var(--muted)] hover:text-[var(--destructive)]"
+                  aria-label="Hapus dari riwayat"
+                  title="Hapus dari riwayat"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </CardContent>
           </Card>
         ))}

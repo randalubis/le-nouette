@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MessageCircle } from "lucide-react";
+import { ArrowLeft, MessageCircle, Star } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,10 +36,11 @@ export default async function AdminOrderDetail({
   const order = await prisma.order.findUnique({
     where: { shortCode },
     include: {
-      round: { select: { id: true, title: true, deliveryDate: true } },
+      round: { select: { id: true, title: true, deliveryDate: true, status: true } },
       items: { include: { roundProduct: { include: { product: true } } } },
       payment: true,
       statusEvents: { orderBy: { createdAt: "asc" } },
+      review: { select: { rating: true } },
     },
   });
   if (!order) notFound();
@@ -52,6 +54,19 @@ export default async function AdminOrderDetail({
           </Link>
         </Button>
       </div>
+
+      {order.round.status === "CLOSED" &&
+        (order.status === "PENDING_PAYMENT" ||
+          order.status === "PENDING_CONFIRMATION" ||
+          order.status === "PAID") && (
+          <div
+            className="rounded-md border border-[var(--badge-warning-fg)]/20 bg-[var(--badge-warning-bg)] px-3 py-2 text-sm text-[var(--badge-warning-fg)]"
+            role="note"
+          >
+            Round is CLOSED but this order is still in flight — process as
+            usual. (L-09)
+          </div>
+        )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -267,15 +282,58 @@ export default async function AdminOrderDetail({
         <CardHeader>
           <CardTitle className="text-base">Actions</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <OrderStatusActions
             shortCode={order.shortCode}
             status={order.status}
             paymentMethod={order.paymentMethod}
             hasProof={!!order.payment?.proofImageUrl}
           />
+
+          {order.status === "DELIVERED" && (
+            <ReviewRequestButton
+              shortCode={order.shortCode}
+              customerName={order.customerName}
+              customerWhatsApp={order.customerWhatsApp}
+              hasReview={!!order.review}
+            />
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// L-06: opens a WhatsApp chat with a prefilled review-request message
+// + a deep link to the customer's per-order ulasan page. Operator
+// chooses when to send; the customer rates with one tap.
+function ReviewRequestButton({
+  shortCode,
+  customerName,
+  customerWhatsApp,
+  hasReview,
+}: {
+  shortCode: string;
+  customerName: string;
+  customerWhatsApp: string;
+  hasReview: boolean;
+}) {
+  const link = `${env.siteUrl().replace(/\/$/, "")}/pesanan/${shortCode}/ulasan`;
+  const message = `Hai ${customerName}, makasih sudah pesan ${shortCode}! Boleh kasih rating singkat? ${link}`;
+  const waLink = formatWhatsAppLink(customerWhatsApp, message);
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-4">
+      <Button asChild variant={hasReview ? "outline" : "default"}>
+        <a href={waLink} target="_blank" rel="noopener noreferrer">
+          <Star className="h-4 w-4" />
+          {hasReview ? "Resend review request" : "Send review request"}
+        </a>
+      </Button>
+      {hasReview && (
+        <span className="text-xs text-[var(--muted)]">
+          Customer already left a rating.
+        </span>
+      )}
     </div>
   );
 }

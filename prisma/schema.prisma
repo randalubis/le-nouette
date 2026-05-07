@@ -15,6 +15,9 @@ model Product {
   imageUrl    String
   basePrice   Int
   isActive    Boolean        @default(true)
+  // L-04: 'square' (1:1) or 'portrait' (4:5). Renderable by reading
+  // straight into a CSS aspect-ratio var on the card.
+  aspectRatio String         @default("square")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   roundItems  RoundProduct[]
@@ -31,6 +34,10 @@ model PreorderRound {
   bankName          String?
   bankAccountNumber String?
   bankAccountHolder String?
+  // L-10: optional one-paragraph "from the kitchen" note rendered between
+  // the round banner and the product grid on the storefront. Hidden when
+  // empty.
+  story             String?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   items             RoundProduct[]
@@ -56,6 +63,7 @@ model Order {
   id                   String        @id @default(cuid())
   shortCode            String        @unique
   roundId              String
+  review               Review?
   customerName         String
   customerWhatsApp     String
   // Canonical E.164-style form (digits only, leading 62) of customerWhatsApp.
@@ -122,6 +130,20 @@ model Payment {
   order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
+// L-06: post-delivery 1-emoji reviews. One per order. Surfaced as social
+// proof on the closed-round teaser (most recent positives only).
+model Review {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  rating    Int      // 1 = bad, 2 = ok, 3 = excellent
+  comment   String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([createdAt])
+}
+
 // Audit log for admin-driven stock changes outside the order flow (e.g.
 // the dashboard's "+5 stok" button). Order-driven changes already write
 // OrderStatusEvent. (Plan ticket N-06.)
@@ -152,6 +174,11 @@ model BusinessSettings {
   // "Senin pagi, antar Jumat". Sets expectation without committing to
   // exact dates. (Plan ticket N-01.)
   typicalCadence   String?
+  // L-11: per-method FAQ answers shown on the order confirmation page.
+  // Shape: { qris?: { check?, rejected?, wrongAmount?, online? },
+  //          cod?:  { method?, fee?, absent? } }
+  // Falls back to hardcoded defaults when null or partial.
+  faqAnswers       Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

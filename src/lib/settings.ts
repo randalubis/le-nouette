@@ -2,12 +2,23 @@ import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { normalizeWhatsApp } from "@/lib/utils";
 
+// L-11: shape of the per-method FAQ overrides stored on
+// BusinessSettings.faqAnswers (JSONB). Any missing key falls back to the
+// hardcoded default in src/lib/faq.ts. Adminless for now — the field is
+// schema-ready so the operator can edit via a future Settings UI without
+// another migration.
+export type FaqOverrides = {
+  qris?: { check?: string; rejected?: string; wrongAmount?: string; online?: string };
+  cod?: { method?: string; fee?: string; absent?: string };
+};
+
 export type BusinessSettings = {
   businessName: string;
   whatsappNumber: string;
   deliveryLocation: string;
   aboutBlurb: string;
   typicalCadence: string;
+  faqAnswers: FaqOverrides | null;
 };
 
 const DEFAULTS: BusinessSettings = {
@@ -16,6 +27,7 @@ const DEFAULTS: BusinessSettings = {
   deliveryLocation: "",
   aboutBlurb: "",
   typicalCadence: "",
+  faqAnswers: null,
 };
 
 /**
@@ -35,6 +47,7 @@ export async function getBusinessSettings(): Promise<BusinessSettings> {
     deliveryLocation: row?.deliveryLocation?.trim() ?? DEFAULTS.deliveryLocation,
     aboutBlurb: row?.aboutBlurb?.trim() ?? DEFAULTS.aboutBlurb,
     typicalCadence: row?.typicalCadence?.trim() ?? DEFAULTS.typicalCadence,
+    faqAnswers: (row?.faqAnswers as FaqOverrides | null) ?? null,
   };
 }
 

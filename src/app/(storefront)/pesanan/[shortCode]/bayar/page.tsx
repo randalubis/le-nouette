@@ -23,6 +23,7 @@ export default async function PayPage({
         select: {
           qrisImageUrl: true,
           title: true,
+          status: true,
           bankName: true,
           bankAccountNumber: true,
           bankAccountHolder: true,
@@ -76,6 +77,15 @@ export default async function PayPage({
   return (
     <div className="space-y-4">
       <CheckoutStepper current={2} />
+      {order.round.status === "CLOSED" && (
+        <div
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
+          role="note"
+        >
+          Ronde ini sudah ditutup untuk pesanan baru, tapi pesananmu masih
+          diproses normal. Lanjut upload bukti seperti biasa.
+        </div>
+      )}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
