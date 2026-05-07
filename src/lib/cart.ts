@@ -112,3 +112,46 @@ export function removeOrderFromHistory(shortCode: string): void {
   const next = existing.filter((o) => o.shortCode !== shortCode);
   window.localStorage.setItem(ORDER_HISTORY_STORAGE_KEY, JSON.stringify(next));
 }
+
+// Checkout draft: persists in-progress checkout fields so customers can
+// hop back to /keranjang and return without losing their entries.
+// Expires after 30 minutes to avoid resurfacing stale drafts. (N-07.)
+export const CHECKOUT_DRAFT_STORAGE_KEY = "le-nouette-checkout-draft-v1";
+const CHECKOUT_DRAFT_TTL_MS = 30 * 60 * 1000;
+
+export type CheckoutDraft = {
+  name: string;
+  whatsapp: string;
+  notes: string;
+  paymentMethod: "QRIS" | "BANK_TRANSFER" | "COD";
+  savedAt: number;
+};
+
+export function readCheckoutDraft(): CheckoutDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CHECKOUT_DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<CheckoutDraft>;
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > CHECKOUT_DRAFT_TTL_MS) {
+      window.localStorage.removeItem(CHECKOUT_DRAFT_STORAGE_KEY);
+      return null;
+    }
+    return parsed as CheckoutDraft;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCheckoutDraft(draft: Omit<CheckoutDraft, "savedAt">): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    CHECKOUT_DRAFT_STORAGE_KEY,
+    JSON.stringify({ ...draft, savedAt: Date.now() }),
+  );
+}
+
+export function clearCheckoutDraft(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(CHECKOUT_DRAFT_STORAGE_KEY);
+}

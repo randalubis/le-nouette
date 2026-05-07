@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
+import { BumpStockButton } from "./_components/bump-stock-button";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +98,7 @@ export default async function AdminDashboard() {
   const stockAlerts =
     openRound?.items
       .map((it) => ({
+        id: it.id,
         name: it.product.name,
         sold: it.stockSold,
         limit: it.stockLimit,
@@ -160,11 +162,17 @@ export default async function AdminDashboard() {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <p className="font-medium">Stock alert</p>
-            <ul className="mt-1 space-y-0.5 text-amber-800">
+            <ul className="mt-1 space-y-1 text-amber-800">
               {stockAlerts.map((s) => (
-                <li key={s.name}>
-                  <span className="font-medium">{s.name}</span> —{" "}
-                  {s.left === 0 ? "habis" : `${s.left} sisa`}
+                <li
+                  key={s.id}
+                  className="flex flex-wrap items-center justify-between gap-2"
+                >
+                  <span>
+                    <span className="font-medium">{s.name}</span> —{" "}
+                    {s.left === 0 ? "habis" : `${s.left} sisa`}
+                  </span>
+                  <BumpStockButton id={s.id} />
                 </li>
               ))}
             </ul>
