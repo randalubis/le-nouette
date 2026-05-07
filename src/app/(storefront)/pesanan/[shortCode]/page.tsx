@@ -57,7 +57,7 @@ export default async function OrderConfirmationPage({
     quantity: it.quantity,
   }));
 
-  const orderUrl = `${env.siteUrl().replace(/\/$/, "")}/order/${order.shortCode}`;
+  const orderUrl = `${env.siteUrl().replace(/\/$/, "")}/pesanan/${order.shortCode}`;
 
   const waMessage = buildWhatsAppMessage({
     shortCode: order.shortCode,

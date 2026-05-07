@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { removeOrderFromHistory } from "@/lib/cart";
+import { errorMessage } from "@/lib/errors";
 
 export function CancelOrderButton({ shortCode }: { shortCode: string }) {
   const router = useRouter();
@@ -14,9 +15,9 @@ export function CancelOrderButton({ shortCode }: { shortCode: string }) {
   function cancel() {
     startTransition(async () => {
       const res = await fetch(`/api/orders/${shortCode}/cancel`, { method: "POST" });
-      const data = await res.json().catch(() => ({ ok: false, error: "Network error" }));
+      const data = await res.json().catch(() => ({ ok: false, error: errorMessage("NETWORK") }));
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Gagal membatalkan pesanan.");
+        toast.error(data.error ?? errorMessage("UNKNOWN"));
         setConfirming(false);
         return;
       }

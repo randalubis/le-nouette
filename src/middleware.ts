@@ -36,8 +36,26 @@ async function isValidAdminCookie(cookieValue: string): Promise<boolean> {
   return timingSafeEqual(sig, expected);
 }
 
+// Permanent redirects from the legacy English-language slugs to the
+// Bahasa equivalents (N-03). Kept indefinitely — they cost nothing and
+// protect bookmarks/shared WhatsApp links.
+function legacyRedirect(path: string): string | null {
+  if (path === "/checkout") return "/pembayaran";
+  if (path === "/pesanan") return "/riwayat";
+  if (path === "/order") return "/pesanan";
+  if (path.startsWith("/order/")) return "/pesanan" + path.slice("/order".length);
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  const redirectTo = legacyRedirect(path);
+  if (redirectTo) {
+    const url = request.nextUrl.clone();
+    url.pathname = redirectTo;
+    return NextResponse.redirect(url, 308);
+  }
 
   // Forward the pathname so the root layout can pick the right `lang`
   // attribute (id for storefront, en for admin) — there's no other
@@ -62,5 +80,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/checkout", "/order/:path*", "/pesanan"],
 };
