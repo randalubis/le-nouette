@@ -39,7 +39,7 @@ export function AdminNotesForm({
         className="text-sm"
       />
       <div className="flex items-center justify-between">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           {value.length} / 2000 · only visible to admin
         </p>
         <Button size="sm" onClick={save} disabled={pending || !dirty}>

@@ -48,6 +48,38 @@
   --badge-warning-fg: #7a5310;
   --badge-destructive-bg: #fbdcdc;
   --badge-destructive-fg: #7a1f1f;
+
+  /* ---- Card radius (X-01) ---- */
+  /* Storefront keeps the soft, brand-warm 2xl. Admin overrides this in
+     the .admin-shell scope below for a denser, more utilitarian feel. */
+  --card-radius: 1.125rem;
+}
+
+/* ============================================================
+   Admin density scope (X-01)
+   The admin back office shares the storefront brand palette but in a
+   denser, utilitarian variant. Wrapping the admin layout in
+   .admin-shell rebinds the storefront tokens so generic primitives
+   (Card, Table, Input) and any future admin code that uses
+   bg-[var(--surface)] etc. automatically pick up the admin variant
+   without per-component edits.
+   ============================================================ */
+:root {
+  --admin-bg: #f6f1e8;          /* slightly cooler cream than storefront */
+  --admin-surface: #ffffff;
+  --admin-border: var(--border);
+  --admin-foreground: var(--foreground);
+  --admin-muted: var(--muted);
+}
+
+.admin-shell {
+  --background: var(--admin-bg);
+  --surface: var(--admin-surface);
+  --border: var(--admin-border);
+  --foreground: var(--admin-foreground);
+  --muted: var(--admin-muted);
+  /* Tighter cards for density. */
+  --card-radius: var(--radius-md);
 }
 
 @theme inline {

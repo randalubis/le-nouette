@@ -55,12 +55,12 @@ export function RoundStatusActions({
       )}
 
       {options.length === 0 && !canCancel && (
-        <p className="text-sm text-zinc-500">No further transitions.</p>
+        <p className="text-sm text-[var(--muted)]">No further transitions.</p>
       )}
 
       {canCancel && (
-        <div className="border-t border-zinc-200 pt-4">
-          <p className="mb-2 text-sm font-medium text-zinc-700">Danger zone</p>
+        <div className="border-t border-[var(--border)] pt-4">
+          <p className="mb-2 text-sm font-medium text-[var(--foreground)]">Danger zone</p>
           {!confirmingCancel ? (
             <Button
               variant="destructive"
@@ -71,7 +71,7 @@ export function RoundStatusActions({
             </Button>
           ) : (
             <div className="space-y-2">
-              <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              <p className="rounded-md bg-[var(--badge-destructive-bg)] p-3 text-sm text-[var(--badge-destructive-fg)]">
                 This cancels every non-cancelled order in this round and restores their stock.
                 Customers&apos; orders will be marked as cancelled. This cannot be undone.
               </p>

@@ -31,7 +31,7 @@ export function BumpStockButton({ id, delta = 5 }: { id: string; delta?: number 
       type="button"
       onClick={bump}
       disabled={pending}
-      className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-0.5 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+      className="inline-flex items-center gap-1 rounded-md border border-[var(--badge-warning-fg)]/30 bg-[var(--surface)] px-2 py-0.5 text-xs font-medium text-[var(--badge-warning-fg)] hover:bg-[var(--badge-warning-bg)] disabled:opacity-60"
       title={`Add ${delta} more stock`}
     >
       <Plus className="h-3 w-3" />

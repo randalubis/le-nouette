@@ -73,8 +73,8 @@ export default async function AllOrdersPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">All orders</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">All orders</h1>
+          <p className="text-sm text-[var(--muted)]">
             {rows.length} orders in the last {dayWindow} days
             {orders.length === 200 && " (showing latest 200)"}
           </p>

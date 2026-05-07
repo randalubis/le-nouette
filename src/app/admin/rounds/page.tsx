@@ -26,7 +26,7 @@ export default async function RoundsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Preorder rounds</h1>
+        <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Preorder rounds</h1>
         <Button asChild>
           <Link href="/admin/rounds/new">New round</Link>
         </Button>
@@ -35,7 +35,7 @@ export default async function RoundsPage() {
       {/* Mobile card list */}
       <div className="space-y-3 md:hidden">
         {rounds.length === 0 ? (
-          <Card className="py-8 text-center text-sm text-zinc-500">No rounds yet.</Card>
+          <Card className="py-8 text-center text-sm text-[var(--muted)]">No rounds yet.</Card>
         ) : (
           rounds.map((r) => (
             <Card key={r.id} className="p-3">
@@ -44,19 +44,19 @@ export default async function RoundsPage() {
                 <Badge variant={statusVariant[r.status]}>{r.status}</Badge>
               </div>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                <dt className="text-zinc-500">Opens</dt>
-                <dd className="text-zinc-700">{r.opensAt.toLocaleString("en-GB")}</dd>
-                <dt className="text-zinc-500">Closes</dt>
-                <dd className="text-zinc-700">{r.closesAt.toLocaleString("en-GB")}</dd>
-                <dt className="text-zinc-500">Delivery</dt>
-                <dd className="text-zinc-700">
+                <dt className="text-[var(--muted)]">Opens</dt>
+                <dd className="text-[var(--foreground)]">{r.opensAt.toLocaleString("en-GB")}</dd>
+                <dt className="text-[var(--muted)]">Closes</dt>
+                <dd className="text-[var(--foreground)]">{r.closesAt.toLocaleString("en-GB")}</dd>
+                <dt className="text-[var(--muted)]">Delivery</dt>
+                <dd className="text-[var(--foreground)]">
                   {r.deliveryDate.toLocaleDateString("en-GB")}
                 </dd>
               </dl>
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className="mt-2 text-xs text-[var(--muted)]">
                 {r._count.items} items · {r._count.orders} orders
               </p>
-              <div className="mt-3 flex justify-end gap-2 border-t border-zinc-100 pt-3">
+              <div className="mt-3 flex justify-end gap-2 border-t border-[var(--border)] pt-3">
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/admin/rounds/${r.id}/orders`}>Orders</Link>
                 </Button>
@@ -87,7 +87,7 @@ export default async function RoundsPage() {
           <TableBody>
             {rounds.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-sm text-zinc-500">
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-[var(--muted)]">
                   No rounds yet.
                 </TableCell>
               </TableRow>

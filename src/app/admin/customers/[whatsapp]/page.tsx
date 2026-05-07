@@ -65,12 +65,12 @@ export default async function CustomerPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{customerName}</h1>
+          <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">{customerName}</h1>
           <a
             href={formatWhatsAppLink(normalized, `Halo ${customerName}`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-[var(--success)] hover:underline"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             {normalized}
@@ -103,7 +103,7 @@ export default async function CustomerPage({
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-zinc-50">
+            <TableHeader className="sticky top-0 z-10 bg-[var(--background)]">
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Date</TableHead>
@@ -119,7 +119,7 @@ export default async function CustomerPage({
               {orders.map((o) => (
                 <TableRow key={o.id} className={o.status === "CANCELLED" ? "opacity-50" : ""}>
                   <TableCell className="font-mono text-sm">{o.shortCode}</TableCell>
-                  <TableCell className="text-xs text-zinc-500">
+                  <TableCell className="text-xs text-[var(--muted)]">
                     {o.createdAt.toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
@@ -129,7 +129,7 @@ export default async function CustomerPage({
                   <TableCell>
                     <Link
                       href={`/admin/rounds/${o.round.id}/orders`}
-                      className="text-xs text-zinc-700 hover:underline"
+                      className="text-xs text-[var(--foreground)] hover:underline"
                     >
                       {o.round.title}
                     </Link>
@@ -171,10 +171,10 @@ function Stat({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3">
-      <p className="text-xs text-zinc-500">{label}</p>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+      <p className="text-xs text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
-      {sub && <p className="text-xs text-zinc-500">{sub}</p>}
+      {sub && <p className="text-xs text-[var(--muted)]">{sub}</p>}
     </div>
   );
 }

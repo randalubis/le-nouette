@@ -138,7 +138,7 @@ export function RoundForm({
             maxLength={100}
             placeholder="Cemilan Jumat 14 November (otomatis dari tanggal antar)"
           />
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--muted)]">
             Judul ini akan dilihat customer di banner dan konfirmasi pesanan.
           </p>
         </div>
@@ -190,17 +190,17 @@ export function RoundForm({
           }}
         />
         {qrisPreview && (
-          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md border border-zinc-200 bg-white">
+          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface)]">
             <Image src={qrisPreview} alt="QRIS preview" fill className="object-contain" sizes="160px" />
           </div>
         )}
       </div>
 
-      <div className="space-y-3 rounded-md border border-zinc-200 bg-white p-4">
+      <div className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
         <Label className="text-sm font-medium">Bank Transfer details (optional)</Label>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1.5">
-            <Label htmlFor="bankName" className="text-xs text-zinc-500">
+            <Label htmlFor="bankName" className="text-xs text-[var(--muted)]">
               Bank name
             </Label>
             <Input
@@ -211,7 +211,7 @@ export function RoundForm({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="bankAccountNumber" className="text-xs text-zinc-500">
+            <Label htmlFor="bankAccountNumber" className="text-xs text-[var(--muted)]">
               Account number
             </Label>
             <Input
@@ -223,7 +223,7 @@ export function RoundForm({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="bankAccountHolder" className="text-xs text-zinc-500">
+            <Label htmlFor="bankAccountHolder" className="text-xs text-[var(--muted)]">
               Account holder
             </Label>
             <Input
@@ -234,7 +234,7 @@ export function RoundForm({
             />
           </div>
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Leave empty if you don&apos;t want to offer Bank Transfer for this round.
         </p>
       </div>
@@ -244,7 +244,7 @@ export function RoundForm({
           <Label>Products in this round</Label>
           {availableProducts.length > 0 && (
             <select
-              className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm"
+              className="h-9 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 text-sm"
               value=""
               onChange={(e) => {
                 if (e.target.value) addProduct(e.target.value);
@@ -261,7 +261,7 @@ export function RoundForm({
         </div>
 
         {items.length === 0 ? (
-          <p className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">
+          <p className="rounded-md border border-dashed border-[var(--border)] p-6 text-center text-sm text-[var(--muted)]">
             No products added yet. Add one above.
           </p>
         ) : (
@@ -273,19 +273,19 @@ export function RoundForm({
               return (
                 <div
                   key={it.productId}
-                  className="flex items-center gap-3 rounded-md border border-zinc-200 bg-white p-3"
+                  className="flex items-center gap-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-3"
                 >
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                     <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="48px" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{p.name}</p>
                     {sold > 0 && (
-                      <p className="text-xs text-zinc-500">{sold} already sold</p>
+                      <p className="text-xs text-[var(--muted)]">{sold} already sold</p>
                     )}
                   </div>
                   <div className="w-32">
-                    <Label className="text-xs text-zinc-500">Price</Label>
+                    <Label className="text-xs text-[var(--muted)]">Price</Label>
                     <Input
                       inputMode="numeric"
                       value={formatIDRInput(it.price)}
@@ -295,7 +295,7 @@ export function RoundForm({
                     />
                   </div>
                   <div className="w-24">
-                    <Label className="text-xs text-zinc-500">Stock</Label>
+                    <Label className="text-xs text-[var(--muted)]">Stock</Label>
                     <Input
                       type="number"
                       min={sold}

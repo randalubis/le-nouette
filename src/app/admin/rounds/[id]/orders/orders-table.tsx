@@ -98,9 +98,9 @@ export function OrdersTable({
 
   return (
     <>
-      <div className="border-b border-zinc-200 p-3">
+      <div className="border-b border-[var(--border)] p-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
           <Input
             type="search"
             value={query}
@@ -110,14 +110,14 @@ export function OrdersTable({
           />
         </div>
         {query && (
-          <p className="mt-1 px-1 text-xs text-zinc-500">
+          <p className="mt-1 px-1 text-xs text-[var(--muted)]">
             {visibleOrders.length} of {orders.length} match
           </p>
         )}
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-14 z-10 -mx-2 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-white shadow-md md:top-0">
+        <div className="sticky top-14 z-10 -mx-2 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border)] bg-[var(--primary)] px-3 py-2 text-white shadow-md md:top-0">
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium">{selected.size} dipilih</span>
             <button
@@ -126,7 +126,7 @@ export function OrdersTable({
                 setSelected(new Set());
                 setConfirmingCancel(false);
               }}
-              className="text-xs text-zinc-300 underline-offset-2 hover:underline"
+              className="text-xs text-[var(--muted)] underline-offset-2 hover:underline"
             >
               Clear
             </button>
@@ -178,7 +178,7 @@ export function OrdersTable({
       )}
 
       <Table>
-        <TableHeader className="sticky top-0 z-10 bg-zinc-50">
+        <TableHeader className="sticky top-0 z-10 bg-[var(--background)]">
           <TableRow>
             <TableHead className="w-10">
               <input
@@ -190,7 +190,7 @@ export function OrdersTable({
                 }}
                 onChange={(e) => toggleAll(e.currentTarget.checked)}
                 disabled={selectableShortCodes.length === 0}
-                className="h-4 w-4 rounded border-zinc-300"
+                className="h-4 w-4 rounded border-[var(--border)]"
               />
             </TableHead>
             <TableHead>Code</TableHead>
@@ -206,7 +206,7 @@ export function OrdersTable({
         <TableBody>
           {visibleOrders.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-8 text-center text-sm text-zinc-500">
+              <TableCell colSpan={9} className="py-8 text-center text-sm text-[var(--muted)]">
                 {orders.length === 0 ? emptyMessage : "No orders match the search."}
               </TableCell>
             </TableRow>
@@ -224,7 +224,7 @@ export function OrdersTable({
                       checked={isSelected}
                       disabled={isDelivered}
                       onChange={(e) => toggleOne(o.shortCode, e.currentTarget.checked)}
-                      className="h-4 w-4 rounded border-zinc-300"
+                      className="h-4 w-4 rounded border-[var(--border)]"
                     />
                   </TableCell>
                   <TableCell className="font-mono text-sm">{o.shortCode}</TableCell>
@@ -244,7 +244,7 @@ export function OrdersTable({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
+                      className="inline-flex items-center gap-1 text-sm text-[var(--success)] hover:underline"
                     >
                       <MessageCircle className="h-3.5 w-3.5" />
                       {o.customerWhatsApp}
