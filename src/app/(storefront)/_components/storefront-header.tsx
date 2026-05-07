@@ -39,7 +39,7 @@ export function StorefrontHeader() {
           {historyHydrated && hasOrders && (
             <Link
               href="/riwayat"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[#ebe3d4]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--border)]"
               aria-label="Riwayat pesanan"
               title="Riwayat pesanan"
             >
@@ -48,7 +48,7 @@ export function StorefrontHeader() {
           )}
           <Link
             href="/keranjang"
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[#ebe3d4]"
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--border)]"
             aria-label="Keranjang"
           >
             <ShoppingBag className="h-5 w-5" />

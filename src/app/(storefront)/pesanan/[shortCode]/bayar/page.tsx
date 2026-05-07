@@ -165,7 +165,7 @@ function BankTransferDetails({
     );
   }
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[#fdf9f1] p-4 space-y-3">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] p-4 space-y-3">
       <div>
         <p className="text-xs uppercase tracking-wider text-[var(--muted)]">Bank</p>
         <p className="font-medium">{bankName}</p>

@@ -233,7 +233,7 @@ export default function CheckoutPage() {
             <div
               className={`rounded-lg border p-3 transition-colors ${
                 isPayNow(method)
-                  ? "border-[var(--primary)] bg-[#f3ede1]/40"
+                  ? "border-[var(--primary)] bg-[var(--surface-warm-1)]/40"
                   : "border-[var(--border)]"
               }`}
             >
@@ -357,7 +357,7 @@ function PaymentOption({
       onClick={() => onSelect(value)}
       className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
         selected
-          ? "border-[var(--primary)] bg-[#f3ede1]/40"
+          ? "border-[var(--primary)] bg-[var(--surface-warm-1)]/40"
           : "border-[var(--border)] hover:border-[var(--primary)]/40"
       }`}
     >

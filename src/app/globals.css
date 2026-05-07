@@ -18,6 +18,36 @@
   --warning: #b8841f;
   --destructive: #b03434;
   --ring: #3d2e1f;
+
+  /* ---- Semantic surface, hover, and brand-extension tokens (X-10) ---- */
+  /* Warm tinted surfaces. Used for thumbnails, gradient stops, soft
+     backdrops where --surface (white) would feel too clinical. */
+  --surface-warm-1: #f3ede1;          /* most common — thumbnail/card bg */
+  --surface-warm-2: #fff8eb;          /* gradient start (round banner) */
+  --surface-warm-3: #fef1de;          /* gradient end   (round banner / confirmation) */
+  --surface-cool-1: #fdf9f1;          /* bayar info card bg */
+  --surface-success-light: #f0fae0;   /* confirmation hero gradient stop */
+
+  /* Hover-state pair for the primary button. Slightly darker than --primary. */
+  --primary-hover: #1f1610;
+
+  /* Subtle hover bg for ghost/outline interactions and the secondary
+     button's resting state (matches --border but called out semantically). */
+  --border-subtle-hover: #dfd3bd;
+
+  /* Communication brand: WhatsApp green for the deep-link CTAs. */
+  --whatsapp-green: #25d366;
+
+  /* Status badge pairs. Background + foreground designed together for
+     AA contrast on the soft variants. */
+  --badge-success-bg: #dfeed3;
+  --badge-success-fg: #3a5a25;
+  --badge-info-bg: #dde7f5;
+  --badge-info-fg: #1f3d6b;
+  --badge-warning-bg: #fceeca;
+  --badge-warning-fg: #7a5310;
+  --badge-destructive-bg: #fbdcdc;
+  --badge-destructive-fg: #7a1f1f;
 }
 
 @theme inline {

@@ -44,7 +44,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
         out ? "opacity-60" : ""
       }`}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-[#f3ede1]">
+      <div className="relative aspect-square w-full overflow-hidden bg-[var(--surface-warm-1)]">
         <Image
           src={product.imageUrl}
           alt={product.name}
