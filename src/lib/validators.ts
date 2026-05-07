@@ -53,3 +53,18 @@ export const checkoutSchema = z.object({
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
+export const notifySubscribeSchema = z.object({
+  whatsapp: z
+    .string()
+    .min(8)
+    .max(20)
+    .regex(
+      /^[\d+\s-]+$/,
+      "Nomor WhatsApp hanya boleh angka (boleh diawali +, 0, atau 62)",
+    )
+    .transform((v) => normalizeWhatsApp(v))
+    .refine((v) => v.length >= 10 && v.length <= 15, {
+      message: "Nomor WhatsApp tidak valid",
+    }),
+});

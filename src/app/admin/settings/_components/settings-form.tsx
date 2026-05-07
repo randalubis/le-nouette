@@ -13,6 +13,7 @@ type Initial = {
   whatsappNumber: string;
   deliveryLocation: string;
   aboutBlurb: string;
+  typicalCadence: string;
 };
 
 export function SettingsForm({ initial }: { initial: Initial }) {
@@ -88,6 +89,21 @@ export function SettingsForm({ initial }: { initial: Initial }) {
         />
         <p className="text-xs text-zinc-500">
           Shown when no round is open. Optional — leave empty to fall back to the default copy.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="typicalCadence">Typical cadence (closed-round teaser)</Label>
+        <Input
+          id="typicalCadence"
+          name="typicalCadence"
+          maxLength={120}
+          defaultValue={initial.typicalCadence}
+          placeholder="Senin pagi, antar Jumat"
+        />
+        <p className="text-xs text-zinc-500">
+          Free text, customer-visible. Sets expectation on the closed-round
+          teaser without committing to exact dates. Leave empty to hide the block.
         </p>
       </div>
 
