@@ -16,6 +16,7 @@ import {
   writeCustomer,
 } from "@/lib/cart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -163,6 +164,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="space-y-4 pb-32">
+      <CheckoutStepper current={1} />
       <h1 className="text-xl font-semibold">Pembayaran</h1>
 
       {deliveryDate && (

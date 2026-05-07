@@ -10,6 +10,10 @@ import { buildWhatsAppMessage, paymentMethodLabel } from "@/lib/orders";
 import { env } from "@/lib/env";
 import { getBusinessSettings } from "@/lib/settings";
 import { OrderHistoryRecorder } from "./history-recorder";
+import { CancelOrderButton } from "./cancel-button";
+import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
+
+const CANCEL_WINDOW_MS = 15 * 60 * 1000;
 
 export const dynamic = "force-dynamic";
 
@@ -71,8 +75,14 @@ export default async function OrderConfirmationPage({
 
   const totalItemCount = order.items.reduce((sum, it) => sum + it.quantity, 0);
 
+  const canSelfCancel =
+    order.status === "PENDING_PAYMENT" &&
+    !order.payment?.proofImageUrl &&
+    Date.now() - order.createdAt.getTime() < CANCEL_WINDOW_MS;
+
   return (
     <div className="space-y-5 py-2">
+      <CheckoutStepper current={2} />
       <OrderHistoryRecorder
         order={{
           shortCode: order.shortCode,
@@ -178,6 +188,8 @@ export default async function OrderConfirmationPage({
           Kirim ke admin via WhatsApp
         </a>
       )}
+
+      {canSelfCancel && <CancelOrderButton shortCode={order.shortCode} />}
 
       <Link
         href="/"
