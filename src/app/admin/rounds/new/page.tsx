@@ -14,7 +14,7 @@ export default async function NewRoundPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">New round</h1>
+      <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">New round</h1>
       <Card>
         <CardHeader>
           <CardTitle>Round details</CardTitle>

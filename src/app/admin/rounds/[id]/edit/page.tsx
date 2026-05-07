@@ -31,7 +31,7 @@ export default async function EditRoundPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Edit round</h1>
+        <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Edit round</h1>
         <Badge>{round.status}</Badge>
       </div>
 

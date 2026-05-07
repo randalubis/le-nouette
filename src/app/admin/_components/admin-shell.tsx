@@ -44,19 +44,22 @@ export function AdminShell({
   }
 
   return (
-    <div className="flex min-h-screen">
+    // admin-shell rebinds the brand tokens to the denser admin variants
+    // so primitives (Card, Table, Input) and var(--surface)/var(--background)
+    // call sites pick up the admin look automatically. (X-01.)
+    <div className="admin-shell flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       {/* Mobile top bar */}
-      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4 md:hidden">
+      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 md:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-zinc-100"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-[var(--surface-warm-1)]"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Link href="/admin" className="text-base font-semibold">
-          Le Nouette · Admin
+        <Link href="/admin" className="flex items-baseline gap-1.5">
+          <BrandLockup size="sm" />
         </Link>
         <span className="w-9" /> {/* spacer for symmetry */}
       </div>
@@ -70,13 +73,13 @@ export function AdminShell({
             aria-label="Close menu"
             onClick={closeMobile}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-zinc-200 bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-zinc-200 p-4">
-              <span className="text-base font-semibold">Le Nouette · Admin</span>
+          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-xl">
+            <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
+              <BrandLockup size="sm" />
               <button
                 type="button"
                 onClick={closeMobile}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-zinc-100"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-[var(--surface-warm-1)]"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
@@ -88,19 +91,19 @@ export function AdminShell({
                   key={item.href}
                   href={item.href}
                   onClick={closeMobile}
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-zinc-100"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-[var(--surface-warm-1)]"
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               ))}
             </nav>
-            <div className="border-t border-zinc-200 p-3">
-              <p className="mb-2 truncate px-2 text-xs text-zinc-500">{email}</p>
+            <div className="border-t border-[var(--border)] p-3">
+              <p className="mb-2 truncate px-2 text-xs text-[var(--muted)]">{email}</p>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-zinc-100"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-[var(--surface-warm-1)]"
               >
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
@@ -110,10 +113,10 @@ export function AdminShell({
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-56 flex-col border-r border-zinc-200 bg-white md:flex">
-        <div className="border-b border-zinc-200 p-4">
-          <Link href="/admin" className="text-lg font-semibold">
-            Le Nouette · Admin
+      <aside className="hidden w-56 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
+        <div className="border-b border-[var(--border)] p-4">
+          <Link href="/admin" className="flex items-baseline gap-1.5">
+            <BrandLockup />
           </Link>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
@@ -121,28 +124,44 @@ export function AdminShell({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-zinc-100"
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[var(--surface-warm-1)]"
             >
               <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="border-t border-zinc-200 p-3">
-          <p className="mb-2 truncate px-2 text-xs text-zinc-500">{email}</p>
+        <div className="border-t border-[var(--border)] p-3">
+          <p className="mb-2 truncate px-2 text-xs text-[var(--muted)]">{email}</p>
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-zinc-100"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[var(--surface-warm-1)]"
           >
             <LogOut className="h-4 w-4" /> Sign out
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto bg-zinc-50">
+      <main className="flex-1 overflow-auto bg-[var(--background)]">
         <div className="mx-auto max-w-6xl p-4 pt-20 md:p-6 md:pt-6">{children}</div>
       </main>
     </div>
+  );
+}
+
+// Brand lockup matching the storefront header — Playfair italic wordmark
+// with a small uppercase tag. "admin" replaces "bites" so the back office
+// reads as the same product family without confusing the visual hierarchy.
+function BrandLockup({ size = "md" }: { size?: "sm" | "md" }) {
+  const wordmark =
+    size === "sm"
+      ? "text-xl italic leading-none tracking-tight"
+      : "text-2xl italic leading-none tracking-tight";
+  return (
+    <>
+      <span className={`font-serif ${wordmark} text-[var(--primary)]`}>Le Nouette</span>
+      <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">admin</span>
+    </>
   );
 }

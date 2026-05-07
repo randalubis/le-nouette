@@ -88,7 +88,7 @@ export function ProductForm({
           }}
         />
         {previewUrl && (
-          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md bg-zinc-100">
+          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
             <Image src={previewUrl} alt="Preview" fill className="object-cover" sizes="160px" />
           </div>
         )}
@@ -100,7 +100,7 @@ export function ProductForm({
           name="isActive"
           type="checkbox"
           defaultChecked={initial?.isActive ?? true}
-          className="h-4 w-4 rounded border-zinc-300"
+          className="h-4 w-4 rounded border-[var(--border)]"
         />
         <Label htmlFor="isActive">Active (available to add to rounds)</Label>
       </div>

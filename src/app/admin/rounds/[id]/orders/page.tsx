@@ -83,12 +83,12 @@ export default async function RoundOrdersPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{round.title}</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">{round.title}</h1>
+          <p className="text-sm text-[var(--muted)]">
             {activeOrders.length} active orders · {totals.itemsTotal} items ·{" "}
             {formatIDR(totals.revenue)}
             {cancelledOrders.length > 0 && (
-              <span className="text-zinc-400">
+              <span className="text-[var(--muted)]">
                 {" "}
                 · {cancelledOrders.length} cancelled
               </span>
@@ -106,10 +106,10 @@ export default async function RoundOrdersPage({
       </div>
 
       {activeFilter !== "all" && (
-        <div className="flex items-center justify-between rounded-md border border-zinc-200 bg-white p-3 text-sm">
+        <div className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--surface)] p-3 text-sm">
           <span>
             Filter: <span className="font-medium">{filterLabels[activeFilter]}</span> ·{" "}
-            <span className="text-zinc-500">{visibleOrders.length} match</span>
+            <span className="text-[var(--muted)]">{visibleOrders.length} match</span>
           </span>
           <Button asChild variant="ghost" size="sm">
             <Link href={`/admin/rounds/${id}/orders${includeCancelled ? "?show=all" : ""}`}>

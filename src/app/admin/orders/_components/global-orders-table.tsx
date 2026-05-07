@@ -52,9 +52,9 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
 
   return (
     <>
-      <div className="border-b border-zinc-200 p-3">
+      <div className="border-b border-[var(--border)] p-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
           <Input
             type="search"
             value={query}
@@ -64,14 +64,14 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
           />
         </div>
         {query && (
-          <p className="mt-1 px-1 text-xs text-zinc-500">
+          <p className="mt-1 px-1 text-xs text-[var(--muted)]">
             {visible.length} of {rows.length} match
           </p>
         )}
       </div>
 
       <Table>
-        <TableHeader className="sticky top-0 z-10 bg-zinc-50">
+        <TableHeader className="sticky top-0 z-10 bg-[var(--background)]">
           <TableRow>
             <TableHead>Code</TableHead>
             <TableHead>Date</TableHead>
@@ -88,7 +88,7 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
         <TableBody>
           {visible.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="py-8 text-center text-sm text-zinc-500">
+              <TableCell colSpan={10} className="py-8 text-center text-sm text-[var(--muted)]">
                 {rows.length === 0 ? "No orders in this range." : "No orders match the search."}
               </TableCell>
             </TableRow>
@@ -100,13 +100,13 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
                     {o.shortCode}
                     {o.needsAttention && (
                       <span
-                        className="inline-block h-2 w-2 rounded-full bg-amber-500"
+                        className="inline-block h-2 w-2 rounded-full bg-[var(--warning)]"
                         title="Proof uploaded — needs verification"
                       />
                     )}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-zinc-500">
+                <TableCell className="text-xs text-[var(--muted)]">
                   {new Date(o.createdAt).toLocaleDateString("en-GB", {
                     day: "2-digit",
                     month: "short",
@@ -128,7 +128,7 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
+                    className="inline-flex items-center gap-1 text-sm text-[var(--success)] hover:underline"
                   >
                     <MessageCircle className="h-3.5 w-3.5" />
                     {o.customerWhatsApp}
@@ -137,7 +137,7 @@ export function GlobalOrdersTable({ rows }: { rows: GlobalOrderRow[] }) {
                 <TableCell>
                   <Link
                     href={`/admin/rounds/${o.roundId}/orders`}
-                    className="text-xs text-zinc-700 hover:underline"
+                    className="text-xs text-[var(--foreground)] hover:underline"
                   >
                     {o.roundTitle}
                   </Link>

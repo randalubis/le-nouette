@@ -67,7 +67,7 @@ export default async function ProductsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Products</h1>
+        <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Products</h1>
         <Button asChild>
           <Link href="/admin/products/new">New product</Link>
         </Button>
@@ -76,7 +76,7 @@ export default async function ProductsPage() {
       {/* Mobile card list */}
       <div className="space-y-3 md:hidden">
         {products.length === 0 ? (
-          <Card className="py-8 text-center text-sm text-zinc-500">
+          <Card className="py-8 text-center text-sm text-[var(--muted)]">
             No products yet.
           </Card>
         ) : (
@@ -87,7 +87,7 @@ export default async function ProductsPage() {
             return (
               <Card key={p.id} className="p-3">
                 <div className="flex gap-3">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                     {/* alt="" — name is announced from the adjacent text (N-13). */}
                     <Image
                       src={p.imageUrl}
@@ -102,13 +102,13 @@ export default async function ProductsPage() {
                       <p className="truncate font-medium">{p.name}</p>
                       <ActiveToggle id={p.id} initialActive={p.isActive} />
                     </div>
-                    <p className="text-sm text-zinc-700">{formatIDR(p.basePrice)}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                    <p className="text-sm text-[var(--foreground)]">{formatIDR(p.basePrice)}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
                       <span>
                         Sold:{" "}
                         <span
                           className={
-                            sold > 0 ? "font-medium text-zinc-700" : "text-zinc-400"
+                            sold > 0 ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)]"
                           }
                         >
                           {sold}
@@ -126,8 +126,8 @@ export default async function ProductsPage() {
                           <span
                             className={
                               lastSold === p.basePrice
-                                ? "text-zinc-500"
-                                : "text-zinc-700"
+                                ? "text-[var(--muted)]"
+                                : "text-[var(--foreground)]"
                             }
                           >
                             {formatIDR(lastSold)}
@@ -147,11 +147,11 @@ export default async function ProductsPage() {
                         </Badge>
                       </div>
                     ) : openRound ? (
-                      <p className="mt-2 text-xs text-zinc-400">Not in open round</p>
+                      <p className="mt-2 text-xs text-[var(--muted)]">Not in open round</p>
                     ) : null}
                   </div>
                 </div>
-                <div className="mt-3 flex justify-end gap-1.5 border-t border-zinc-100 pt-3">
+                <div className="mt-3 flex justify-end gap-1.5 border-t border-[var(--border)] pt-3">
                   <DuplicateButton id={p.id} />
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/admin/products/${p.id}/edit`}>Edit</Link>
@@ -181,7 +181,7 @@ export default async function ProductsPage() {
           <TableBody>
             {products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-sm text-zinc-500">
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-[var(--muted)]">
                   No products yet.
                 </TableCell>
               </TableRow>
@@ -193,7 +193,7 @@ export default async function ProductsPage() {
                 return (
                   <TableRow key={p.id}>
                     <TableCell>
-                      <div className="relative h-16 w-16 overflow-hidden rounded-md bg-zinc-100">
+                      <div className="relative h-16 w-16 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                         {/* alt="" — name is announced from the adjacent table cell (N-13). */}
                         <Image
                           src={p.imageUrl}
@@ -211,8 +211,8 @@ export default async function ProductsPage() {
                         <span
                           className={
                             lastSold === p.basePrice
-                              ? "text-zinc-500"
-                              : "text-zinc-700"
+                              ? "text-[var(--muted)]"
+                              : "text-[var(--foreground)]"
                           }
                           title={
                             lastSold === p.basePrice
@@ -223,7 +223,7 @@ export default async function ProductsPage() {
                           {formatIDR(lastSold)}
                         </span>
                       ) : (
-                        <span className="text-xs text-zinc-400">—</span>
+                        <span className="text-xs text-[var(--muted)]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -235,13 +235,13 @@ export default async function ProductsPage() {
                           {inRound.left > 0 ? `${inRound.left} left` : "Sold out"}
                         </Badge>
                       ) : openRound ? (
-                        <span className="text-xs text-zinc-400">Not in round</span>
+                        <span className="text-xs text-[var(--muted)]">Not in round</span>
                       ) : (
-                        <span className="text-xs text-zinc-400">No open round</span>
+                        <span className="text-xs text-[var(--muted)]">No open round</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      <span className={sold > 0 ? "font-medium" : "text-zinc-400"}>
+                      <span className={sold > 0 ? "font-medium" : "text-[var(--muted)]"}>
                         {sold}
                       </span>
                     </TableCell>
@@ -265,7 +265,7 @@ export default async function ProductsPage() {
       </Card>
 
       {products.length > 0 && (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           &ldquo;Sold&rdquo; counts non-cancelled order items across all rounds.
         </p>
       )}

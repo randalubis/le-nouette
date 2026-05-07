@@ -42,7 +42,7 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           maxLength={100}
           defaultValue={initial.businessName}
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Shown in the storefront header and order confirmation message.
         </p>
       </div>
@@ -57,7 +57,7 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           defaultValue={initial.whatsappNumber}
           placeholder="628123456789"
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Used for the customer&apos;s &ldquo;Kirim ke admin via WhatsApp&rdquo; button.
           Saved in canonical international format (62 prefix).
         </p>
@@ -72,7 +72,7 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           defaultValue={initial.deliveryLocation}
           placeholder="Kantor — pantry lantai 3"
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Shown to the customer on the order confirmation page (optional).
         </p>
       </div>
@@ -87,7 +87,7 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           defaultValue={initial.aboutBlurb}
           placeholder="Cemilan rumahan setiap minggu. Buka preorder Senin & Kamis."
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Shown when no round is open. Optional — leave empty to fall back to the default copy.
         </p>
       </div>
@@ -101,7 +101,7 @@ export function SettingsForm({ initial }: { initial: Initial }) {
           defaultValue={initial.typicalCadence}
           placeholder="Senin pagi, antar Jumat"
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--muted)]">
           Free text, customer-visible. Sets expectation on the closed-round
           teaser without committing to exact dates. Leave empty to hide the block.
         </p>

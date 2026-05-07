@@ -129,8 +129,8 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-xs text-zinc-500">
+        <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Dashboard</h1>
+        <p className="text-xs text-[var(--muted)]">
           {productCount} active products
         </p>
       </div>
@@ -158,11 +158,11 @@ export default async function AdminDashboard() {
 
       {/* Stock alerts banner */}
       {openRound && stockAlerts.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="flex items-start gap-3 rounded-lg border border-[var(--badge-warning-fg)]/20 bg-[var(--badge-warning-bg)] p-3 text-sm text-[var(--badge-warning-fg)]">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <p className="font-medium">Stock alert</p>
-            <ul className="mt-1 space-y-1 text-amber-800">
+            <ul className="mt-1 space-y-1 text-[var(--badge-warning-fg)]">
               {stockAlerts.map((s) => (
                 <li
                   key={s.id}
@@ -216,11 +216,11 @@ export default async function AdminDashboard() {
               <CardTitle>{openRound.title}</CardTitle>
               <Badge variant="success">OPEN</Badge>
             </div>
-            <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-500">
+            <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--muted)]">
               <span className="inline-flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
                 Tutup dalam{" "}
-                <span className="font-medium text-zinc-900">
+                <span className="font-medium text-[var(--foreground)]">
                   {formatRemaining(openRound.closesAt.getTime() - Date.now())}
                 </span>
               </span>
@@ -236,7 +236,7 @@ export default async function AdminDashboard() {
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid grid-cols-3 gap-3 rounded-md bg-zinc-50 p-3 text-center">
+            <div className="grid grid-cols-3 gap-3 rounded-md bg-[var(--background)] p-3 text-center">
               <Stat label="Orders" value={activeOrders.length} />
               <Stat label="Items" value={itemsSold} />
               <Stat
@@ -257,18 +257,18 @@ export default async function AdminDashboard() {
                     <li key={it.id} className="text-sm">
                       <div className="flex justify-between">
                         <span className="truncate pr-2">{it.product.name}</span>
-                        <span className={out ? "font-medium text-red-700" : "text-zinc-500"}>
+                        <span className={out ? "font-medium text-[var(--destructive)]" : "text-[var(--muted)]"}>
                           {it.stockSold}/{it.stockLimit}
                         </span>
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100">
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--surface-warm-1)]">
                         <div
                           className={`h-full ${
                             out
-                              ? "bg-red-500"
+                              ? "bg-[var(--destructive)]"
                               : pct >= 80
-                                ? "bg-amber-500"
-                                : "bg-green-600"
+                                ? "bg-[var(--warning)]"
+                                : "bg-[var(--success)]"
                           }`}
                           style={{ width: `${Math.min(100, pct)}%` }}
                         />
@@ -303,9 +303,9 @@ export default async function AdminDashboard() {
       ) : (
         <Card>
           <CardContent className="space-y-3 py-8 text-center">
-            <Package className="mx-auto h-8 w-8 text-zinc-400" />
+            <Package className="mx-auto h-8 w-8 text-[var(--muted)]" />
             <p className="font-medium">No round is open</p>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-[var(--muted)]">
               Create a new round to start accepting orders.
             </p>
             <Button asChild className="mt-2">
@@ -324,9 +324,9 @@ export default async function AdminDashboard() {
         </CardHeader>
         <CardContent>
           {recentOrders.length === 0 ? (
-            <p className="text-sm text-zinc-500">No orders yet.</p>
+            <p className="text-sm text-[var(--muted)]">No orders yet.</p>
           ) : (
-            <ul className="divide-y divide-zinc-100">
+            <ul className="divide-y divide-[var(--border)]">
               {recentOrders.map((o) => {
                 const needsAttention =
                   o.status === "PENDING_PAYMENT" && !!o.payment?.proofImageUrl;
@@ -342,7 +342,7 @@ export default async function AdminDashboard() {
                         </Link>
                         {needsAttention && (
                           <span
-                            className="inline-block h-2 w-2 rounded-full bg-amber-500"
+                            className="inline-block h-2 w-2 rounded-full bg-[var(--warning)]"
                             title="Payment proof uploaded — needs verification"
                           />
                         )}
@@ -350,7 +350,7 @@ export default async function AdminDashboard() {
                           {o.paymentMethod}
                         </Badge>
                       </div>
-                      <p className="mt-0.5 truncate text-xs text-zinc-500">
+                      <p className="mt-0.5 truncate text-xs text-[var(--muted)]">
                         {o.customerName} · {o.round.title}
                       </p>
                     </div>
@@ -390,22 +390,22 @@ function ActionCard({
 }) {
   const accentClasses =
     accent === "warning"
-      ? "border-amber-200 bg-amber-50"
+      ? "border-[var(--badge-warning-fg)]/20 bg-[var(--badge-warning-bg)]"
       : accent === "success"
-        ? "border-green-200 bg-green-50"
-        : "border-zinc-200 bg-white";
+        ? "border-[var(--badge-success-fg)]/20 bg-[var(--badge-success-bg)]"
+        : "border-[var(--border)] bg-[var(--surface)]";
 
   const inner = (
     <div className={`rounded-lg border p-4 transition-shadow ${accentClasses} hover:shadow-sm`}>
       <div className="flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)]">
           {icon}
           {label}
         </span>
-        {href && count > 0 && <ArrowRight className="h-4 w-4 text-zinc-400" />}
+        {href && count > 0 && <ArrowRight className="h-4 w-4 text-[var(--muted)]" />}
       </div>
       <p className="mt-2 text-3xl font-semibold">{count}</p>
-      <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>
+      <p className="mt-0.5 text-xs text-[var(--muted)]">{subtitle}</p>
     </div>
   );
 
@@ -424,7 +424,7 @@ function Stat({
   return (
     <div>
       <p className="text-2xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-0.5 inline-flex items-center justify-center gap-1 text-xs text-zinc-500">
+      <p className="mt-0.5 inline-flex items-center justify-center gap-1 text-xs text-[var(--muted)]">
         {icon}
         {label}
       </p>

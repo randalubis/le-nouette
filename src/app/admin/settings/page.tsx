@@ -55,8 +55,8 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Settings</h1>
+        <p className="text-sm text-[var(--muted)]">
           Business info, app health, and data backups.
         </p>
       </div>
@@ -86,7 +86,7 @@ export default async function SettingsPage() {
             <Stat label="Rounds" value={health.roundCount.toString()} />
           </div>
           {health.lastMigration && (
-            <p className="mt-4 text-xs text-zinc-500">
+            <p className="mt-4 text-xs text-[var(--muted)]">
               Last migration:{" "}
               <span className="font-mono">{health.lastMigration.migration_name}</span>
               {health.lastMigration.finished_at && (
@@ -134,8 +134,8 @@ export default async function SettingsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-zinc-200 bg-white p-3">
-      <p className="text-xs text-zinc-500">{label}</p>
+    <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3">
+      <p className="text-xs text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
     </div>
   );

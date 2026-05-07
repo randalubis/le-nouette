@@ -55,8 +55,9 @@ export default async function AdminOrderDetail({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{order.shortCode}</h1>
-          <p className="text-sm text-zinc-500">
+          {/* shortCode is a code, not a title — keep mono+upright. */}
+          <h1 className="font-mono text-2xl font-semibold text-[var(--primary)]">{order.shortCode}</h1>
+          <p className="text-sm text-[var(--muted)]">
             {order.round.title} ·{" "}
             {order.createdAt.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
           </p>
@@ -71,7 +72,7 @@ export default async function AdminOrderDetail({
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-500">Name</span>
+              <span className="text-[var(--muted)]">Name</span>
               <Link
                 href={`/admin/customers/${encodeURIComponent(order.customerWhatsApp)}`}
                 className="font-medium hover:underline"
@@ -80,7 +81,7 @@ export default async function AdminOrderDetail({
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">WhatsApp</span>
+              <span className="text-[var(--muted)]">WhatsApp</span>
               <a
                 href={formatWhatsAppLink(
                   order.customerWhatsApp,
@@ -88,17 +89,17 @@ export default async function AdminOrderDetail({
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-green-700 hover:underline"
+                className="inline-flex items-center gap-1 text-[var(--success)] hover:underline"
               >
                 <MessageCircle className="h-3.5 w-3.5" /> {order.customerWhatsApp}
               </a>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">Payment</span>
+              <span className="text-[var(--muted)]">Payment</span>
               <span>{order.paymentMethod}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">Delivery</span>
+              <span className="text-[var(--muted)]">Delivery</span>
               <span>
                 {order.round.deliveryDate.toLocaleDateString("en-GB", {
                   weekday: "short",
@@ -109,7 +110,7 @@ export default async function AdminOrderDetail({
             </div>
             {order.notes && (
               <div className="border-t pt-2">
-                <p className="text-xs text-zinc-500">Notes</p>
+                <p className="text-xs text-[var(--muted)]">Notes</p>
                 <p className="mt-1 whitespace-pre-line">{order.notes}</p>
               </div>
             )}
@@ -122,12 +123,12 @@ export default async function AdminOrderDetail({
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-500">Total</span>
+              <span className="text-[var(--muted)]">Total</span>
               <span className="text-base font-semibold">{formatIDR(order.totalAmount)}</span>
             </div>
             {order.payment?.paidAt && (
               <div className="flex justify-between">
-                <span className="text-zinc-500">Submitted at</span>
+                <span className="text-[var(--muted)]">Submitted at</span>
                 <span>
                   {order.payment.paidAt.toLocaleString("en-GB", {
                     dateStyle: "medium",
@@ -138,7 +139,7 @@ export default async function AdminOrderDetail({
             )}
             {order.payment?.verifiedAt && (
               <div className="flex justify-between">
-                <span className="text-zinc-500">Verified at</span>
+                <span className="text-[var(--muted)]">Verified at</span>
                 <span>
                   {order.payment.verifiedAt.toLocaleString("en-GB", {
                     dateStyle: "medium",
@@ -149,14 +150,14 @@ export default async function AdminOrderDetail({
             )}
             {order.payment?.proofImageUrl && (
               <div>
-                <p className="mb-2 text-xs text-zinc-500">Proof</p>
+                <p className="mb-2 text-xs text-[var(--muted)]">Proof</p>
                 <a
                   href={order.payment.proofImageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block"
                 >
-                  <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-md border bg-zinc-100">
+                  <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-md border bg-[var(--surface-warm-1)]">
                     <Image
                       src={order.payment.proofImageUrl}
                       alt="Payment proof"
@@ -169,7 +170,7 @@ export default async function AdminOrderDetail({
               </div>
             )}
             {!order.payment?.proofImageUrl && order.paymentMethod === "QRIS" && (
-              <p className="text-zinc-500">Belum ada bukti transfer.</p>
+              <p className="text-[var(--muted)]">Belum ada bukti transfer.</p>
             )}
           </CardContent>
         </Card>
@@ -182,7 +183,7 @@ export default async function AdminOrderDetail({
         <CardContent className="space-y-3">
           {order.items.map((it) => (
             <div key={it.id} className="flex items-center gap-3">
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                 {/* alt="" — name is announced from the adjacent text (N-13). */}
                 <Image
                   src={it.roundProduct.product.imageUrl}
@@ -194,7 +195,7 @@ export default async function AdminOrderDetail({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{it.roundProduct.product.name}</p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-[var(--muted)]">
                   {it.quantity} × {formatIDR(it.unitPrice)}
                 </p>
               </div>
@@ -213,12 +214,12 @@ export default async function AdminOrderDetail({
           <CardTitle className="text-base">Status history</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="relative space-y-3 border-l border-zinc-200 pl-4">
+          <ol className="relative space-y-3 border-l border-[var(--border)] pl-4">
             <li className="relative">
-              <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-zinc-300" />
+              <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-[var(--border-subtle-hover)]" />
               <p className="text-sm">
                 <span className="font-medium">Order created</span>
-                <span className="ml-2 text-xs text-zinc-500">
+                <span className="ml-2 text-xs text-[var(--muted)]">
                   {order.createdAt.toLocaleString("en-GB", {
                     dateStyle: "medium",
                     timeStyle: "short",
@@ -228,14 +229,14 @@ export default async function AdminOrderDetail({
             </li>
             {order.statusEvents.map((ev) => (
               <li key={ev.id} className="relative">
-                <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-zinc-900" />
+                <span className="absolute -left-[21px] top-1.5 inline-block h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
                 <p className="text-sm">
                   <span className="font-medium">
                     {ev.fromStatus
                       ? `${ev.fromStatus.replace("_", " ")} → ${ev.toStatus.replace("_", " ")}`
                       : ev.toStatus.replace("_", " ")}
                   </span>
-                  <span className="ml-2 text-xs text-zinc-500">
+                  <span className="ml-2 text-xs text-[var(--muted)]">
                     {ev.createdAt.toLocaleString("en-GB", {
                       dateStyle: "medium",
                       timeStyle: "short",

@@ -7,7 +7,7 @@ export default async function NewProductPage() {
   await requireAdmin();
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">New product</h1>
+      <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">New product</h1>
       <Card>
         <CardHeader>
           <CardTitle>Product details</CardTitle>

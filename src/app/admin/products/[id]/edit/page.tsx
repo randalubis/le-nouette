@@ -15,7 +15,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Edit product</h1>
+      <h1 className="font-serif text-3xl font-semibold italic text-[var(--primary)]">Edit product</h1>
       <Card>
         <CardHeader>
           <CardTitle>Product details</CardTitle>

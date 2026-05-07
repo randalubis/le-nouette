@@ -46,7 +46,7 @@ export function OrderStatusActions({
   return (
     <div className="space-y-4">
       {paymentMethod !== "COD" && status === "PENDING_PAYMENT" && !hasProof && (
-        <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+        <p className="rounded-md bg-[var(--badge-warning-bg)] p-3 text-sm text-[var(--badge-warning-fg)]">
           Customer hasn&apos;t uploaded payment proof yet.
         </p>
       )}
@@ -73,12 +73,12 @@ export function OrderStatusActions({
       )}
 
       {options.length === 0 && status !== "CANCELLED" && (
-        <p className="text-sm text-zinc-500">No further transitions.</p>
+        <p className="text-sm text-[var(--muted)]">No further transitions.</p>
       )}
 
       {status === "CANCELLED" && (
-        <div className="border-t border-zinc-200 pt-4">
-          <p className="mb-2 text-sm font-medium text-zinc-700">Danger zone</p>
+        <div className="border-t border-[var(--border)] pt-4">
+          <p className="mb-2 text-sm font-medium text-[var(--foreground)]">Danger zone</p>
           {!confirmingDelete ? (
             <Button
               variant="destructive"
@@ -89,7 +89,7 @@ export function OrderStatusActions({
             </Button>
           ) : (
             <div className="space-y-2">
-              <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              <p className="rounded-md bg-[var(--badge-destructive-bg)] p-3 text-sm text-[var(--badge-destructive-fg)]">
                 Permanently removes this cancelled order and its line items from the database.
                 This cannot be undone.
               </p>
