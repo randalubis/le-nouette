@@ -42,7 +42,7 @@ export default async function PayPage({
             Bayar saat pesanan diantar (COD).
           </p>
           <a
-            href={`/order/${order.shortCode}`}
+            href={`/pesanan/${order.shortCode}`}
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)]"
           >
             Lihat ringkasan pesanan
@@ -61,7 +61,7 @@ export default async function PayPage({
             Pesanan {order.shortCode} sedang diproses.
           </p>
           <a
-            href={`/order/${order.shortCode}`}
+            href={`/pesanan/${order.shortCode}`}
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)]"
           >
             Lihat ringkasan

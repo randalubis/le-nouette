@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { errorMessage } from "@/lib/errors";
 import { formatIDR } from "@/lib/utils";
 
 const ID_DAY_MONTH = new Intl.DateTimeFormat("id-ID", {
@@ -134,7 +135,7 @@ export default function CheckoutPage() {
 
     if (!res.ok || !result.ok) {
       setSubmitting(false);
-      toast.error(result.error ?? "Gagal membuat pesanan.");
+      toast.error(result.error ?? errorMessage("UNKNOWN"));
       return;
     }
 
@@ -156,9 +157,9 @@ export default function CheckoutPage() {
     );
     clear();
     if (isPayNow(method)) {
-      router.replace(`/order/${shortCode}/bayar`);
+      router.replace(`/pesanan/${shortCode}/bayar`);
     } else {
-      router.replace(`/order/${shortCode}`);
+      router.replace(`/pesanan/${shortCode}`);
     }
   }
 
@@ -269,7 +270,7 @@ export default function CheckoutPage() {
                     value="BANK_TRANSFER"
                     current={method}
                     onSelect={setMethod}
-                    label="Bank Transfer"
+                    label="Transfer Bank"
                     description="Transfer ke rekening yang akan ditampilkan."
                   />
                 </div>
@@ -280,7 +281,7 @@ export default function CheckoutPage() {
               value="COD"
               current={method}
               onSelect={setMethod}
-              label="Cash on Delivery"
+              label="Bayar di Tempat"
               description="Bayar saat pesanan diantar."
             />
           </CardContent>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { readCustomer } from "@/lib/cart";
+import { errorMessage } from "@/lib/errors";
 
 export function ProofUploader({ shortCode }: { shortCode: string }) {
   const router = useRouter();
@@ -29,11 +30,11 @@ export function ProofUploader({ shortCode }: { shortCode: string }) {
 
   async function handleSubmit() {
     if (!whatsapp.trim()) {
-      toast.error("Isi nomor WhatsApp untuk verifikasi.");
+      toast.error(errorMessage("WHATSAPP_REQUIRED"));
       return;
     }
     if (!file) {
-      toast.error("Pilih file bukti transfer dulu.");
+      toast.error(errorMessage("PROOF_FILE_REQUIRED"));
       return;
     }
     setSubmitting(true);
@@ -44,14 +45,14 @@ export function ProofUploader({ shortCode }: { shortCode: string }) {
       method: "POST",
       body: fd,
     });
-    const result = await res.json().catch(() => ({ ok: false, error: "Network error" }));
+    const result = await res.json().catch(() => ({ ok: false, error: errorMessage("NETWORK") }));
     if (!res.ok || !result.ok) {
       setSubmitting(false);
-      toast.error(result.error ?? "Gagal upload bukti.");
+      toast.error(result.error ?? errorMessage("UPLOAD_FAILED", {}));
       return;
     }
     toast.success("Bukti terkirim. Menunggu konfirmasi admin.");
-    router.replace(`/order/${shortCode}`);
+    router.replace(`/pesanan/${shortCode}`);
     router.refresh();
   }
 

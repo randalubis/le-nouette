@@ -105,7 +105,7 @@ export default function CartPage() {
             </p>
           </div>
           <Link
-            href="/checkout"
+            href="/pembayaran"
             className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-[var(--primary-foreground)] shadow-sm transition-colors hover:bg-[#1f1610]"
           >
             Lanjut ke pembayaran

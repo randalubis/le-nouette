@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { errorMessage } from "@/lib/errors";
 import { checkoutSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
@@ -26,10 +27,9 @@ export async function POST(request: NextRequest) {
     const result = await prisma.$transaction(
       async (tx) => {
         const round = await tx.preorderRound.findUnique({ where: { id: roundId } });
-        if (!round) throw new BadRequest("Ronde tidak ditemukan.");
-        if (round.status !== "OPEN") throw new BadRequest("Ronde sudah ditutup.");
-        if (round.closesAt.getTime() < Date.now())
-          throw new BadRequest("Waktu pemesanan sudah berakhir.");
+        if (!round) throw new BadRequest(errorMessage("ROUND_NOT_FOUND"));
+        if (round.status !== "OPEN" || round.closesAt.getTime() < Date.now())
+          throw new BadRequest(errorMessage("ROUND_CLOSED"));
 
         const lineProducts = await tx.roundProduct.findMany({
           where: {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (lineProducts.length !== data.items.length) {
-          throw new BadRequest("Beberapa produk tidak tersedia di ronde ini.");
+          throw new BadRequest(errorMessage("PRODUCT_UNAVAILABLE"));
         }
 
         const productMap = new Map(lineProducts.map((lp) => [lp.id, lp]));
@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
           const lp = productMap.get(item.roundProductId)!;
           const left = lp.stockLimit - lp.stockSold;
           if (item.quantity > left) {
-            throw new BadRequest(`Stok ${lp.product.name} tidak cukup (sisa ${left}).`);
+            throw new BadRequest(
+              errorMessage("STOCK_INSUFFICIENT", { productName: lp.product.name, left }),
+            );
           }
           total += lp.price * item.quantity;
         }
@@ -113,7 +115,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: e.message }, { status: 400 });
     }
     console.error("Order creation failed", e);
-    return NextResponse.json({ ok: false, error: "Gagal membuat pesanan." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: errorMessage("UNKNOWN") }, { status: 500 });
   }
 }
 

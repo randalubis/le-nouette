@@ -127,6 +127,10 @@ prisma/
 docs/
   SUPABASE_SETUP.md                  # detailed first-time setup
   DEPLOYMENT.md                      # Vercel deployment walkthrough
+  REGION_MIGRATION.md                # Sydney → Singapore Supabase migration
+  IMPROVEMENT_PLAN.md                # 41-ticket UI/UX audit plan
+  CONTENT_GUIDE.md                   # language, error format, contrast rules
+  VOICE_GUIDE.md                     # storefront copy voice and tone
 ```
 
 ## Data model

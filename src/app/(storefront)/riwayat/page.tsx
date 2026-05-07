@@ -84,7 +84,7 @@ export default function MyOrdersPage() {
           <Card key={o.shortCode}>
             <CardContent className="flex items-center gap-3 p-4">
               <Link
-                href={`/order/${o.shortCode}`}
+                href={`/pesanan/${o.shortCode}`}
                 className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3ede1]">

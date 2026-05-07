@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { errorMessage } from "@/lib/errors";
 
 const CANCEL_WINDOW_MS = 15 * 60 * 1000;
 
@@ -20,19 +21,15 @@ export async function POST(
           payment: { select: { proofImageUrl: true } },
         },
       });
-      if (!order) throw new ConflictError("Pesanan tidak ditemukan.");
+      if (!order) throw new ConflictError(errorMessage("ORDER_NOT_FOUND"));
       if (order.status !== "PENDING_PAYMENT") {
-        throw new ConflictError("Pesanan ini tidak bisa dibatalkan lagi.");
+        throw new ConflictError(errorMessage("ORDER_NOT_CANCELLABLE"));
       }
       if (order.payment?.proofImageUrl) {
-        throw new ConflictError(
-          "Bukti pembayaran sudah diupload. Hubungi admin via WhatsApp untuk membatalkan.",
-        );
+        throw new ConflictError(errorMessage("ORDER_PROOF_ALREADY_UPLOADED"));
       }
       if (Date.now() - order.createdAt.getTime() > CANCEL_WINDOW_MS) {
-        throw new ConflictError(
-          "Sudah lewat 15 menit. Hubungi admin via WhatsApp untuk membatalkan.",
-        );
+        throw new ConflictError(errorMessage("CANCEL_WINDOW_EXPIRED"));
       }
 
       for (const it of order.items) {
@@ -59,10 +56,7 @@ export async function POST(
     if (e instanceof ConflictError) {
       return NextResponse.json({ ok: false, error: e.message }, { status: 409 });
     }
-    return NextResponse.json(
-      { ok: false, error: "Gagal membatalkan pesanan." },
-      { status: 500 },
-    );
+    return NextResponse.json({ ok: false, error: errorMessage("UNKNOWN") }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

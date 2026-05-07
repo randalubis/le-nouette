@@ -38,10 +38,10 @@ export function StorefrontHeader() {
         <div className="flex items-center gap-1">
           {historyHydrated && hasOrders && (
             <Link
-              href="/pesanan"
+              href="/riwayat"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[#ebe3d4]"
-              aria-label="Pesanan saya"
-              title="Pesanan saya"
+              aria-label="Riwayat pesanan"
+              title="Riwayat pesanan"
             >
               <Receipt className="h-5 w-5" />
             </Link>

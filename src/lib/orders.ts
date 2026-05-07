@@ -22,7 +22,21 @@ type OrderForMessage = {
   orderUrl?: string;
 };
 
+// Customer-facing (Bahasa). Used on /pesanan/[shortCode] and inside the
+// outbound WhatsApp message. Admin code that needs the English variant
+// should use paymentMethodLabelEn. (N-03.)
 export function paymentMethodLabel(method: PaymentMethodLabel): string {
+  switch (method) {
+    case "QRIS":
+      return "QRIS";
+    case "BANK_TRANSFER":
+      return "Transfer Bank";
+    case "COD":
+      return "Bayar di Tempat";
+  }
+}
+
+export function paymentMethodLabelEn(method: PaymentMethodLabel): string {
   switch (method) {
     case "QRIS":
       return "QRIS";
