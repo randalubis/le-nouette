@@ -23,6 +23,7 @@ export async function createProductAction(formData: FormData): Promise<ActionRes
     description: formData.get("description") || null,
     basePrice: formData.get("basePrice"),
     isActive: formData.get("isActive") === "on",
+    aspectRatio: formData.get("aspectRatio") || "square",
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -53,6 +54,7 @@ export async function updateProductAction(
     description: formData.get("description") || null,
     basePrice: formData.get("basePrice"),
     isActive: formData.get("isActive") === "on",
+    aspectRatio: formData.get("aspectRatio") || "square",
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -115,6 +117,7 @@ export async function duplicateProductAction(id: string): Promise<never> {
       imageUrl: original.imageUrl,
       basePrice: original.basePrice,
       isActive: original.isActive,
+      aspectRatio: original.aspectRatio,
     },
   });
   revalidatePath("/admin/products");

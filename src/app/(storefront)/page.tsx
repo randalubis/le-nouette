@@ -36,6 +36,7 @@ export default async function StorefrontHome() {
     imageUrl: it.product.imageUrl,
     price: it.price,
     stockLeft: Math.max(0, it.stockLimit - it.stockSold),
+    aspectRatio: it.product.aspectRatio === "portrait" ? "portrait" : "square",
   }));
 
   return (
@@ -51,6 +52,15 @@ export default async function StorefrontHome() {
         closesAt={round.closesAt.toISOString()}
         deliveryDate={round.deliveryDate.toISOString()}
       />
+
+      {round.story && (
+        <p className="font-serif text-base italic text-[var(--foreground)]">
+          {round.story}
+          <span className="ml-2 text-xs not-italic uppercase tracking-wider text-[var(--muted)]">
+            — dari dapur kami
+          </span>
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {products.map((p) => (
@@ -81,6 +91,18 @@ async function ClosedRoundTeaser() {
   const settings = await getBusinessSettings();
   const heroImage = pastRound?.items[0]?.product.imageUrl ?? null;
   const pastItems = pastRound?.items ?? [];
+
+  // L-06: most recent 3 positive reviews surface as social proof.
+  const reviews = await prisma.review.findMany({
+    where: { rating: { gte: 2 }, comment: { not: null } },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+    select: {
+      rating: true,
+      comment: true,
+      order: { select: { customerName: true } },
+    },
+  });
 
   return (
     <div className="space-y-6 pb-12">
@@ -149,6 +171,31 @@ async function ClosedRoundTeaser() {
               ))}
             </ul>
           </div>
+        </section>
+      )}
+
+      {/* Reviews — L-06 social proof */}
+      {reviews.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-[var(--muted)]">
+            Cerita pelanggan
+          </h2>
+          <ul className="space-y-2">
+            {reviews.map((r, i) => (
+              <li
+                key={i}
+                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4"
+              >
+                <p className="text-sm italic text-[var(--foreground)]">
+                  &ldquo;{r.comment}&rdquo;
+                </p>
+                <p className="mt-2 text-xs text-[var(--muted)]">
+                  — {r.order.customerName.split(" ")[0]}
+                  {r.rating === 3 ? " · 😍" : " · 🙂"}
+                </p>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

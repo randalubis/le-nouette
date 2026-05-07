@@ -16,6 +16,7 @@ type Initial = {
   basePrice?: number;
   isActive?: boolean;
   imageUrl?: string;
+  aspectRatio?: string;
 };
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -93,6 +94,40 @@ export function ProductForm({
           </div>
         )}
       </div>
+
+      <fieldset className="space-y-2">
+        <Label>Card aspect ratio</Label>
+        <div className="flex gap-3">
+          <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] p-3 has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--surface-warm-1)]/40">
+            <input
+              type="radio"
+              name="aspectRatio"
+              value="square"
+              defaultChecked={(initial?.aspectRatio ?? "square") === "square"}
+              className="peer sr-only"
+            />
+            <span aria-hidden="true" className="block h-10 w-10 shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface-warm-2)]" />
+            <div>
+              <p className="text-sm font-medium">Square (1:1)</p>
+              <p className="text-xs text-[var(--muted)]">Round dishes, top-down shots.</p>
+            </div>
+          </label>
+          <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] p-3 has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--surface-warm-1)]/40">
+            <input
+              type="radio"
+              name="aspectRatio"
+              value="portrait"
+              defaultChecked={initial?.aspectRatio === "portrait"}
+              className="peer sr-only"
+            />
+            <span aria-hidden="true" className="block h-10 w-8 shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface-warm-2)]" />
+            <div>
+              <p className="text-sm font-medium">Portrait (4:5)</p>
+              <p className="text-xs text-[var(--muted)]">Tall layered items, cakes.</p>
+            </div>
+          </label>
+        </div>
+      </fieldset>
 
       <div className="flex items-center gap-2">
         <input

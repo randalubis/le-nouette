@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatIDR, formatIDRInput, parseIDR } from "@/lib/utils";
 
 // "Cemilan Jumat 14 November". Indonesian capitalization: weekday and month
@@ -48,6 +49,7 @@ type Initial = {
   bankName?: string | null;
   bankAccountNumber?: string | null;
   bankAccountHolder?: string | null;
+  story?: string | null;
   items?: LineItem[];
 };
 
@@ -172,6 +174,21 @@ export function RoundForm({
             defaultValue={toDateInput(initial?.deliveryDate)}
             onChange={(e) => handleDeliveryDateChange(e.target.value)}
           />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="story">Cerita ronde ini (optional)</Label>
+          <Textarea
+            id="story"
+            name="story"
+            rows={2}
+            maxLength={280}
+            defaultValue={initial?.story ?? ""}
+            placeholder="Minggu ini cookie cokelat baru pakai cocoa Belanda. Kalau habis pertama, sorry duluan ya."
+          />
+          <p className="text-xs text-zinc-500">
+            Customer-visible. Renders between the round banner and the
+            product grid. Leave empty to hide. (L-10)
+          </p>
         </div>
       </div>
 

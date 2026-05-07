@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { GlobalSearch } from "./global-search";
+import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -150,6 +151,8 @@ export function AdminShell({
       <main className="flex-1 overflow-auto bg-[var(--background)]">
         <div className="mx-auto max-w-6xl p-4 pt-20 md:p-6 md:pt-6">{children}</div>
       </main>
+
+      <KeyboardShortcuts />
     </div>
   );
 }

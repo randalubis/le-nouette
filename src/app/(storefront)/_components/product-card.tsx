@@ -15,6 +15,9 @@ export type StorefrontProduct = {
   imageUrl: string;
   price: number;
   stockLeft: number;
+  // L-04: 'square' (1:1) or 'portrait' (4:5). Defaults to square at the
+  // call site for legacy products.
+  aspectRatio?: "square" | "portrait";
 };
 
 export function ProductCard({ product }: { product: StorefrontProduct }) {
@@ -44,7 +47,10 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
         out ? "opacity-60" : ""
       }`}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-[var(--surface-warm-1)]">
+      <div
+        className="relative w-full overflow-hidden bg-[var(--surface-warm-1)]"
+        style={{ aspectRatio: product.aspectRatio === "portrait" ? "4 / 5" : "1 / 1" }}
+      >
         <Image
           src={product.imageUrl}
           alt={product.name}

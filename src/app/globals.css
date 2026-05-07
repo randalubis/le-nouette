@@ -138,3 +138,59 @@ body {
   background: var(--primary);
   color: var(--primary-foreground);
 }
+
+/* ============================================================
+   Dark mode (L-07)
+   Triggered by the OS-level prefers-color-scheme. Re-binds the
+   brand tokens to a darker palette designed to keep the same
+   warmth at night without losing AA contrast on body text.
+   The badge, success, warning, destructive accent colors stay
+   the same — only the surface stack and muted/foreground shift.
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1f1610;
+    --surface: #2a1f15;
+    --foreground: #faf7f2;
+    --muted: #b3a895;
+    --border: #3d2e1f;
+    --primary: #faf7f2;
+    --primary-foreground: #1f1610;
+    --primary-hover: #ebe3d4;
+    --ring: #faf7f2;
+
+    /* Surface variants warmed up against the dark base. */
+    --surface-warm-1: #3a2a1c;
+    --surface-warm-2: #2f2218;
+    --surface-warm-3: #4a3826;
+    --surface-cool-1: #2a2018;
+    --surface-success-light: #2f3a23;
+    --border-subtle-hover: #4a3826;
+
+    /* Admin density variant flipped too so the back office stays
+       coherent in dark mode. */
+    --admin-bg: #1a120c;
+    --admin-surface: #2a1f15;
+  }
+}
+
+/* ============================================================
+   Reduced motion (L-07)
+   Honors prefers-reduced-motion: reduce — kills hover transforms,
+   transitions, and animations that aren't strictly informational.
+   Customers who set this OS-level preference get a calmer experience.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Product card hover scale becomes a no-op. */
+  .group:hover img {
+    transform: none !important;
+  }
+}

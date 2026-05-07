@@ -13,6 +13,7 @@ import { OrderHistoryRecorder } from "./history-recorder";
 import { CancelOrderButton } from "./cancel-button";
 import { OrderStatusPoller } from "./status-poller";
 import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
+import { faqFor } from "@/lib/faq";
 
 const CANCEL_WINDOW_MS = 15 * 60 * 1000;
 
@@ -57,7 +58,7 @@ export default async function OrderConfirmationPage({
   const order = await prisma.order.findUnique({
     where: { shortCode },
     include: {
-      round: { select: { title: true, deliveryDate: true } },
+      round: { select: { title: true, deliveryDate: true, status: true } },
       items: { include: { roundProduct: { include: { product: true } } } },
       payment: true,
     },
@@ -92,9 +93,39 @@ export default async function OrderConfirmationPage({
     !order.payment?.proofImageUrl &&
     Date.now() - order.createdAt.getTime() < CANCEL_WINDOW_MS;
 
+  // L-09: when the round closes for new orders but this customer's order
+  // is still mid-flight, surface a reassuring banner so they don't think
+  // their order was voided.
+  const showInFlightRoundClosed =
+    order.round.status === "CLOSED" &&
+    (order.status === "PENDING_PAYMENT" ||
+      order.status === "PENDING_CONFIRMATION" ||
+      order.status === "PAID");
+
+  // L-11: FAQ only on in-flight orders. Cancelled/delivered/hold-expired
+  // orders don't need expectation-setting.
+  const showFaq =
+    order.status === "PENDING_PAYMENT" ||
+    order.status === "PENDING_CONFIRMATION" ||
+    order.status === "PAID" ||
+    order.status === "CONFIRMED";
+  const faqOverrides = (settings.faqAnswers as Parameters<typeof faqFor>[1]) ?? null;
+  const faq = showFaq ? faqFor(order.paymentMethod, faqOverrides) : [];
+
   return (
     <div className="space-y-5 py-2">
       <CheckoutStepper current={2} />
+
+      {showInFlightRoundClosed && (
+        <div
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
+          role="note"
+        >
+          Ronde ini sudah ditutup untuk pesanan baru, tapi pesananmu masih
+          diproses normal.
+        </div>
+      )}
+
       <OrderHistoryRecorder
         order={{
           shortCode: order.shortCode,
@@ -208,6 +239,30 @@ export default async function OrderConfirmationPage({
       )}
 
       {canSelfCancel && <CancelOrderButton shortCode={order.shortCode} />}
+
+      {faq.length > 0 && (
+        <section className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+          <h2 className="text-sm font-medium text-[var(--foreground)]">
+            Pertanyaan umum
+          </h2>
+          <div className="space-y-1">
+            {faq.map((qa) => (
+              <details
+                key={qa.question}
+                className="group border-t border-[var(--border)] py-2 first:border-t-0"
+              >
+                <summary className="cursor-pointer list-none text-sm font-medium text-[var(--foreground)]">
+                  {qa.question}
+                  <span className="float-right text-[var(--muted)] transition-transform group-open:rotate-90">
+                    ›
+                  </span>
+                </summary>
+                <p className="mt-2 text-sm text-[var(--muted)]">{qa.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
 
       <Link
         href="/"

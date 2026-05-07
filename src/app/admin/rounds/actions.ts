@@ -31,6 +31,7 @@ function parseFormData(formData: FormData) {
     bankName: trim(formData.get("bankName")),
     bankAccountNumber: trim(formData.get("bankAccountNumber")),
     bankAccountHolder: trim(formData.get("bankAccountHolder")),
+    story: trim(formData.get("story")),
     items,
   });
 }
