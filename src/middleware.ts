@@ -38,8 +38,16 @@ async function isValidAdminCookie(cookieValue: string): Promise<boolean> {
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  if (!path.startsWith("/admin")) return NextResponse.next();
-  if (path === "/admin/login") return NextResponse.next();
+
+  // Forward the pathname so the root layout can pick the right `lang`
+  // attribute (id for storefront, en for admin) — there's no other
+  // server-side hook to read the URL from a layout. (Plan ticket N-12.)
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", path);
+  const passthrough = NextResponse.next({ request: { headers: requestHeaders } });
+
+  if (!path.startsWith("/admin")) return passthrough;
+  if (path === "/admin/login") return passthrough;
 
   const cookie = request.cookies.get(COOKIE_NAME);
   const authed = cookie ? await isValidAdminCookie(cookie.value) : false;
@@ -50,7 +58,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.search = "";
     return NextResponse.redirect(loginUrl);
   }
-  return NextResponse.next();
+  return passthrough;
 }
 
 export const config = {

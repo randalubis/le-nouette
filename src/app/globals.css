@@ -5,7 +5,11 @@
   --background: #faf7f2;
   --surface: #ffffff;
   --foreground: #2a1f15;
-  --muted: #8a7b6b;
+  /* Was #8a7b6b — ~4.0:1 on --background, failing WCAG AA. Darkened to
+     ~7:1, which clears AAA for normal text and AA on every surface in
+     the brand. Use for incidental microcopy only — primary body text
+     should use --foreground. (Plan ticket N-04.) */
+  --muted: #6b5c4d;
   --border: #ebe3d4;
   --primary: #3d2e1f;
   --primary-foreground: #faf7f2;

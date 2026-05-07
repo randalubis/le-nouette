@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Truck } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
 import { readCustomer, writeCustomer, saveOrderToHistory } from "@/lib/cart";
@@ -12,6 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatIDR } from "@/lib/utils";
+
+const ID_DAY_MONTH = new Intl.DateTimeFormat("id-ID", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
 
 type PaymentMethod = "QRIS" | "BANK_TRANSFER" | "COD";
 
@@ -28,6 +35,7 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<PaymentMethod>("QRIS");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = readCustomer();
@@ -36,6 +44,23 @@ export default function CheckoutPage() {
       setWhatsapp(saved.whatsapp);
     }
   }, []);
+
+  useEffect(() => {
+    if (!cart?.roundId) return;
+    let cancelled = false;
+    fetch(`/api/rounds/${cart.roundId}/summary`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        setDeliveryDate(data.deliveryDate);
+      })
+      .catch(() => {
+        // Banner is non-critical; silently skip if fetch fails.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cart?.roundId]);
 
   useEffect(() => {
     if (submitted) return;
@@ -113,6 +138,21 @@ export default function CheckoutPage() {
   return (
     <div className="space-y-4 pb-32">
       <h1 className="text-xl font-semibold">Pembayaran</h1>
+
+      {deliveryDate && (
+        <div
+          className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+          role="note"
+        >
+          <Truck className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+          <span>
+            Pesanan ini akan diantar{" "}
+            <span className="font-medium">
+              {ID_DAY_MONTH.format(new Date(deliveryDate))}
+            </span>
+          </span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Card>
@@ -226,7 +266,8 @@ export default function CheckoutPage() {
             {cart.items.map((it) => (
               <div key={it.roundProductId} className="flex items-center gap-3">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-zinc-100">
-                  <Image src={it.imageUrl} alt={it.name} fill className="object-cover" sizes="40px" />
+                  {/* alt="" — name is announced from the adjacent text (N-13). */}
+                  <Image src={it.imageUrl} alt="" fill className="object-cover" sizes="40px" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{it.name}</p>
