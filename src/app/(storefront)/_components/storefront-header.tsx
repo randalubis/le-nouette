@@ -1,28 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Receipt, ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
-import { readOrderHistory } from "@/lib/cart";
 
 export function StorefrontHeader() {
-  const { totalItems, hydrated: cartHydrated } = useCart();
-  const [hasOrders, setHasOrders] = useState(false);
-  const [historyHydrated, setHistoryHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasOrders(readOrderHistory().length > 0);
-    setHistoryHydrated(true);
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "le-nouette-orders-v1") {
-        setHasOrders(readOrderHistory().length > 0);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  // X-16: read everything from the consolidated CartProvider — no
+  // separate localStorage round-trip + useState for hasOrders.
+  const { totalItems, hydrated, orderHistory } = useCart();
+  const hasOrders = orderHistory.length > 0;
 
   return (
     <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-md">
@@ -36,7 +22,7 @@ export function StorefrontHeader() {
           </span>
         </Link>
         <div className="flex items-center gap-1">
-          {historyHydrated && hasOrders && (
+          {hydrated && hasOrders && (
             <Link
               href="/riwayat"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--border)]"
@@ -52,7 +38,7 @@ export function StorefrontHeader() {
             aria-label="Keranjang"
           >
             <ShoppingBag className="h-5 w-5" />
-            {cartHydrated && totalItems > 0 && (
+            {hydrated && totalItems > 0 && (
               <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-semibold text-white">
                 {totalItems}
               </span>

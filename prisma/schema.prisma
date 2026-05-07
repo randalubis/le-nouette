@@ -53,26 +53,36 @@ model RoundProduct {
 }
 
 model Order {
-  id               String        @id @default(cuid())
-  shortCode        String        @unique
-  roundId          String
-  customerName     String
-  customerWhatsApp String
-  paymentMethod    PaymentMethod
-  status           OrderStatus   @default(PENDING_PAYMENT)
-  totalAmount      Int
-  notes            String?
-  adminNotes       String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  round            PreorderRound @relation(fields: [roundId], references: [id])
-  items            OrderItem[]
-  payment          Payment?
-  statusEvents     OrderStatusEvent[]
+  id                   String        @id @default(cuid())
+  shortCode            String        @unique
+  roundId              String
+  customerName         String
+  customerWhatsApp     String
+  // Canonical E.164-style form (digits only, leading 62) of customerWhatsApp.
+  // Always written through normalizeWhatsApp so the customers page and admin
+  // search can dedupe across "0812…" / "+62812…" / "62812…" variants. (X-05.)
+  normalizedWhatsApp   String?
+  paymentMethod        PaymentMethod
+  status               OrderStatus   @default(PENDING_PAYMENT)
+  totalAmount          Int
+  notes                String?
+  adminNotes           String?
+  // Soft-hold cutoff for QRIS / Bank Transfer orders. If proof isn't
+  // uploaded by this time the lazy reconciler in /api/orders cancels the
+  // order and restores stock. NULL means no hold (COD or already paid). (X-04.)
+  stockHoldExpiresAt   DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  round                PreorderRound @relation(fields: [roundId], references: [id])
+  items                OrderItem[]
+  payment              Payment?
+  statusEvents         OrderStatusEvent[]
 
   @@index([roundId])
   @@index([status])
   @@index([createdAt])
+  @@index([normalizedWhatsApp])
+  @@index([stockHoldExpiresAt])
 }
 
 model OrderStatusEvent {
@@ -174,8 +184,10 @@ enum PaymentMethod {
 
 enum OrderStatus {
   PENDING_PAYMENT
+  PENDING_CONFIRMATION  // X-06: COD orders land here until admin confirms
   PAID
   CONFIRMED
   DELIVERED
   CANCELLED
+  HOLD_EXPIRED          // X-04: soft-hold reconciler set this after timeout
 }

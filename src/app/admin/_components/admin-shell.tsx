@@ -13,6 +13,7 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import { GlobalSearch } from "./global-search";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -113,11 +114,14 @@ export function AdminShell({
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-56 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
+      <aside className="hidden w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
         <div className="border-b border-[var(--border)] p-4">
           <Link href="/admin" className="flex items-baseline gap-1.5">
             <BrandLockup />
           </Link>
+        </div>
+        <div className="border-b border-[var(--border)] p-3">
+          <GlobalSearch />
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           {navItems.map((item) => (

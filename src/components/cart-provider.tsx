@@ -10,10 +10,22 @@ import {
   clearCart as clearCartStorage,
   cartItemCount,
   cartTotal,
+  type SavedCustomer,
+  readCustomer,
+  type SavedOrder,
+  readOrderHistory,
+  ORDER_HISTORY_STORAGE_KEY,
 } from "@/lib/cart";
 
+// X-16: single hydration source for cart + customer + order history. Three
+// separate localStorage reads on mount were each triggering their own
+// re-render and showing a brief flash of empty state. The provider now
+// loads all three slices in one effect and exposes them through one
+// context, with a single `hydrated` flag.
 type CartContextValue = {
   cart: Cart | null;
+  customer: SavedCustomer | null;
+  orderHistory: SavedOrder[];
   hydrated: boolean;
   totalItems: number;
   totalAmount: number;
@@ -22,17 +34,36 @@ type CartContextValue = {
   remove: (roundProductId: string) => void;
   clear: () => void;
   resetForRound: (roundId: string) => void;
+  refreshOrderHistory: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
+  const [customer, setCustomer] = useState<SavedCustomer | null>(null);
+  const [orderHistory, setOrderHistory] = useState<SavedOrder[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setCart(readCart());
+    setCustomer(readCustomer());
+    setOrderHistory(readOrderHistory());
     setHydrated(true);
+    // Cross-tab sync: when another tab writes to the order-history key
+    // (e.g. customer places an order in tab A while tab B is open), the
+    // header icon should appear in tab B too.
+    function onStorage(e: StorageEvent) {
+      if (e.key === ORDER_HISTORY_STORAGE_KEY) {
+        setOrderHistory(readOrderHistory());
+      }
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const refreshOrderHistory = useCallback(() => {
+    setOrderHistory(readOrderHistory());
   }, []);
 
   useEffect(() => {
@@ -90,8 +121,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalAmount = useMemo(() => (cart ? cartTotal(cart) : 0), [cart]);
 
   const value = useMemo<CartContextValue>(
-    () => ({ cart, hydrated, totalItems, totalAmount, add, setQuantity, remove, clear, resetForRound }),
-    [cart, hydrated, totalItems, totalAmount, add, setQuantity, remove, clear, resetForRound],
+    () => ({
+      cart,
+      customer,
+      orderHistory,
+      hydrated,
+      totalItems,
+      totalAmount,
+      add,
+      setQuantity,
+      remove,
+      clear,
+      resetForRound,
+      refreshOrderHistory,
+    }),
+    [
+      cart,
+      customer,
+      orderHistory,
+      hydrated,
+      totalItems,
+      totalAmount,
+      add,
+      setQuantity,
+      remove,
+      clear,
+      resetForRound,
+      refreshOrderHistory,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -1,10 +1,60 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { errorMessage } from "@/lib/errors";
 import { checkoutSchema } from "@/lib/validators";
 
+const HOLD_WINDOW_MS = 30 * 60 * 1000; // X-04
+
+// Lazy reconciler — scans for expired soft holds and cancels them. Runs at
+// the start of every order-creation request so the system self-heals
+// without needing a cron route. Worst-case lag = time-to-next-order.
+async function releaseExpiredHolds(): Promise<void> {
+  const expired = await prisma.order.findMany({
+    where: {
+      status: "PENDING_PAYMENT",
+      stockHoldExpiresAt: { lt: new Date() },
+      payment: { is: { proofImageUrl: null } },
+    },
+    select: { id: true, status: true, items: true },
+  });
+  if (expired.length === 0) return;
+  for (const order of expired) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        for (const it of order.items) {
+          await tx.roundProduct.update({
+            where: { id: it.roundProductId },
+            data: { stockSold: { decrement: it.quantity } },
+          });
+        }
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: "HOLD_EXPIRED", stockHoldExpiresAt: null },
+        });
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: "HOLD_EXPIRED",
+            actor: "system",
+            note: "Soft hold expired (no payment proof within 30 min)",
+          },
+        });
+      });
+    } catch (e) {
+      // Don't let one bad order kill the sweep.
+      console.error("releaseExpiredHolds failed for order", order.id, e);
+    }
+  }
+}
+
 export async function POST(request: NextRequest) {
+  // Best-effort sweep before processing the new order. Errors are
+  // swallowed so a slow sweep doesn't break checkout. (X-04.)
+  releaseExpiredHolds().catch((e) => console.error("Sweep failed", e));
+
   let body: unknown;
   try {
     body = await request.json();
@@ -64,7 +114,13 @@ export async function POST(request: NextRequest) {
         }
 
         const shortCode = await nextShortCodeTx(tx);
-        const initialStatus = data.paymentMethod === "COD" ? "CONFIRMED" : "PENDING_PAYMENT";
+        // X-06: COD orders need admin confirmation before they're trusted.
+        // X-04: pay-later orders carry a soft-hold timestamp that the
+        //       reconciler clears once proof is uploaded.
+        const initialStatus =
+          data.paymentMethod === "COD" ? "PENDING_CONFIRMATION" : "PENDING_PAYMENT";
+        const stockHoldExpiresAt =
+          data.paymentMethod === "COD" ? null : new Date(Date.now() + HOLD_WINDOW_MS);
 
         const order = await tx.order.create({
           data: {
@@ -72,10 +128,14 @@ export async function POST(request: NextRequest) {
             roundId,
             customerName: data.customerName,
             customerWhatsApp: data.customerWhatsApp,
+            // X-05: data.customerWhatsApp is already normalized by the Zod
+            // transform — keep both fields in sync.
+            normalizedWhatsApp: data.customerWhatsApp,
             paymentMethod: data.paymentMethod,
             status: initialStatus,
             totalAmount: total,
             notes: data.notes ?? null,
+            stockHoldExpiresAt,
             items: {
               create: data.items.map((it) => ({
                 roundProductId: it.roundProductId,
@@ -103,6 +163,7 @@ export async function POST(request: NextRequest) {
       { timeout: 20_000, maxWait: 15_000 },
     );
 
+    revalidatePath("/"); // X-12: stock decremented, refresh storefront cache
     return NextResponse.json({
       ok: true,
       shortCode: result.shortCode,

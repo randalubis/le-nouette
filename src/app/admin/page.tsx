@@ -74,7 +74,10 @@ export default async function AdminDashboard() {
   });
 
   // Counts and aggregates derived from in-memory orders to avoid extra round-trips
-  const activeOrders = openRound?.orders.filter((o) => o.status !== "CANCELLED") ?? [];
+  const activeOrders =
+    openRound?.orders.filter(
+      (o) => o.status !== "CANCELLED" && o.status !== "HOLD_EXPIRED",
+    ) ?? [];
 
   const needsVerifyCount = activeOrders.filter(
     (o) => o.status === "PENDING_PAYMENT" && !!o.payment?.proofImageUrl,
@@ -82,6 +85,11 @@ export default async function AdminDashboard() {
 
   const awaitingPaymentCount = activeOrders.filter(
     (o) => o.status === "PENDING_PAYMENT" && !o.payment?.proofImageUrl,
+  ).length;
+
+  // X-06: COD orders awaiting admin confirmation.
+  const needConfirmCount = activeOrders.filter(
+    (o) => o.status === "PENDING_CONFIRMATION",
   ).length;
 
   const readyToDeliverCount = activeOrders.filter(
@@ -181,7 +189,7 @@ export default async function AdminDashboard() {
       )}
 
       {/* Tier 1 — Work-queue cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ActionCard
           icon={<ShieldCheck className="h-4 w-4" />}
           label="Need to verify"
@@ -189,6 +197,14 @@ export default async function AdminDashboard() {
           accent={needsVerifyCount > 0 ? "warning" : "neutral"}
           href={ordersBaseUrl ? `${ordersBaseUrl}?filter=needs-verify` : null}
           subtitle="Bukti transfer terupload"
+        />
+        <ActionCard
+          icon={<ShieldCheck className="h-4 w-4" />}
+          label="Need confirmation"
+          count={needConfirmCount}
+          accent={needConfirmCount > 0 ? "warning" : "neutral"}
+          href={ordersBaseUrl ? `${ordersBaseUrl}?filter=need-confirm` : null}
+          subtitle="COD menunggu admin"
         />
         <ActionCard
           icon={<Wallet className="h-4 w-4" />}

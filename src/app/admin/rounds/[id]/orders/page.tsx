@@ -11,11 +11,17 @@ import { OrdersTable, type OrderRow } from "./orders-table";
 
 export const dynamic = "force-dynamic";
 
-type FilterKey = "all" | "needs-verify" | "awaiting-payment" | "ready-to-deliver";
+type FilterKey =
+  | "all"
+  | "needs-verify"
+  | "need-confirm"
+  | "awaiting-payment"
+  | "ready-to-deliver";
 
 const filterLabels: Record<FilterKey, string> = {
   all: "All active",
   "needs-verify": "Needs payment verify",
+  "need-confirm": "Need COD confirmation",
   "awaiting-payment": "Awaiting payment",
   "ready-to-deliver": "Ready to deliver",
 };
@@ -33,6 +39,7 @@ export default async function RoundOrdersPage({
   const includeCancelled = show === "all";
   const activeFilter: FilterKey =
     filter === "needs-verify" ||
+    filter === "need-confirm" ||
     filter === "awaiting-payment" ||
     filter === "ready-to-deliver"
       ? filter
@@ -50,14 +57,20 @@ export default async function RoundOrdersPage({
   if (!round) notFound();
 
   const allOrders = round.orders;
-  const activeOrders = allOrders.filter((o) => o.status !== "CANCELLED");
-  const cancelledOrders = allOrders.filter((o) => o.status === "CANCELLED");
+  const activeOrders = allOrders.filter(
+    (o) => o.status !== "CANCELLED" && o.status !== "HOLD_EXPIRED",
+  );
+  const cancelledOrders = allOrders.filter(
+    (o) => o.status === "CANCELLED" || o.status === "HOLD_EXPIRED",
+  );
 
   type DbOrder = (typeof allOrders)[number];
   function matchesFilter(o: DbOrder): boolean {
     switch (activeFilter) {
       case "needs-verify":
         return o.status === "PENDING_PAYMENT" && !!o.payment?.proofImageUrl;
+      case "need-confirm":
+        return o.status === "PENDING_CONFIRMATION";
       case "awaiting-payment":
         return o.status === "PENDING_PAYMENT" && !o.payment?.proofImageUrl;
       case "ready-to-deliver":

@@ -38,6 +38,7 @@ export async function createProductAction(formData: FormData): Promise<ActionRes
 
   await prisma.product.create({ data: { ...parsed.data, imageUrl } });
   revalidatePath("/admin/products");
+  revalidatePath("/");
   redirect("/admin/products");
 }
 
@@ -75,6 +76,7 @@ export async function updateProductAction(
 
   await prisma.product.update({ where: { id }, data: { ...parsed.data, imageUrl } });
   revalidatePath("/admin/products");
+  revalidatePath("/");
   redirect("/admin/products");
 }
 
@@ -85,6 +87,7 @@ export async function archiveProductAction(id: string): Promise<ActionResult> {
 
   await prisma.product.update({ where: { id }, data: { isActive: false } });
   revalidatePath("/admin/products");
+  revalidatePath("/");
   return { ok: true };
 }
 
@@ -92,6 +95,7 @@ export async function activateProductAction(id: string): Promise<ActionResult> {
   await requireAdmin();
   await prisma.product.update({ where: { id }, data: { isActive: true } });
   revalidatePath("/admin/products");
+  revalidatePath("/");
   return { ok: true };
 }
 
@@ -114,5 +118,6 @@ export async function duplicateProductAction(id: string): Promise<never> {
     },
   });
   revalidatePath("/admin/products");
+  revalidatePath("/");
   redirect(`/admin/products/${copy.id}/edit`);
 }

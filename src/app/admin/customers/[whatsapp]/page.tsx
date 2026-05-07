@@ -31,8 +31,13 @@ export default async function CustomerPage({
   const { whatsapp } = await params;
   const normalized = normalizeWhatsApp(decodeURIComponent(whatsapp));
 
+  // X-05: prefer normalizedWhatsApp; fall back to customerWhatsApp for any
+  // pre-migration rows whose backfill missed (it shouldn't, but cheap belt
+  // and suspenders).
   const orders = await prisma.order.findMany({
-    where: { customerWhatsApp: normalized },
+    where: {
+      OR: [{ normalizedWhatsApp: normalized }, { customerWhatsApp: normalized }],
+    },
     orderBy: { createdAt: "desc" },
     include: {
       round: { select: { id: true, title: true } },

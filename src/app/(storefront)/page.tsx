@@ -7,7 +7,10 @@ import { CheckoutBar } from "./_components/checkout-bar";
 import { NotifyForm } from "./_components/notify-form";
 import { getBusinessSettings } from "@/lib/settings";
 
-export const dynamic = "force-dynamic";
+// X-12: revalidate every 60s as a safety net. Round/product writes call
+// revalidatePath("/") explicitly so customers see fresh state within
+// seconds of an admin edit.
+export const revalidate = 60;
 
 export default async function StorefrontHome() {
   const round = await prisma.preorderRound.findFirst({

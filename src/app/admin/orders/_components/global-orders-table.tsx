@@ -14,10 +14,12 @@ const statusVariant: Record<
   "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
 > = {
   PENDING_PAYMENT: "warning",
+  PENDING_CONFIRMATION: "warning",
   PAID: "success",
   CONFIRMED: "info",
   DELIVERED: "outline",
   CANCELLED: "destructive",
+  HOLD_EXPIRED: "destructive",
 };
 
 export type GlobalOrderRow = {
@@ -26,7 +28,14 @@ export type GlobalOrderRow = {
   customerName: string;
   customerWhatsApp: string;
   paymentMethod: "QRIS" | "BANK_TRANSFER" | "COD";
-  status: "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+  status:
+    | "PENDING_PAYMENT"
+    | "PENDING_CONFIRMATION"
+    | "PAID"
+    | "CONFIRMED"
+    | "DELIVERED"
+    | "CANCELLED"
+    | "HOLD_EXPIRED";
   totalAmount: number;
   itemCount: number;
   createdAt: string;

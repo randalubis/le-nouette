@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Receipt, Trash2 } from "lucide-react";
-import { readOrderHistory, removeOrderFromHistory, type SavedOrder } from "@/lib/cart";
+import { removeOrderFromHistory, type SavedOrder } from "@/lib/cart";
+import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { paymentMethodLabel } from "@/lib/orders";
 import { formatIDR } from "@/lib/utils";
-
-const paymentLabel: Record<SavedOrder["paymentMethod"], string> = {
-  QRIS: "QRIS",
-  BANK_TRANSFER: "Bank Transfer",
-  COD: "Cash on Delivery",
-};
 
 function formatDate(iso: string): string {
   try {
@@ -30,17 +25,12 @@ function formatDate(iso: string): string {
 }
 
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState<SavedOrder[]>([]);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setOrders(readOrderHistory());
-    setHydrated(true);
-  }, []);
+  // X-16: read from CartProvider; no separate localStorage round-trip.
+  const { orderHistory: orders, hydrated, refreshOrderHistory } = useCart();
 
   function handleRemove(shortCode: string) {
     removeOrderFromHistory(shortCode);
-    setOrders((prev) => prev.filter((o) => o.shortCode !== shortCode));
+    refreshOrderHistory();
   }
 
   if (!hydrated) {
@@ -94,7 +84,7 @@ export default function MyOrdersPage() {
                   <div className="flex items-center gap-2">
                     <p className="font-mono text-sm font-semibold">{o.shortCode}</p>
                     <Badge variant="outline" className="text-[10px]">
-                      {paymentLabel[o.paymentMethod]}
+                      {paymentMethodLabel(o.paymentMethod)}
                     </Badge>
                   </div>
                   {o.roundTitle && (

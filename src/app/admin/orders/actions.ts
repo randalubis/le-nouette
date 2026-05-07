@@ -9,7 +9,15 @@ import { prisma } from "@/lib/db";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-const statusSchema = z.enum(["PENDING_PAYMENT", "PAID", "CONFIRMED", "DELIVERED", "CANCELLED"]);
+const statusSchema = z.enum([
+  "PENDING_PAYMENT",
+  "PENDING_CONFIRMATION",
+  "PAID",
+  "CONFIRMED",
+  "DELIVERED",
+  "CANCELLED",
+  "HOLD_EXPIRED",
+]);
 
 async function logStatusEvent(
   tx: Prisma.TransactionClient,
