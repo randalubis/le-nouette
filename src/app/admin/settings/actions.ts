@@ -17,6 +17,7 @@ const settingsSchema = z.object({
     .or(z.literal("")),
   deliveryLocation: z.string().max(200).optional().or(z.literal("")),
   aboutBlurb: z.string().max(500).optional().or(z.literal("")),
+  typicalCadence: z.string().max(120).optional().or(z.literal("")),
 });
 
 export async function updateBusinessSettingsAction(
@@ -28,6 +29,7 @@ export async function updateBusinessSettingsAction(
     whatsappNumber: String(formData.get("whatsappNumber") ?? ""),
     deliveryLocation: String(formData.get("deliveryLocation") ?? ""),
     aboutBlurb: String(formData.get("aboutBlurb") ?? ""),
+    typicalCadence: String(formData.get("typicalCadence") ?? ""),
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };

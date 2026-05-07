@@ -138,8 +138,24 @@ model BusinessSettings {
   whatsappNumber   String?
   deliveryLocation String?
   aboutBlurb       String?
+  // Free-text cadence shown on the closed-round teaser, e.g.
+  // "Senin pagi, antar Jumat". Sets expectation without committing to
+  // exact dates. (Plan ticket N-01.)
+  typicalCadence   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+// Captured on the closed-round teaser. Activated by L-01 (Phase 3) which
+// will fan out a WhatsApp message to every row where optedOutAt is null
+// when a round transitions to OPEN. (Plan ticket N-01.)
+model NotifySubscriber {
+  id         String    @id @default(cuid())
+  whatsapp   String    @unique
+  createdAt  DateTime  @default(now())
+  optedOutAt DateTime?
+
+  @@index([optedOutAt])
 }
 
 enum RoundStatus {

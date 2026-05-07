@@ -7,6 +7,7 @@ export type BusinessSettings = {
   whatsappNumber: string;
   deliveryLocation: string;
   aboutBlurb: string;
+  typicalCadence: string;
 };
 
 const DEFAULTS: BusinessSettings = {
@@ -14,6 +15,7 @@ const DEFAULTS: BusinessSettings = {
   whatsappNumber: "",
   deliveryLocation: "",
   aboutBlurb: "",
+  typicalCadence: "",
 };
 
 /**
@@ -32,6 +34,7 @@ export async function getBusinessSettings(): Promise<BusinessSettings> {
     whatsappNumber: normalizeWhatsApp(row?.whatsappNumber?.trim() || envWa),
     deliveryLocation: row?.deliveryLocation?.trim() ?? DEFAULTS.deliveryLocation,
     aboutBlurb: row?.aboutBlurb?.trim() ?? DEFAULTS.aboutBlurb,
+    typicalCadence: row?.typicalCadence?.trim() ?? DEFAULTS.typicalCadence,
   };
 }
 
@@ -43,6 +46,7 @@ export async function upsertBusinessSettings(
     whatsappNumber: patch.whatsappNumber?.trim() || null,
     deliveryLocation: patch.deliveryLocation?.trim() || null,
     aboutBlurb: patch.aboutBlurb?.trim() || null,
+    typicalCadence: patch.typicalCadence?.trim() || null,
   };
   await prisma.businessSettings.upsert({
     where: { id: 1 },
