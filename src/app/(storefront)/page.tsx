@@ -9,7 +9,7 @@ import { StorefrontHeader } from "./_components/storefront-header";
 import { getBusinessSettings } from "@/lib/settings";
 
 const DEFAULT_TAGLINE =
-  "Kue kering rumahan, dipanggang setiap minggu untuk meja kantormu.";
+  "Cemilan terbaik temani hari sibukmu di kantor ataupun santaimu di rumah.";
 
 // X-12: revalidate every 60s as a safety net. Round/product writes call
 // revalidatePath("/") explicitly so customers see fresh state within
@@ -135,9 +135,32 @@ async function ClosedRoundTeaser() {
     },
   });
 
+  // Mirror the open-round hero's date + status block. Status text + dot
+  // color reflect that pre-orders are not currently accepted.
+  const todayLabel = new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
+
   return (
     <div className="space-y-6 pb-12">
       <StorefrontHeader forceShow />
+
+      {/* Date + closed-state pill */}
+      <div className="pt-2">
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
+          {todayLabel}
+        </p>
+        <p className="mt-1 inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+          <span
+            aria-hidden="true"
+            className="inline-block h-2 w-2 rounded-full bg-[var(--ink-mute)]"
+          />
+          Saat ini kami belum buka pre-order
+        </p>
+      </div>
+
       {/* Hero */}
       <section className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
         {heroImage ? (

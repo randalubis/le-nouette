@@ -100,12 +100,12 @@ export function HomeHero({
         {/* Bottom — eyebrow + wordmark + tagline */}
         <div className="absolute inset-x-0 bottom-0 px-5 pb-7 text-[var(--accent-ink)]">
           <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] opacity-80">
-            Cemilan kantor · Sejak 2024
+            Cemilan kantor
           </p>
           <h1 className="mt-2 font-serif text-6xl italic leading-[0.9] tracking-tight">
             Le Nouette
           </h1>
-          <p className="mt-3 max-w-[28ch] text-sm leading-snug opacity-90">{tagline}</p>
+          <p className="mt-3 max-w-[34ch] text-sm leading-snug opacity-90">{tagline}</p>
         </div>
       </div>
     </section>
