@@ -1,11 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Receipt, ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 
-export function StorefrontHeader() {
+export function StorefrontHeader({ forceShow = false }: { forceShow?: boolean } = {}) {
+  // The home page (open-round branch) renders its own full-bleed hero
+  // with overlay action buttons, so the layout-rendered sticky header
+  // is suppressed at /. The closed-round teaser passes forceShow=true
+  // to opt back in; every other storefront page sits at a different
+  // path and gets the header by default.
+  const pathname = usePathname();
+  const onHome = pathname === "/";
+
   // X-16: read everything from the consolidated CartProvider — no
   // separate localStorage round-trip + useState for hasOrders.
   const { totalItems, hydrated, orderHistory, addPulse } = useCart();
@@ -21,6 +30,8 @@ export function StorefrontHeader() {
       setPopKey((k) => k + 1);
     }
   }, [addPulse]);
+
+  if (onHome && !forceShow) return null;
 
   return (
     <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-md">

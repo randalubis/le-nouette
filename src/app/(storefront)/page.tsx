@@ -2,10 +2,15 @@ import Image from "next/image";
 import { CalendarClock } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { ProductCard, type StorefrontProduct } from "./_components/product-card";
-import { RoundBanner } from "./_components/round-banner";
 import { CheckoutBar } from "./_components/checkout-bar";
 import { NotifyForm } from "./_components/notify-form";
+import { HomeHero } from "./_components/home-hero";
+import { CountdownCard } from "./_components/countdown-card";
+import { StorefrontHeader } from "./_components/storefront-header";
 import { getBusinessSettings } from "@/lib/settings";
+
+const DEFAULT_TAGLINE =
+  "Kue kering rumahan, dipanggang setiap minggu untuk meja kantormu.";
 
 // X-12: revalidate every 60s as a safety net. Round/product writes call
 // revalidatePath("/") explicitly so customers see fresh state within
@@ -27,6 +32,14 @@ export default async function StorefrontHome() {
     return await ClosedRoundTeaser();
   }
 
+  const settings = await getBusinessSettings();
+
+  // Edition number = round's position in the all-time sequence. Cheap
+  // count-where-newer-than-or-equal vs. createdAt; tiny tables in practice.
+  const edition = await prisma.preorderRound.count({
+    where: { createdAt: { lte: round.createdAt } },
+  });
+
   const products: StorefrontProduct[] = round.items.map((it) => ({
     roundId: round.id,
     roundProductId: it.id,
@@ -39,18 +52,24 @@ export default async function StorefrontHome() {
     aspectRatio: it.product.aspectRatio === "portrait" ? "portrait" : "square",
   }));
 
-  return (
-    <div className="space-y-5">
-      <div className="pt-2">
-        <h1 className="font-serif text-3xl font-semibold leading-tight text-[var(--primary)]">
-          Cemilan minggu ini
-        </h1>
-      </div>
+  // Pick a hero image — prefer the round's first product photo. Operator
+  // can curate ordering by adjusting product names (alphabetical) or we
+  // can later add an explicit hero field on the round.
+  const heroImage = round.items[0]?.product.imageUrl ?? null;
+  const tagline = settings.aboutBlurb?.trim() || DEFAULT_TAGLINE;
 
-      <RoundBanner
+  return (
+    <div className="space-y-6">
+      <HomeHero
+        imageUrl={heroImage}
+        tagline={tagline}
+        todayIso={new Date().toISOString()}
+      />
+
+      <CountdownCard
         title={round.title}
-        closesAt={round.closesAt.toISOString()}
-        deliveryDate={round.deliveryDate.toISOString()}
+        closesAtIso={round.closesAt.toISOString()}
+        edition={edition}
       />
 
       {round.story && (
@@ -61,6 +80,16 @@ export default async function StorefrontHome() {
           </span>
         </p>
       )}
+
+      {/* Section heading + scroll anchor for the CTA in CountdownCard. */}
+      <div id="menu-anchor" className="flex items-baseline justify-between pt-1">
+        <h2 className="font-serif text-2xl italic text-[var(--foreground)]">
+          Pilihan minggu ini
+        </h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
+          {products.length} produk
+        </span>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {products.map((p) => (
@@ -73,6 +102,10 @@ export default async function StorefrontHome() {
 }
 
 async function ClosedRoundTeaser() {
+  // The layout-rendered StorefrontHeader self-suppresses at "/", so the
+  // closed-round branch opts back in via forceShow. Open-round skips the
+  // header entirely (its full-bleed hero takes over the top of the page).
+
   // Hero photo + past-products strip come from the most recent round that
   // actually shipped — falling back to CLOSED if nothing's been delivered
   // yet. We grab a small bunch of items and let the layout pick a hero.
@@ -106,6 +139,7 @@ async function ClosedRoundTeaser() {
 
   return (
     <div className="space-y-6 pb-12">
+      <StorefrontHeader forceShow />
       {/* Hero */}
       <section className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
         {heroImage ? (
