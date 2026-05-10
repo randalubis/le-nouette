@@ -55,16 +55,62 @@ type Initial = {
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
+// All datetime fields in this form are operator-facing in Jakarta time.
+// The server runs in UTC so Date#getX returns UTC components — we use
+// Intl with timeZone:"Asia/Jakarta" to format the wall-clock the
+// operator expects, and convert form output back to a real ISO instant
+// (with TZ) before submitting so z.coerce.date() doesn't reinterpret a
+// naive "YYYY-MM-DDTHH:mm" as UTC.
+const OPERATOR_TZ = "Asia/Jakarta";
+
+function jakartaParts(d: Date): Record<string, string> {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: OPERATOR_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .formatToParts(d)
+    .reduce<Record<string, string>>((acc, p) => {
+      if (p.type !== "literal") acc[p.type] = p.value;
+      return acc;
+    }, {});
+}
+
 function toLocalInput(d?: Date) {
   if (!d) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const p = jakartaParts(d);
+  // hour can come back as "24" for midnight in some Intl impls; normalize.
+  const hh = p.hour === "24" ? "00" : p.hour;
+  return `${p.year}-${p.month}-${p.day}T${hh}:${p.minute}`;
 }
 
 function toDateInput(d?: Date) {
   if (!d) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const p = jakartaParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+// Returns the timezone offset string for a given Jakarta wall-clock
+// instant — e.g. "+07:00". Hardcoded since OPERATOR_TZ is fixed.
+function jakartaOffset(): string {
+  return "+07:00";
+}
+
+// "YYYY-MM-DDTHH:mm" (datetime-local) → ISO instant interpreted in Jakarta.
+function localInputToIso(value: string): string {
+  if (!value) return value;
+  // Append seconds + offset so Date parses unambiguously.
+  return new Date(`${value}:00${jakartaOffset()}`).toISOString();
+}
+
+// "YYYY-MM-DD" (date input) → ISO instant for midnight Jakarta.
+function dateInputToIso(value: string): string {
+  if (!value) return value;
+  return new Date(`${value}T00:00:00${jakartaOffset()}`).toISOString();
 }
 
 export function RoundForm({
@@ -121,6 +167,12 @@ export function RoundForm({
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     fd.set("items", JSON.stringify(items));
+    // Reinterpret datetime-local + date inputs as Jakarta-local instants
+    // so the UTC server doesn't read "2026-05-10T18:00" as 18:00 UTC
+    // (which would be 01:00 Jakarta the next day).
+    fd.set("opensAt", localInputToIso(String(fd.get("opensAt") ?? "")));
+    fd.set("closesAt", localInputToIso(String(fd.get("closesAt") ?? "")));
+    fd.set("deliveryDate", dateInputToIso(String(fd.get("deliveryDate") ?? "")));
     const result = await action(fd);
     setSubmitting(false);
     if (result && !result.ok) toast.error(result.error);
