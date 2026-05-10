@@ -67,7 +67,7 @@ export default function CartPage() {
         {cart.items.map((it) => (
           <article
             key={it.roundProductId}
-            className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[0_1px_2px_rgba(58,38,16,0.04)]"
+            className="flex items-center gap-3 rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-3 shadow-[0_1px_2px_rgba(58,38,16,0.04)]"
           >
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-warm-1)]">
               {/* alt="" — name is announced from the adjacent text (N-13). */}
@@ -76,7 +76,7 @@ export default function CartPage() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{it.name}</p>
               <p className="text-sm text-[var(--muted)]">{formatIDR(it.price)}</p>
-              <div className="mt-2 flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1 w-fit">
+              <div className="mt-2 flex items-center gap-1.5 rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-1 w-fit">
                 <Button
                   size="icon"
                   variant="ghost"

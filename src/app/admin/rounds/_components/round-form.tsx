@@ -207,13 +207,13 @@ export function RoundForm({
           }}
         />
         {qrisPreview && (
-          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface)]">
+          <div className="relative mt-2 h-40 w-40 overflow-hidden rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
             <Image src={qrisPreview} alt="QRIS preview" fill className="object-contain" sizes="160px" />
           </div>
         )}
       </div>
 
-      <div className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
+      <div className="space-y-3 rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-4">
         <Label className="text-sm font-medium">Bank Transfer details (optional)</Label>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1.5">
@@ -261,7 +261,7 @@ export function RoundForm({
           <Label>Products in this round</Label>
           {availableProducts.length > 0 && (
             <select
-              className="h-9 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 text-sm"
+              className="h-9 rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-2 text-sm"
               value=""
               onChange={(e) => {
                 if (e.target.value) addProduct(e.target.value);
@@ -290,7 +290,7 @@ export function RoundForm({
               return (
                 <div
                   key={it.productId}
-                  className="flex items-center gap-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-3"
+                  className="flex items-center gap-3 rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-3"
                 >
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                     <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="48px" />

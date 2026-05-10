@@ -128,7 +128,7 @@ export function OrdersTable({
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-14 z-10 -mx-2 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border)] bg-[var(--primary)] px-3 py-2 text-white shadow-md md:top-0">
+        <div className="sticky top-14 z-10 -mx-2 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border-[0.5px] border-[var(--border)] bg-[var(--primary)] px-3 py-2 text-white shadow-md md:top-0">
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium">{selected.size} dipilih</span>
             <button

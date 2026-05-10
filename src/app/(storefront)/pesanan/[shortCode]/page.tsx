@@ -118,7 +118,7 @@ export default async function OrderConfirmationPage({
 
       {showInFlightRoundClosed && (
         <div
-          className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
+          className="rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
           role="note"
         >
           Ronde ini sudah ditutup untuk pesanan baru, tapi pesananmu masih
@@ -136,7 +136,7 @@ export default async function OrderConfirmationPage({
           createdAt: order.createdAt.toISOString(),
         }}
       />
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--surface-success-light)] via-[var(--surface)] to-[var(--surface-warm-3)] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
+      <div className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-gradient-to-br from-[var(--surface-success-light)] via-[var(--surface)] to-[var(--surface-warm-3)] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--success)]/15">
           <CheckCircle2 className="h-8 w-8 text-[var(--success)]" />
         </div>
@@ -144,7 +144,7 @@ export default async function OrderConfirmationPage({
         <p className="mt-1 text-sm text-[var(--muted)]">
           Pesananmu sudah masuk ke dapur.
         </p>
-        <p className="mt-4 inline-block rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 font-mono text-sm font-medium text-[var(--primary)]">
+        <p className="mt-4 inline-block rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-3 py-1 font-mono text-sm font-medium text-[var(--primary)]">
           {order.shortCode}
         </p>
         <div className="mt-3">
@@ -243,7 +243,7 @@ export default async function OrderConfirmationPage({
       {canSelfCancel && <CancelOrderButton shortCode={order.shortCode} />}
 
       {faq.length > 0 && (
-        <section className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <section className="space-y-2 rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-4">
           <h2 className="text-sm font-medium text-[var(--foreground)]">
             Pertanyaan umum
           </h2>

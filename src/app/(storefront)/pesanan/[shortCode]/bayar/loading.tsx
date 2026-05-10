@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 export default function Loading() {
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_2px_rgba(58,38,16,0.04)]">
+      <div className="rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_2px_rgba(58,38,16,0.04)]">
         <div className="flex items-center gap-3">
           <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
           <p className="font-medium">Memuat halaman pembayaran…</p>

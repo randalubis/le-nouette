@@ -54,7 +54,7 @@ export function NotifyForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+    <form onSubmit={submit} className="space-y-3 rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5">
       <div className="flex items-center gap-2 text-[var(--foreground)]">
         <Bell className="h-4 w-4 text-[var(--accent)]" />
         <p className="font-medium">Beritahu saya kalau ronde berikutnya buka</p>

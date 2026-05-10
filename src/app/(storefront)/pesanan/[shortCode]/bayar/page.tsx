@@ -79,7 +79,7 @@ export default async function PayPage({
       <CheckoutStepper current={2} />
       {order.round.status === "CLOSED" && (
         <div
-          className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
+          className="rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface-cool-1)] px-3 py-2 text-sm text-[var(--foreground)]"
           role="note"
         >
           Ronde ini sudah ditutup untuk pesanan baru, tapi pesananmu masih
@@ -152,7 +152,7 @@ function QrisDisplay({ qrisImageUrl }: { qrisImageUrl: string | null }) {
     );
   }
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-xl border border-[var(--border)] bg-white">
+    <div className="relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
       <Image src={qrisImageUrl} alt="QRIS" fill className="object-contain" sizes="(max-width: 640px) 100vw, 320px" />
     </div>
   );
@@ -175,7 +175,7 @@ function BankTransferDetails({
     );
   }
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-cool-1)] p-4 space-y-3">
+    <div className="rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface-cool-1)] p-4 space-y-3">
       <div>
         <p className="text-xs uppercase tracking-wider text-[var(--muted)]">Bank</p>
         <p className="font-medium">{bankName}</p>

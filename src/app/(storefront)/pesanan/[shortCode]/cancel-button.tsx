@@ -32,7 +32,7 @@ export function CancelOrderButton({ shortCode }: { shortCode: string }) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition-colors hover:border-[var(--destructive)] hover:text-[var(--destructive)]"
+        className="inline-flex items-center justify-center gap-2 rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition-colors hover:border-[var(--destructive)] hover:text-[var(--destructive)]"
       >
         <X className="h-4 w-4" />
         Batalkan pesanan
@@ -58,7 +58,7 @@ export function CancelOrderButton({ shortCode }: { shortCode: string }) {
           type="button"
           onClick={() => setConfirming(false)}
           disabled={pending}
-          className="flex-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium"
+          className="flex-1 rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium"
         >
           Batal
         </button>

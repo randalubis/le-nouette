@@ -33,7 +33,7 @@ export default async function UlasanPage({
         </p>
         <Link
           href="/"
-          className="inline-block text-sm text-[var(--accent)] underline-offset-4 hover:underline"
+          className="inline-block text-sm text-[var(--foreground)] underline-offset-4 hover:underline"
         >
           Kembali ke menu
         </Link>
