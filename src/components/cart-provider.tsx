@@ -29,6 +29,9 @@ type CartContextValue = {
   hydrated: boolean;
   totalItems: number;
   totalAmount: number;
+  // DS v2 motion: increments on every add() call so listeners (like the
+  // header cart icon) can pulse without subscribing to cart contents.
+  addPulse: number;
   add: (roundId: string, item: Omit<CartItem, "quantity">, quantity: number) => void;
   setQuantity: (roundProductId: string, quantity: number) => void;
   remove: (roundProductId: string) => void;
@@ -44,6 +47,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [customer, setCustomer] = useState<SavedCustomer | null>(null);
   const [orderHistory, setOrderHistory] = useState<SavedOrder[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [addPulse, setAddPulse] = useState(0);
 
   useEffect(() => {
     setCart(readCart());
@@ -89,6 +93,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return { ...base, items: [...base.items, { ...item, quantity }] };
     });
+    setAddPulse((n) => n + 1);
   }, []);
 
   const setQuantity = useCallback<CartContextValue["setQuantity"]>((roundProductId, quantity) => {
@@ -128,6 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       totalItems,
       totalAmount,
+      addPulse,
       add,
       setQuantity,
       remove,
@@ -142,6 +148,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       totalItems,
       totalAmount,
+      addPulse,
       add,
       setQuantity,
       remove,

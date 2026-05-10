@@ -154,6 +154,11 @@ export default function CheckoutPage() {
     const shortCode: string = result.shortCode;
     setSubmitted(true);
     clearCheckoutDraft();
+    // Arm the confirmation-page confetti for this shortCode only. Cleared
+    // on first read so refresh/back-nav doesn't re-fire.
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(`le-nouette-confetti-${shortCode}`, "fire");
+    }
     saveOrderToHistory({
       shortCode,
       totalAmount: totalAmount,
@@ -354,9 +359,9 @@ export default function CheckoutPage() {
   );
 }
 
-// X-14: full-screen confirm step before the actual API call. Shows the
-// committal summary (total, delivery date, payment method) so the customer
-// can back out without losing their entries.
+// X-14 confirm step, reskinned as the DS bottom-sheet pattern.
+// Backdrop fades in 200ms, sheet slides up 320ms with the brand easing,
+// max 90% viewport height, drag-handle on top.
 function ConfirmSubmitOverlay({
   totalAmount,
   paymentMethod,
@@ -374,54 +379,73 @@ function ConfirmSubmitOverlay({
 }) {
   return (
     <div
-      className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-40 flex items-end justify-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
     >
-      <div className="w-full max-w-md rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl">
-        <h2 id="confirm-title" className="font-serif text-xl italic text-[var(--primary)]">
-          Konfirmasi pesanan
-        </h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Cek lagi sebelum pesanan dibuat.
-        </p>
-        <dl className="mt-4 space-y-2 border-t border-[var(--border)] pt-4 text-sm">
-          <div className="flex items-center justify-between">
-            <dt className="text-[var(--muted)]">Total</dt>
-            <dd className="font-serif text-lg font-semibold text-[var(--primary)]">
-              {formatIDR(totalAmount)}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between">
-            <dt className="text-[var(--muted)]">Pembayaran</dt>
-            <dd className="font-medium">{paymentMethodLabel(paymentMethod)}</dd>
-          </div>
-          {deliveryDate && (
+      {/* Backdrop — tap to close */}
+      <button
+        type="button"
+        aria-label="Tutup"
+        onClick={() => {
+          if (!submitting) onCancel();
+        }}
+        className="absolute inset-0 bg-black/40 ln-anim-fade-in"
+      />
+      {/* Sheet — anchored bottom on mobile, centered card on ≥sm. */}
+      <div className="relative ln-anim-slide-up w-full max-w-md rounded-t-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--background)] pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mb-8 sm:rounded-[var(--radius-xl)]">
+        {/* Drag handle */}
+        <div className="flex justify-center pt-2">
+          <span
+            aria-hidden="true"
+            className="block h-1 w-9 rounded-full bg-[var(--ink-mute)]/60"
+          />
+        </div>
+        <div className="px-5 pt-3">
+          <h2 id="confirm-title" className="font-serif text-2xl italic text-[var(--primary)]">
+            Konfirmasi pesanan
+          </h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Cek lagi sebelum pesanan dibuat.
+          </p>
+          <dl className="mt-4 space-y-2 border-t-[0.5px] border-[var(--border)] pt-4 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-[var(--muted)]">Antar</dt>
-              <dd className="font-medium">
-                {ID_DAY_MONTH.format(new Date(deliveryDate))}
+              <dt className="text-[var(--muted)]">Total</dt>
+              <dd className="font-mono text-lg font-semibold tabular-nums text-[var(--foreground)]">
+                {formatIDR(totalAmount)}
               </dd>
             </div>
-          )}
-        </dl>
-        <div className="mt-5 flex gap-2">
-          <Button
-            variant="outline"
-            disabled={submitting}
-            onClick={onCancel}
-            className="flex-1"
-          >
-            Kembali
-          </Button>
-          <Button
-            disabled={submitting}
-            onClick={onConfirm}
-            className="flex-1"
-          >
-            {submitting ? "Memproses…" : "Konfirmasi pesanan"}
-          </Button>
+            <div className="flex items-center justify-between">
+              <dt className="text-[var(--muted)]">Pembayaran</dt>
+              <dd className="font-medium">{paymentMethodLabel(paymentMethod)}</dd>
+            </div>
+            {deliveryDate && (
+              <div className="flex items-center justify-between">
+                <dt className="text-[var(--muted)]">Antar</dt>
+                <dd className="font-medium">
+                  {ID_DAY_MONTH.format(new Date(deliveryDate))}
+                </dd>
+              </div>
+            )}
+          </dl>
+          <div className="mt-5 flex gap-2 pb-2">
+            <Button
+              variant="outline"
+              disabled={submitting}
+              onClick={onCancel}
+              className="flex-1"
+            >
+              Kembali
+            </Button>
+            <Button
+              disabled={submitting}
+              onClick={onConfirm}
+              className="flex-1"
+            >
+              {submitting ? "Memproses…" : "Konfirmasi pesanan"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

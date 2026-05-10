@@ -210,6 +210,46 @@ body {
 }
 
 /* ============================================================
+   Motion (DS v2)
+   Three durations and one easing. Anything custom should be a strong
+   exception, not the rule.
+   ============================================================ */
+@keyframes ln-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ln-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes ln-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@keyframes ln-confetti {
+  0%   { transform: translateY(0) rotate(0); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translateY(420px) rotate(720deg); opacity: 0; }
+}
+
+.ln-anim-fade-in   { animation: ln-fade-in 200ms ease forwards; }
+.ln-anim-slide-up  { animation: ln-slide-up 320ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+.ln-anim-pop       { animation: ln-pop 320ms cubic-bezier(0.3, 1.4, 0.5, 1) both; display: inline-block; }
+
+/* Confetti pieces. Container is positioned by the consumer; each span
+   is an 8x8 terracotta square that falls + spins for 2.4s. */
+.ln-confetti span {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 1px;
+  animation: ln-confetti 2.4s ease-out forwards;
+}
+
+/* ============================================================
    Reduced motion — keep the calm pacing for users who request it.
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -224,4 +264,6 @@ body {
   .group:hover img {
     transform: none !important;
   }
+  /* Kill confetti entirely under reduced-motion. */
+  .ln-confetti span { display: none !important; }
 }
