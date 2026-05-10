@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock } from "lucide-react";
+import { Clock, Lock } from "lucide-react";
 
 const ID_DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric" });
 const ID_MONTH_SHORT = new Intl.DateTimeFormat("id-ID", { month: "short" });
@@ -53,10 +53,16 @@ export function CountdownCard({
     <section className="rounded-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5">
       <div className="flex items-start justify-between gap-3">
         <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
-          Pre-order minggu ini
+          {closed ? "Pre-order ditutup" : "Pre-order minggu ini"}
         </p>
         {edition !== null && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-medium text-[var(--accent-ink)]">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+              closed
+                ? "border-[0.5px] border-[var(--border-strong)] text-[var(--muted)]"
+                : "bg-[var(--accent)] text-[var(--accent-ink)]"
+            }`}
+          >
             + Edisi {edition}
           </span>
         )}
@@ -65,44 +71,73 @@ export function CountdownCard({
         {title}
       </h2>
 
-      <dl className="mt-5 grid grid-cols-3 gap-4 border-t-[0.5px] border-[var(--border)] pt-5">
-        <div>
-          <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
-            {closed ? "0" : pad(hours)}
-          </dd>
-          <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
-            Jam
-          </dt>
+      {closed ? (
+        // Closed state — replace the live numerals with a clear "ditutup"
+        // panel so customers don't see "0" and wonder if it's a glitch.
+        // The CTA flips to a soft secondary that scrolls to the still-
+        // visible menu (orders are no longer accepted; this lets the
+        // customer browse what was on offer).
+        <div className="mt-5 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-strong)] bg-[var(--surface-warm-1)] px-4 py-4">
+          <div className="flex items-start gap-3">
+            <Lock className="mt-0.5 h-5 w-5 shrink-0 text-[var(--muted)]" />
+            <div>
+              <p className="font-medium text-[var(--foreground)]">
+                Sudah ditutup {closeWeekday} pukul {closeTime}
+              </p>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Pesanan baru sudah tidak diterima untuk ronde ini. Tunggu
+                ronde berikutnya — kami akan kabari di WhatsApp kalau kamu
+                sudah daftar.
+              </p>
+            </div>
+          </div>
         </div>
-        <div>
-          <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
-            {closed ? "0" : pad(minutes)}
-          </dd>
-          <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
-            Menit
-          </dt>
-        </div>
-        <div>
-          <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
-            {closeDay}
-          </dd>
-          <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
-            {closeMonth}
-          </dt>
-        </div>
-      </dl>
+      ) : (
+        <>
+          <dl className="mt-5 grid grid-cols-3 gap-4 border-t-[0.5px] border-[var(--border)] pt-5">
+            <div>
+              <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
+                {pad(hours)}
+              </dd>
+              <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
+                Jam
+              </dt>
+            </div>
+            <div>
+              <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
+                {pad(minutes)}
+              </dd>
+              <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
+                Menit
+              </dt>
+            </div>
+            <div>
+              <dd className="font-serif text-5xl leading-none italic text-[var(--foreground)]">
+                {closeDay}
+              </dd>
+              <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
+                {closeMonth}
+              </dt>
+            </div>
+          </dl>
 
-      <p className="mt-5 inline-flex items-center gap-2 text-sm text-[var(--muted)]">
-        <Clock className="h-4 w-4" />
-        Tutup pre-order {closeWeekday} pukul {closeTime}
-      </p>
+          <p className="mt-5 inline-flex items-center gap-2 text-sm text-[var(--muted)]">
+            <Clock className="h-4 w-4" />
+            Tutup pre-order {closeWeekday} pukul {closeTime}
+          </p>
+        </>
+      )}
 
       <button
         type="button"
         onClick={scrollToMenu}
-        className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium text-[var(--accent-ink)] tracking-[-0.01em] transition-all active:scale-[0.97] active:opacity-90 hover:brightness-110"
+        className={`mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] text-[15px] font-medium tracking-[-0.01em] transition-all active:scale-[0.97] active:opacity-90 ${
+          closed
+            ? "border-[0.5px] border-[var(--border-strong)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-warm-1)]"
+            : "bg-[var(--accent)] text-[var(--accent-ink)] hover:brightness-110"
+        }`}
       >
-        Lihat menu minggu ini →
+        {closed ? "Lihat menu ronde ini" : "Lihat menu minggu ini →"}
       </button>
     </section>
   );
