@@ -12,6 +12,7 @@ import { getBusinessSettings } from "@/lib/settings";
 import { OrderHistoryRecorder } from "./history-recorder";
 import { CancelOrderButton } from "./cancel-button";
 import { OrderStatusPoller } from "./status-poller";
+import { Confetti } from "./confetti";
 import { CheckoutStepper } from "@/app/(storefront)/_components/checkout-stepper";
 import { faqFor } from "@/lib/faq";
 
@@ -136,7 +137,8 @@ export default async function OrderConfirmationPage({
           createdAt: order.createdAt.toISOString(),
         }}
       />
-      <div className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-gradient-to-br from-[var(--surface-success-light)] via-[var(--surface)] to-[var(--surface-warm-3)] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
+      <div className="relative overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-gradient-to-br from-[var(--surface-success-light)] via-[var(--surface)] to-[var(--surface-warm-3)] p-6 text-center shadow-[0_1px_2px_rgba(58,38,16,0.04),0_8px_24px_-12px_rgba(58,38,16,0.06)]">
+        <Confetti shortCode={order.shortCode} />
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--success)]/15">
           <CheckCircle2 className="h-8 w-8 text-[var(--success)]" />
         </div>
