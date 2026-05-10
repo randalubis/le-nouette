@@ -15,14 +15,20 @@ const TODAY_FMT = new Intl.DateTimeFormat("id-ID", {
 // DS v2 home hero — full-bleed photo with overlay eyebrow + wordmark +
 // tagline + floating cart/history actions. Lives only on /, when an
 // open round exists. Photo bleeds beyond the layout's px-4 via -mx-4.
+//
+// `isPastClose` toggles the top-left status pill between the live
+// "Buka untuk pre-order" and a softer "Pesanan sudah ditutup" so the
+// pill stays accurate even when the admin hasn't flipped status yet.
 export function HomeHero({
   imageUrl,
   tagline,
   todayIso,
+  isPastClose,
 }: {
   imageUrl: string | null;
   tagline: string;
   todayIso: string;
+  isPastClose: boolean;
 }) {
   const { totalItems, hydrated, orderHistory, addPulse } = useCart();
   const hasOrders = orderHistory.length > 0;
@@ -65,9 +71,13 @@ export function HomeHero({
             <p className="mt-1 inline-flex items-center gap-2 text-sm">
               <span
                 aria-hidden="true"
-                className="inline-block h-2 w-2 rounded-full bg-[var(--accent)]"
+                className={`inline-block h-2 w-2 rounded-full ${
+                  isPastClose ? "bg-white/60" : "bg-[var(--accent)]"
+                }`}
               />
-              Buka untuk pre-order
+              {isPastClose
+                ? "Pesanan sudah ditutup"
+                : "Buka untuk pre-order"}
             </p>
           </div>
           <div className="flex items-center gap-2">
