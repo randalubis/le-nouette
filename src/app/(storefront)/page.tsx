@@ -2,7 +2,6 @@ import Image from "next/image";
 import { CalendarClock } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { ProductCard, type StorefrontProduct } from "./_components/product-card";
-import { CheckoutBar } from "./_components/checkout-bar";
 import { NotifyForm } from "./_components/notify-form";
 import { HomeHero } from "./_components/home-hero";
 import { CountdownCard } from "./_components/countdown-card";
@@ -96,7 +95,6 @@ export default async function StorefrontHome() {
           <ProductCard key={p.roundProductId} product={p} />
         ))}
       </div>
-      <CheckoutBar />
     </div>
   );
 }

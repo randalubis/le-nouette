@@ -100,7 +100,7 @@ export function CountdownCard({
       <button
         type="button"
         onClick={scrollToMenu}
-        className="mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium text-[var(--accent-ink)] tracking-[-0.01em] transition-all active:scale-[0.97] active:opacity-90 hover:brightness-110"
+        className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium text-[var(--accent-ink)] tracking-[-0.01em] transition-all active:scale-[0.97] active:opacity-90 hover:brightness-110"
       >
         Lihat menu minggu ini →
       </button>
