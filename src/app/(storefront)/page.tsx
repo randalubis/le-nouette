@@ -51,11 +51,17 @@ export default async function StorefrontHome() {
     aspectRatio: it.product.aspectRatio === "portrait" ? "portrait" : "square",
   }));
 
-  // Pick a hero image — prefer the round's first product photo. Operator
-  // can curate ordering by adjusting product names (alphabetical) or we
-  // can later add an explicit hero field on the round.
-  const heroImage = round.items[0]?.product.imageUrl ?? null;
+  // Static brand hero photo lives at public/hero-product.jpg. Replaces
+  // the previous "first product image" picker — using a curated brand
+  // shot keeps the hero on-message regardless of the active round's
+  // product order.
+  const heroImage = "/hero-product.jpg";
   const tagline = settings.aboutBlurb?.trim() || DEFAULT_TAGLINE;
+
+  // Round may still be flagged OPEN in the DB even after the close
+  // timestamp passes (admin hasn't flipped status yet). The hero status
+  // pill needs to reflect the wall-clock truth, not just the DB status.
+  const isPastClose = Date.now() > round.closesAt.getTime();
 
   return (
     <div className="space-y-6">
@@ -63,6 +69,7 @@ export default async function StorefrontHome() {
         imageUrl={heroImage}
         tagline={tagline}
         todayIso={new Date().toISOString()}
+        isPastClose={isPastClose}
       />
 
       <CountdownCard

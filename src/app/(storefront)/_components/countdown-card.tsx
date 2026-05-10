@@ -53,7 +53,7 @@ export function CountdownCard({
     <section className="rounded-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5">
       <div className="flex items-start justify-between gap-3">
         <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
-          {closed ? "Pre-order ditutup" : "Pre-order minggu ini"}
+          {closed ? "Sampai jumpa lagi" : "Lagi buka untukmu"}
         </p>
         {edition !== null && (
           <span
@@ -72,22 +72,20 @@ export function CountdownCard({
       </h2>
 
       {closed ? (
-        // Closed state — replace the live numerals with a clear "ditutup"
-        // panel so customers don't see "0" and wonder if it's a glitch.
-        // The CTA flips to a soft secondary that scrolls to the still-
-        // visible menu (orders are no longer accepted; this lets the
-        // customer browse what was on offer).
+        // Closed state — soft, warm, "thanks for stopping by, see you
+        // next round". Avoids the cold "0" numerals and any tone of
+        // urgency or scarcity now that orders aren't accepted anyway.
         <div className="mt-5 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-strong)] bg-[var(--surface-warm-1)] px-4 py-4">
           <div className="flex items-start gap-3">
             <Lock className="mt-0.5 h-5 w-5 shrink-0 text-[var(--muted)]" />
             <div>
               <p className="font-medium text-[var(--foreground)]">
-                Sudah ditutup {closeWeekday} pukul {closeTime}
+                Pesanan untuk ronde ini sudah ditutup
               </p>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Pesanan baru sudah tidak diterima untuk ronde ini. Tunggu
-                ronde berikutnya — kami akan kabari di WhatsApp kalau kamu
-                sudah daftar.
+                Makasih sudah mampir, ya. Kami siapkan ronde berikutnya
+                segera — kalau kamu mau dikabari saat buka lagi, tinggal
+                daftar di WhatsApp.
               </p>
             </div>
           </div>
@@ -123,7 +121,7 @@ export function CountdownCard({
 
           <p className="mt-5 inline-flex items-center gap-2 text-sm text-[var(--muted)]">
             <Clock className="h-4 w-4" />
-            Tutup pre-order {closeWeekday} pukul {closeTime}
+            Pesan tenang sampai {closeWeekday} pukul {closeTime}, ya
           </p>
         </>
       )}
@@ -137,7 +135,7 @@ export function CountdownCard({
             : "bg-[var(--accent)] text-[var(--accent-ink)] hover:brightness-110"
         }`}
       >
-        {closed ? "Lihat menu ronde ini" : "Lihat menu minggu ini →"}
+        {closed ? "Intip menu ronde ini" : "Yuk lihat menu minggu ini →"}
       </button>
     </section>
   );
