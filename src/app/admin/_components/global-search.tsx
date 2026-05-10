@@ -140,7 +140,7 @@ export function GlobalSearch() {
           type="search"
           placeholder="Search · ⌘K"
           aria-label="Global admin search"
-          className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 pl-8 pr-7 text-sm placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]/40"
+          className="h-9 w-full rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-2.5 pl-8 pr-7 text-sm placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]/40"
         />
         {q && (
           <button
@@ -159,7 +159,7 @@ export function GlobalSearch() {
       </div>
 
       {open && q.trim().length >= 2 && (
-        <ul className="absolute left-0 right-0 z-30 mt-1 max-h-80 overflow-auto rounded-md border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
+        <ul className="absolute left-0 right-0 z-30 mt-1 max-h-80 overflow-auto rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
           {hits.length === 0 ? (
             <li className="px-3 py-2 text-xs text-[var(--muted)]">No matches</li>
           ) : (

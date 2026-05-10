@@ -107,7 +107,7 @@ async function ClosedRoundTeaser() {
   return (
     <div className="space-y-6 pb-12">
       {/* Hero */}
-      <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+      <section className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
         {heroImage ? (
           <div className="relative aspect-[5/3] w-full bg-[var(--surface-warm-1)]">
             {/* alt="" — decorative; the heading conveys the meaning. */}
@@ -152,7 +152,7 @@ async function ClosedRoundTeaser() {
               {pastItems.slice(0, 6).map((it) => (
                 <li
                   key={it.id}
-                  className="w-32 shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2"
+                  className="w-32 shrink-0 rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-2"
                 >
                   <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-[var(--surface-warm-1)]">
                     {/* alt="" — name is the adjacent text below. */}
@@ -184,7 +184,7 @@ async function ClosedRoundTeaser() {
             {reviews.map((r, i) => (
               <li
                 key={i}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4"
+                className="rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-4"
               >
                 <p className="text-sm italic text-[var(--foreground)]">
                   &ldquo;{r.comment}&rdquo;
@@ -201,7 +201,7 @@ async function ClosedRoundTeaser() {
 
       {/* Cadence */}
       {settings.typicalCadence && (
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <section className="rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-4">
           <div className="flex items-start gap-3">
             <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
             <div>

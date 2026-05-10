@@ -13,7 +13,7 @@ const badgeVariants = cva(
         info: "bg-[var(--badge-info-bg)] text-[var(--badge-info-fg)]",
         warning: "bg-[var(--badge-warning-bg)] text-[var(--badge-warning-fg)]",
         destructive: "bg-[var(--badge-destructive-bg)] text-[var(--badge-destructive-fg)]",
-        outline: "border border-[var(--border)] text-[var(--foreground)]",
+        outline: "border-[0.5px] border-[var(--border)] text-[var(--foreground)]",
       },
     },
     defaultVariants: { variant: "default" },

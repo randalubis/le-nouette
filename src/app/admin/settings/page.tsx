@@ -134,7 +134,7 @@ export default async function SettingsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3">
+    <div className="rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-3">
       <p className="text-xs text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
     </div>

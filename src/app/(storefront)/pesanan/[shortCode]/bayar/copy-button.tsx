@@ -27,7 +27,7 @@ export function CopyButton({
     <button
       type="button"
       onClick={handleClick}
-      className="inline-flex items-center rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-xs hover:bg-[var(--surface-warm-1)]"
+      className="inline-flex items-center rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs hover:bg-[var(--surface-warm-1)]"
     >
       {copied ? <span className="text-xs text-[var(--success)]">✓ Tersalin</span> : children}
     </button>

@@ -1,56 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  /* Light-only — opt out of OS dark-mode hints on form controls etc.
-     so the warm cream brand stays consistent across UAs. */
-  color-scheme: light;
+/* ============================================================
+   Le Nouette · Design System v2 (Mei 2026)
+   Tokens align with the new bistro design system:
+     - Warmer cream surfaces, alpha-tinted ink for borders
+     - Three-family type stack (Instrument Serif / DM Sans / JetBrains Mono)
+     - Buttons rounded-rect (not pill), inputs 0.5px borders
+     - Light is default; dark mode is a warmer "wood at night" variant
+   ============================================================ */
 
-  /* Brand palette — warm cream + deep coffee */
-  --background: #faf7f2;
-  --surface: #ffffff;
-  --foreground: #2a1f15;
-  /* Was #8a7b6b — ~4.0:1 on --background, failing WCAG AA. Darkened to
-     ~7:1, which clears AAA for normal text and AA on every surface in
-     the brand. Use for incidental microcopy only — primary body text
-     should use --foreground. (Plan ticket N-04.) */
-  --muted: #6b5c4d;
-  --border: #ebe3d4;
-  --primary: #3d2e1f;
-  --primary-foreground: #faf7f2;
-  /* Accent and success darkened from #b85a2d / #5b7c45 to clear WCAG AA
-     for normal text on white/cream surfaces (was ~4.4:1 / ~4.6:1, now
-     ~5.4:1 / ~5.8:1). Still terracotta and olive — brand intent preserved.
-     White text on these colors as button bg also clears AA Large. */
-  --accent: #a04d24;
-  --success: #4a6738;
+:root {
+  /* Allow OS-level dark-mode hints to inform native form controls.
+     The @media block at the bottom of this file flips tokens to the
+     warm-dark variant per the DS specs. */
+  color-scheme: light dark;
+
+  /* ---- Core palette (light) ---- */
+  --background: #f4efe6;             /* DS --ln-bg */
+  --surface: #fbf7ee;                /* DS --ln-surface */
+  --foreground: #2a1f16;             /* DS --ln-ink */
+  --muted: #6b5544;                  /* DS --ln-ink-soft */
+  --ink-mute: rgba(42, 31, 22, 0.45);/* DS --ln-ink-mute — placeholders, eyebrow */
+
+  /* Borders are alpha-tinted ink, never a solid hex. 0.5px strokes
+     where the renderer supports them; 1px otherwise reads soft enough
+     because the stroke color itself is pale. */
+  --border: rgba(42, 31, 22, 0.10);  /* DS --ln-line */
+  --border-strong: rgba(42, 31, 22, 0.18); /* DS --ln-line-strong */
+
+  /* Primary = ink (used as the default button/CTA fill). */
+  --primary: #2a1f16;                /* matches --foreground */
+  --primary-foreground: #fbf7ee;     /* surface on primary */
+  --primary-hover: #1a120c;          /* slightly deeper for hover state */
+
+  /* Accent — terracotta. Reserved for fills (CTA, badge, active state).
+     Inline TEXT in accent color is borderline AA; the DS routes accent
+     to fills/icons only. Cream is the canonical text color on accent. */
+  --accent: #b85a3a;                 /* DS --ln-accent */
+  --accent-ink: #fbf7ee;             /* DS --ln-accent-ink */
+
+  /* Success — olive. */
+  --success: #5c7a4a;                /* DS --ln-success */
+
+  /* Status colors not in the core DS but kept for admin badges and
+     legacy storefront usage. Documented as admin-internal extensions. */
   --warning: #b8841f;
   --destructive: #b03434;
-  --ring: #3d2e1f;
 
-  /* ---- Semantic surface, hover, and brand-extension tokens (X-10) ---- */
-  /* Warm tinted surfaces. Used for thumbnails, gradient stops, soft
-     backdrops where --surface (white) would feel too clinical. */
-  --surface-warm-1: #f3ede1;          /* most common — thumbnail/card bg */
-  --surface-warm-2: #fff8eb;          /* gradient start (round banner) */
-  --surface-warm-3: #fef1de;          /* gradient end   (round banner / confirmation) */
-  --surface-cool-1: #fdf9f1;          /* bayar info card bg */
-  --surface-success-light: #f0fae0;   /* confirmation hero gradient stop */
+  /* Focus ring — uses ink so it's visible without yelling. */
+  --ring: #2a1f16;
 
-  /* Hover-state pair for the primary button. Slightly darker than --primary. */
-  --primary-hover: #1f1610;
+  /* ---- Tinted surfaces for thumbnails / soft backdrops / gradient stops ---- */
+  --surface-warm-1: #efe7d6;          /* warmer than --surface; thumbnail bg */
+  --surface-warm-2: #fbf2dd;          /* gradient start */
+  --surface-warm-3: #f5e7c6;          /* gradient end */
+  --surface-cool-1: #f8f1e2;          /* info card bg */
+  --surface-success-light: #e9efce;   /* confirmation hero stop */
 
-  /* Subtle hover bg for ghost/outline interactions and the secondary
-     button's resting state (matches --border but called out semantically). */
-  --border-subtle-hover: #dfd3bd;
+  /* Subtle hover for ghost/secondary controls. */
+  --border-subtle-hover: rgba(42, 31, 22, 0.16);
 
-  /* Communication brand: WhatsApp green for the deep-link CTAs.
-     --whatsapp-fg is a fixed dark-green text color used on top of the
-     green bg (~9.7:1). */
+  /* Communication brand: WhatsApp green CTA + paired dark-green text. */
   --whatsapp-green: #25d366;
   --whatsapp-fg: #0a2f0a;
 
-  /* Status badge pairs. Background + foreground designed together for
-     AA contrast on the soft variants. */
+  /* Status badge pairs. Background + foreground designed together for AA. */
   --badge-success-bg: #dfeed3;
   --badge-success-fg: #3a5a25;
   --badge-info-bg: #dde7f5;
@@ -60,24 +74,31 @@
   --badge-destructive-bg: #fbdcdc;
   --badge-destructive-fg: #7a1f1f;
 
-  /* ---- Card radius (X-01) ---- */
-  /* Storefront keeps the soft, brand-warm 2xl. Admin overrides this in
-     the .admin-shell scope below for a denser, more utilitarian feel. */
-  --card-radius: 1.125rem;
+  /* ---- Form (radii + density) ---- */
+  --radius-sm: 0.625rem;   /* 10px — DS sm */
+  --radius-md: 0.875rem;   /* 14px — DS md (buttons, inputs) */
+  --radius-lg: 1.375rem;   /* 22px — DS lg (cards, sheets) */
+  --radius-xl: 1.75rem;    /* 28px — DS xl (large sheets, hero) */
+
+  /* Cards default to lg per DS. Admin overrides below to a tighter md
+     for operator density. */
+  --card-radius: var(--radius-lg);
+
+  /* Padding / gap scale — fixed (no user density toggle on storefront,
+     admin handles its own density via .admin-shell). */
+  --pad: 20px;
+  --row-gap: 14px;
 }
 
 /* ============================================================
-   Admin density scope (X-01)
-   The admin back office shares the storefront brand palette but in a
-   denser, utilitarian variant. Wrapping the admin layout in
-   .admin-shell rebinds the storefront tokens so generic primitives
-   (Card, Table, Input) and any future admin code that uses
-   bg-[var(--surface)] etc. automatically pick up the admin variant
-   without per-component edits.
+   Admin density scope
+   Re-binds the brand tokens to a denser admin variant + tighter card
+   radius. The wider cream warmth still applies; admin just feels
+   slightly more utilitarian.
    ============================================================ */
 :root {
-  --admin-bg: #f6f1e8;          /* slightly cooler cream than storefront */
-  --admin-surface: #ffffff;
+  --admin-bg: #ede5d3;             /* slightly more saturated cream */
+  --admin-surface: #fbf7ee;        /* same surface as storefront */
   --admin-border: var(--border);
   --admin-foreground: var(--foreground);
   --admin-muted: var(--muted);
@@ -89,7 +110,6 @@
   --border: var(--admin-border);
   --foreground: var(--admin-foreground);
   --muted: var(--admin-muted);
-  /* Tighter cards for density. */
   --card-radius: var(--radius-md);
 }
 
@@ -107,14 +127,9 @@
   --color-destructive: var(--destructive);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-playfair);
-
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.125rem;
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-serif: var(--font-instrument-serif);
 }
 
 body {
@@ -129,7 +144,11 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Subtle texture for surface */
+/* Mono numerals — always tabular so prices align. */
+.font-mono {
+  font-feature-settings: "tnum";
+}
+
 .bg-surface {
   background: var(--surface);
 }
@@ -138,27 +157,60 @@ body {
   background: var(--background);
 }
 
-/* Smooth focus rings */
 *:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
-/* Better selection */
 ::selection {
   background: var(--primary);
   color: var(--primary-foreground);
 }
 
-/* The L-07 dark-mode block was reverted on owner feedback — the brand
-   character lives in the warm cream palette. Light mode is now the only
-   color scheme. The reduced-motion block below stays. */
+/* ============================================================
+   Dark mode — warm wood at night per DS
+   Tokens flip to a deep ink base with cream foregrounds. Borders
+   become alpha-tinted cream. Accent / success keep their hue; both
+   pass AA Large on the dark base for icons and CTAs.
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1a1410;            /* DS dark --ln-bg */
+    --surface: #251d17;               /* DS dark --ln-surface */
+    --foreground: #f6efe2;            /* DS dark --ln-ink */
+    --muted: #c9b79e;                 /* DS dark --ln-ink-soft */
+    --ink-mute: rgba(246, 239, 226, 0.45); /* DS dark --ln-ink-mute */
+    --border: rgba(246, 239, 226, 0.10);
+    --border-strong: rgba(246, 239, 226, 0.20);
+
+    /* On dark, ink-fill buttons need to invert: primary becomes the
+       cream so the button reads as a light pill on the dark canvas. */
+    --primary: #f6efe2;
+    --primary-foreground: #1a1410;
+    --primary-hover: #e6dcc7;
+    --ring: #f6efe2;
+
+    /* Accent + success keep their hue — both clear AA Large on dark. */
+    --accent: #b85a3a;
+    --accent-ink: #fbf7ee;
+    --success: #5c7a4a;
+
+    /* Tinted surfaces re-cast against the dark base. */
+    --surface-warm-1: #3a2a1c;
+    --surface-warm-2: #2f2218;
+    --surface-warm-3: #4a3826;
+    --surface-cool-1: #2a2018;
+    --surface-success-light: #2f3a23;
+    --border-subtle-hover: rgba(246, 239, 226, 0.16);
+
+    /* Admin density flipped too for back-office coherence. */
+    --admin-bg: #14100c;
+    --admin-surface: #251d17;
+  }
+}
 
 /* ============================================================
-   Reduced motion (L-07)
-   Honors prefers-reduced-motion: reduce — kills hover transforms,
-   transitions, and animations that aren't strictly informational.
-   Customers who set this OS-level preference get a calmer experience.
+   Reduced motion — keep the calm pacing for users who request it.
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -169,7 +221,6 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  /* Product card hover scale becomes a no-op. */
   .group:hover img {
     transform: none !important;
   }

@@ -59,14 +59,14 @@ export function ReviewForm({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+    <div className="space-y-4 rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5">
       <fieldset>
         <legend className="sr-only">Rating</legend>
         <div className="flex justify-center gap-3">
           {OPTIONS.map((opt) => (
             <label
               key={opt.rating}
-              className="flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-2xl border border-[var(--border)] p-3 has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--surface-warm-1)]/40"
+              className="flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-2xl border-[0.5px] border-[var(--border)] p-3 has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--surface-warm-1)]/40"
             >
               <input
                 type="radio"

@@ -43,7 +43,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
 
   return (
     <article
-      className={`group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_1px_2px_rgba(58,38,16,0.04)] transition-shadow hover:shadow-[0_8px_28px_-12px_rgba(58,38,16,0.18)] ${
+      className={`group overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] shadow-[0_1px_2px_rgba(58,38,16,0.04)] transition-shadow hover:shadow-[0_8px_28px_-12px_rgba(58,38,16,0.18)] ${
         out ? "opacity-60" : ""
       }`}
     >
@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
               Habis
             </span>
           ) : product.stockLeft <= 5 ? (
-            <span className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--accent)] shadow-sm">
+            <span className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--foreground)] shadow-sm">
               {product.stockLeft} sisa
             </span>
           ) : null}
@@ -92,7 +92,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
               Tambah
             </Button>
           ) : (
-            <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1">
+            <div className="flex items-center gap-1.5 rounded-full border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-1">
               <Button
                 size="icon"
                 variant="ghost"

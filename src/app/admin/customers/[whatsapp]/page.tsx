@@ -176,7 +176,7 @@ function Stat({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+    <div className="rounded-lg border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-3">
       <p className="text-xs text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
       {sub && <p className="text-xs text-[var(--muted)]">{sub}</p>}

@@ -99,7 +99,7 @@ export function KeyboardShortcuts() {
           onClick={() => setShowCheatSheet(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl"
+            className="w-full max-w-sm rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-center gap-2">
@@ -146,7 +146,7 @@ export function KeyboardShortcuts() {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex min-w-[1.5rem] justify-center rounded border border-[var(--border)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--foreground)]">
+    <kbd className="inline-flex min-w-[1.5rem] justify-center rounded border-[0.5px] border-[var(--border)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--foreground)]">
       {children}
     </kbd>
   );

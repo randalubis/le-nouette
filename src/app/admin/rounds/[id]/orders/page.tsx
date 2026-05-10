@@ -124,7 +124,7 @@ export default async function RoundOrdersPage({
       </div>
 
       {activeFilter !== "all" && (
-        <div className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--surface)] p-3 text-sm">
+        <div className="flex items-center justify-between rounded-md border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-3 text-sm">
           <span>
             Filter: <span className="font-medium">{filterLabels[activeFilter]}</span> ·{" "}
             <span className="text-[var(--muted)]">{visibleOrders.length} match</span>

@@ -183,7 +183,7 @@ export default function CheckoutPage() {
 
       {deliveryDate && (
         <div
-          className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+          className="flex items-center gap-2 rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
           role="note"
         >
           <Truck className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
@@ -298,7 +298,7 @@ export default function CheckoutPage() {
             <CardTitle>Ringkasan</CardTitle>
             <Link
               href="/keranjang"
-              className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[var(--foreground)] underline-offset-4 hover:underline"
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit keranjang
@@ -327,7 +327,7 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
 
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-200 bg-white p-3 shadow-lg">
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-200 bg-[var(--surface)] p-3 shadow-lg">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
             <div>
               <p className="text-xs text-zinc-500">Total</p>
@@ -379,7 +379,7 @@ function ConfirmSubmitOverlay({
       aria-modal="true"
       aria-labelledby="confirm-title"
     >
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl">
         <h2 id="confirm-title" className="font-serif text-xl italic text-[var(--primary)]">
           Konfirmasi pesanan
         </h2>
