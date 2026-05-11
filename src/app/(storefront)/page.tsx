@@ -6,7 +6,7 @@ import { NotifyForm } from "./_components/notify-form";
 import { HomeHero } from "./_components/home-hero";
 import { CountdownCard } from "./_components/countdown-card";
 import { StorefrontHeader } from "./_components/storefront-header";
-import { UpcomingCountdown } from "./_components/upcoming-countdown";
+import { UpcomingCountdownCard } from "./_components/upcoming-countdown-card";
 import { getBusinessSettings } from "@/lib/settings";
 
 const DEFAULT_TAGLINE =
@@ -122,8 +122,16 @@ async function ClosedRoundTeaser() {
   const nextScheduled = await prisma.preorderRound.findFirst({
     where: { status: "OPEN", opensAt: { gt: new Date() } },
     orderBy: { opensAt: "asc" },
-    select: { id: true, title: true, opensAt: true },
+    select: { id: true, title: true, opensAt: true, createdAt: true },
   });
+
+  // Edition number for the scheduled round, same definition as for the
+  // live hero — position in the all-time sequence by createdAt.
+  const scheduledEdition = nextScheduled
+    ? await prisma.preorderRound.count({
+        where: { createdAt: { lte: nextScheduled.createdAt } },
+      })
+    : null;
 
   // Hero photo + past-products strip come from the most recent round that
   // actually shipped — falling back to CLOSED if nothing's been delivered
@@ -203,10 +211,18 @@ async function ClosedRoundTeaser() {
           />
           {scheduledPillLabel ?? "Saat ini kami belum buka pre-order"}
         </p>
-        {nextScheduled && (
-          <UpcomingCountdown opensAtIso={nextScheduled.opensAt.toISOString()} />
-        )}
       </div>
+
+      {/* Prominent countdown card — only when a future-scheduled round
+          exists. Mirrors the live CountdownCard's visual rhythm so the
+          two layouts feel cohesive. */}
+      {nextScheduled && (
+        <UpcomingCountdownCard
+          title={nextScheduled.title}
+          opensAtIso={nextScheduled.opensAt.toISOString()}
+          edition={scheduledEdition}
+        />
+      )}
 
       {/* Hero */}
       <section className="overflow-hidden rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)]">
@@ -240,8 +256,10 @@ async function ClosedRoundTeaser() {
         </div>
       </section>
 
-      {/* Notify-me */}
-      <NotifyForm />
+      {/* Notify-me — id is the scroll anchor for the upcoming card CTA. */}
+      <div id="notify-anchor">
+        <NotifyForm />
+      </div>
 
       {/* Past round strip */}
       {pastItems.length > 0 && (
