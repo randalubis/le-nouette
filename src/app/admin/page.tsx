@@ -48,8 +48,19 @@ function formatRemaining(ms: number): string {
 export default async function AdminDashboard() {
   await requireAdmin();
 
+  // After the opensAt gating change, "status=OPEN but opensAt > now" is
+  // a scheduled round. The dashboard's stat blocks only make sense for a
+  // live round (orders, revenue, stock) — surface scheduled rounds as a
+  // separate small card so admin can see what's queued up.
+  const nowDate = new Date();
+  const scheduledRound = await prisma.preorderRound.findFirst({
+    where: { status: "OPEN", opensAt: { gt: nowDate } },
+    orderBy: { opensAt: "asc" },
+    select: { id: true, title: true, opensAt: true, closesAt: true, deliveryDate: true },
+  });
+
   const openRound = await prisma.preorderRound.findFirst({
-    where: { status: "OPEN" },
+    where: { status: "OPEN", opensAt: { lte: nowDate } },
     include: {
       items: {
         include: { product: true },
@@ -163,6 +174,43 @@ export default async function AdminDashboard() {
           </Button>
         )}
       </div>
+
+      {/* Upcoming scheduled round — visual cue so admin doesn't accidentally
+          spin up a second round in the same window. */}
+      {scheduledRound && (
+        <div className="flex items-start gap-3 rounded-lg border border-[var(--accent)]/30 bg-[var(--surface-warm-1)] p-3 text-sm">
+          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+          <div className="min-w-0 flex-1">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="font-medium text-[var(--foreground)]">
+                Ronde terjadwal — {scheduledRound.title}
+              </span>
+              <Badge variant="info">SCHEDULED</Badge>
+            </p>
+            <p className="mt-1 text-[var(--muted)]">
+              Buka{" "}
+              {scheduledRound.opensAt.toLocaleString("id-ID", {
+                timeZone: "Asia/Jakarta",
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              WIB ·{" "}
+              <span className="font-medium text-[var(--foreground)]">
+                {formatRemaining(scheduledRound.opensAt.getTime() - Date.now())}
+              </span>{" "}
+              lagi
+            </p>
+            <div className="mt-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/admin/rounds/${scheduledRound.id}/edit`}>Edit round</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stock alerts banner */}
       {openRound && stockAlerts.length > 0 && (
