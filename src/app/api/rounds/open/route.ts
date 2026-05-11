@@ -5,8 +5,11 @@ import { prisma } from "@/lib/db";
 // button on /riwayat) to gate UI affordances on whether ordering is
 // currently possible.
 export async function GET() {
+  // Mirror the storefront gate — a scheduled-but-future round is not yet
+  // open to customers, so callers (e.g. the reorder button) shouldn't see
+  // it either.
   const round = await prisma.preorderRound.findFirst({
-    where: { status: "OPEN" },
+    where: { status: "OPEN", opensAt: { lte: new Date() } },
     select: { id: true, title: true },
   });
   return NextResponse.json({

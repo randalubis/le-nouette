@@ -17,8 +17,11 @@ const DEFAULT_TAGLINE =
 export const revalidate = 60;
 
 export default async function StorefrontHome() {
+  // Status alone isn't enough — a round can be flipped to OPEN ahead of
+  // time with opensAt in the future ("scheduled"). Customers should only
+  // see it once opensAt has actually passed.
   const round = await prisma.preorderRound.findFirst({
-    where: { status: "OPEN" },
+    where: { status: "OPEN", opensAt: { lte: new Date() } },
     include: {
       items: {
         include: { product: true },

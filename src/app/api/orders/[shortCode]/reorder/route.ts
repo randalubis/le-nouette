@@ -27,7 +27,7 @@ export async function GET(
   }
 
   const openRound = await prisma.preorderRound.findFirst({
-    where: { status: "OPEN" },
+    where: { status: "OPEN", opensAt: { lte: new Date() } },
     select: {
       id: true,
       items: {

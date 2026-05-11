@@ -78,7 +78,12 @@ export async function POST(request: NextRequest) {
       async (tx) => {
         const round = await tx.preorderRound.findUnique({ where: { id: roundId } });
         if (!round) throw new BadRequest(errorMessage("ROUND_NOT_FOUND"));
-        if (round.status !== "OPEN" || round.closesAt.getTime() < Date.now())
+        const nowMs = Date.now();
+        if (
+          round.status !== "OPEN" ||
+          round.opensAt.getTime() > nowMs ||
+          round.closesAt.getTime() < nowMs
+        )
           throw new BadRequest(errorMessage("ROUND_CLOSED"));
 
         const lineProducts = await tx.roundProduct.findMany({
