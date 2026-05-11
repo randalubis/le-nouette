@@ -16,6 +16,16 @@ const statusVariant = {
   CANCELLED: "destructive",
 } as const;
 
+// A round flagged OPEN but with opensAt still in the future is
+// "scheduled" — show it as info-styled SCHEDULED so admin can tell a
+// queued round apart from a live one at a glance.
+function roundBadge(status: keyof typeof statusVariant, opensAt: Date) {
+  if (status === "OPEN" && opensAt.getTime() > Date.now()) {
+    return { variant: "info" as const, label: "SCHEDULED" };
+  }
+  return { variant: statusVariant[status], label: status };
+}
+
 export default async function RoundsPage() {
   await requireAdmin();
   const rounds = await prisma.preorderRound.findMany({
@@ -37,11 +47,13 @@ export default async function RoundsPage() {
         {rounds.length === 0 ? (
           <Card className="py-8 text-center text-sm text-[var(--muted)]">No rounds yet.</Card>
         ) : (
-          rounds.map((r) => (
+          rounds.map((r) => {
+            const badge = roundBadge(r.status, r.opensAt);
+            return (
             <Card key={r.id} className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <p className="min-w-0 truncate font-medium">{r.title}</p>
-                <Badge variant={statusVariant[r.status]}>{r.status}</Badge>
+                <Badge variant={badge.variant}>{badge.label}</Badge>
               </div>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
                 <dt className="text-[var(--muted)]">Opens</dt>
@@ -65,7 +77,8 @@ export default async function RoundsPage() {
                 </Button>
               </div>
             </Card>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -92,11 +105,13 @@ export default async function RoundsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              rounds.map((r) => (
+              rounds.map((r) => {
+                const badge = roundBadge(r.status, r.opensAt);
+                return (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{r.title}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant[r.status]}>{r.status}</Badge>
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
                   </TableCell>
                   <TableCell className="text-sm">{r.opensAt.toLocaleString("en-GB")}</TableCell>
                   <TableCell className="text-sm">{r.closesAt.toLocaleString("en-GB")}</TableCell>
@@ -116,7 +131,8 @@ export default async function RoundsPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

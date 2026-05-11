@@ -6,6 +6,7 @@ import { NotifyForm } from "./_components/notify-form";
 import { HomeHero } from "./_components/home-hero";
 import { CountdownCard } from "./_components/countdown-card";
 import { StorefrontHeader } from "./_components/storefront-header";
+import { UpcomingCountdown } from "./_components/upcoming-countdown";
 import { getBusinessSettings } from "@/lib/settings";
 
 const DEFAULT_TAGLINE =
@@ -114,6 +115,16 @@ async function ClosedRoundTeaser() {
   // closed-round branch opts back in via forceShow. Open-round skips the
   // header entirely (its full-bleed hero takes over the top of the page).
 
+  // A scheduled round (status=OPEN but opensAt still in the future) lands
+  // here because the storefront query gates on opensAt <= now. We surface
+  // it as an "upcoming" cue so customers know something's around the
+  // corner instead of seeing a generic closed state.
+  const nextScheduled = await prisma.preorderRound.findFirst({
+    where: { status: "OPEN", opensAt: { gt: new Date() } },
+    orderBy: { opensAt: "asc" },
+    select: { id: true, title: true, opensAt: true },
+  });
+
   // Hero photo + past-products strip come from the most recent round that
   // actually shipped — falling back to CLOSED if nothing's been delivered
   // yet. We grab a small bunch of items and let the layout pick a hero.
@@ -153,11 +164,32 @@ async function ClosedRoundTeaser() {
     month: "long",
   }).format(new Date());
 
+  // Build the "buka [tgl] pukul HH.MM" pill copy when a scheduled round
+  // exists. Day/time are formatted in Jakarta so customers see local
+  // time regardless of the server's locale.
+  let scheduledPillLabel: string | null = null;
+  if (nextScheduled) {
+    const opensFmt = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta",
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(nextScheduled.opensAt);
+    const opensTime = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+      .format(nextScheduled.opensAt)
+      .replace(":", ".");
+    scheduledPillLabel = `Buka ${opensFmt} pukul ${opensTime}`;
+  }
+
   return (
     <div className="space-y-6 pb-12">
       <StorefrontHeader forceShow />
 
-      {/* Date + closed-state pill */}
+      {/* Date + closed-state / upcoming pill */}
       <div className="pt-2">
         <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--ink-mute)]">
           {todayLabel}
@@ -165,10 +197,15 @@ async function ClosedRoundTeaser() {
         <p className="mt-1 inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
           <span
             aria-hidden="true"
-            className="inline-block h-2 w-2 rounded-full bg-[var(--ink-mute)]"
+            className={`inline-block h-2 w-2 rounded-full ${
+              scheduledPillLabel ? "bg-[var(--accent)]" : "bg-[var(--ink-mute)]"
+            }`}
           />
-          Saat ini kami belum buka pre-order
+          {scheduledPillLabel ?? "Saat ini kami belum buka pre-order"}
         </p>
+        {nextScheduled && (
+          <UpcomingCountdown opensAtIso={nextScheduled.opensAt.toISOString()} />
+        )}
       </div>
 
       {/* Hero */}
