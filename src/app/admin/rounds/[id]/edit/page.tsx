@@ -64,7 +64,11 @@ export default async function EditRoundPage({ params }: { params: Promise<{ id: 
           <CardTitle>Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <RoundStatusActions id={round.id} status={round.status} />
+          <RoundStatusActions
+            id={round.id}
+            status={round.status}
+            opensAtIso={round.opensAt.toISOString()}
+          />
         </CardContent>
       </Card>
     </div>

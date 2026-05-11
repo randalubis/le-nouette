@@ -19,38 +19,103 @@ const transitions: Record<Status, { label: string; next: NextStatus }[]> = {
   CANCELLED: [],
 };
 
+const JKT_FMT = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta",
+  weekday: "long",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 export function RoundStatusActions({
   id,
   status,
+  opensAtIso,
 }: {
   id: string;
   status: Status;
+  opensAtIso: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  // When the admin clicks "Open round" but opensAt is still in the
+  // future, we pause and ask whether to honor the schedule or override.
+  const [confirmingOpen, setConfirmingOpen] = useState(false);
   const options = transitions[status] ?? [];
   const canCancel = status === "DRAFT" || status === "OPEN" || status === "CLOSED";
+  const opensAt = new Date(opensAtIso);
+
+  function runStatusChange(next: NextStatus, options?: { openNow?: boolean }) {
+    startTransition(async () => {
+      const result = await setRoundStatusAction(id, next, options);
+      setConfirmingOpen(false);
+      if (!result.ok) toast.error(result.error);
+      else toast.success(`Round → ${next}`);
+    });
+  }
+
+  function handleOptionClick(next: NextStatus) {
+    // Only the DRAFT → OPEN and CLOSED → OPEN transitions warrant the
+    // schedule-vs-now choice. For all others, fire immediately.
+    if (next === "OPEN" && opensAt.getTime() > Date.now()) {
+      setConfirmingOpen(true);
+      return;
+    }
+    runStatusChange(next);
+  }
 
   return (
     <div className="space-y-4">
-      {options.length > 0 && (
+      {options.length > 0 && !confirmingOpen && (
         <div className="flex flex-wrap gap-2">
           {options.map((opt) => (
             <Button
               key={opt.next}
               variant="outline"
               disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  const result = await setRoundStatusAction(id, opt.next);
-                  if (!result.ok) toast.error(result.error);
-                  else toast.success(`Round → ${opt.next}`);
-                })
-              }
+              onClick={() => handleOptionClick(opt.next)}
             >
               {opt.label}
             </Button>
           ))}
+        </div>
+      )}
+
+      {confirmingOpen && (
+        <div className="space-y-3 rounded-md border-[0.5px] border-[var(--border-strong)] bg-[var(--surface-warm-1)] p-3">
+          <div>
+            <p className="text-sm font-medium text-[var(--foreground)]">
+              Buka ronde ini sekarang atau ikuti jadwal?
+            </p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Jadwal buka: {JKT_FMT.format(opensAt)} WIB. Kalau ikut jadwal, ronde
+              baru muncul di sisi pelanggan tepat waktu itu. Kalau buka sekarang,
+              ronde langsung tampil dan jadwal akan ditimpa.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              disabled={pending}
+              onClick={() => runStatusChange("OPEN", { openNow: false })}
+            >
+              Ikuti jadwal
+            </Button>
+            <Button
+              disabled={pending}
+              onClick={() => runStatusChange("OPEN", { openNow: true })}
+            >
+              Buka sekarang
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={pending}
+              onClick={() => setConfirmingOpen(false)}
+            >
+              Batal
+            </Button>
+          </div>
         </div>
       )}
 

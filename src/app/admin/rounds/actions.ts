@@ -152,6 +152,7 @@ const statusSchema = z.enum(["DRAFT", "OPEN", "CLOSED", "DELIVERED", "CANCELLED"
 export async function setRoundStatusAction(
   id: string,
   status: z.infer<typeof statusSchema>,
+  options?: { openNow?: boolean },
 ): Promise<ActionResult> {
   await requireAdmin();
   const parsed = statusSchema.safeParse(status);
@@ -166,7 +167,15 @@ export async function setRoundStatusAction(
     }
   }
 
-  await prisma.preorderRound.update({ where: { id }, data: { status: parsed.data } });
+  // openNow rewrites opensAt to the current moment so the round becomes
+  // customer-visible immediately, overriding any future-scheduled time
+  // the admin had set. Only meaningful when flipping → OPEN.
+  const data: { status: typeof parsed.data; opensAt?: Date } = { status: parsed.data };
+  if (parsed.data === "OPEN" && options?.openNow) {
+    data.opensAt = new Date();
+  }
+
+  await prisma.preorderRound.update({ where: { id }, data });
   revalidatePath("/admin/rounds");
   revalidatePath("/");
   return { ok: true };
