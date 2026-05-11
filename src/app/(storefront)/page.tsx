@@ -248,18 +248,22 @@ async function ClosedRoundTeaser() {
           </h1>
           {settings.aboutBlurb ? (
             <p className="text-sm text-[var(--muted)]">{settings.aboutBlurb}</p>
-          ) : (
+          ) : !nextScheduled ? (
+            // When no scheduled round exists, the standalone NotifyForm
+            // below is the only path — point customers at it. When a
+            // scheduled round exists, the UpcomingCountdownCard already
+            // owns the notify pitch and this copy would just duplicate it.
             <p className="text-sm text-[var(--muted)]">
               Preorder belum dibuka. Daftar di bawah biar gak kelewat ronde berikutnya.
             </p>
-          )}
+          ) : null}
         </div>
       </section>
 
-      {/* Notify-me — id is the scroll anchor for the upcoming card CTA. */}
-      <div id="notify-anchor">
-        <NotifyForm />
-      </div>
+      {/* Notify-me — only renders when there's no scheduled round. With a
+          scheduled round, UpcomingCountdownCard has its own inline form
+          and a standalone notify section would be a duplicate pitch. */}
+      {!nextScheduled && <NotifyForm />}
 
       {/* Past round strip */}
       {pastItems.length > 0 && (

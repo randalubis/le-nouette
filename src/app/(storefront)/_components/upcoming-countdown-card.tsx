@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Clock } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { CheckCircle2, Clock } from "lucide-react";
+import { track } from "@vercel/analytics";
+import { Input } from "@/components/ui/input";
 
 const ID_WEEKDAY_LONG = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Jakarta",
@@ -17,15 +19,20 @@ function pad(n: number) {
   return String(Math.max(0, n)).padStart(2, "0");
 }
 
+type NotifyState =
+  | { kind: "cta" }
+  | { kind: "form"; error?: string }
+  | { kind: "done"; alreadySubscribed: boolean };
+
 // Mirror CountdownCard's visual rhythm so the closed-state hero feels
 // like part of the same family — except this counts forward to opensAt
 // instead of backward to closesAt, and the grid is days/hours/minutes
 // (multi-day waits are common for "next round").
 //
-// The CTA scrolls to the notify-me form anchor below so customers can
-// commit to a reminder in one tap.
-const NOTIFY_ANCHOR = "notify-anchor";
-
+// The CTA is the page's single notify-me entry point: clicking it
+// reveals the phone input inline so customers can subscribe without
+// leaving the card. Replaces a separate notify-form section that was
+// duplicative on this view.
 export function UpcomingCountdownCard({
   title,
   opensAtIso,
@@ -51,9 +58,30 @@ export function UpcomingCountdownCard({
   const opensWeekday = ID_WEEKDAY_LONG.format(opensAt);
   const opensTime = ID_TIME.format(opensAt).replace(":", ".");
 
-  function scrollToNotify() {
-    const el = document.getElementById(NOTIFY_ANCHOR);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const [state, setState] = useState<NotifyState>({ kind: "cta" });
+  const [whatsapp, setWhatsapp] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setState({ kind: "form" });
+    startTransition(async () => {
+      const res = await fetch("/api/notify/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsapp: whatsapp.trim() }),
+      });
+      const data = await res.json().catch(() => ({
+        ok: false,
+        error: "Koneksi internet kamu putus. Cek sinyal lalu coba lagi.",
+      }));
+      if (!res.ok || !data.ok) {
+        setState({ kind: "form", error: data.error ?? "Gagal mendaftar." });
+        return;
+      }
+      track("notify_subscribe");
+      setState({ kind: "done", alreadySubscribed: Boolean(data.alreadySubscribed) });
+    });
   }
 
   return (
@@ -104,13 +132,57 @@ export function UpcomingCountdownCard({
         Buka {opensWeekday} pukul {opensTime} WIB
       </p>
 
-      <button
-        type="button"
-        onClick={scrollToNotify}
-        className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium tracking-[-0.01em] text-[var(--accent-ink)] transition-all hover:brightness-110 active:scale-[0.97] active:opacity-90"
-      >
-        Kabari aku saat buka
-      </button>
+      {state.kind === "cta" && (
+        <button
+          type="button"
+          onClick={() => setState({ kind: "form" })}
+          className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium tracking-[-0.01em] text-[var(--accent-ink)] transition-all hover:brightness-110 active:scale-[0.97] active:opacity-90"
+        >
+          Kabari aku saat buka
+        </button>
+      )}
+
+      {state.kind === "form" && (
+        <form onSubmit={submit} className="mt-5 space-y-3">
+          <p className="text-sm text-[var(--muted)]">
+            Kasih nomor WhatsApp kamu, ya. Kami kabari sekali pas ronde ini buka.
+          </p>
+          <Input
+            type="tel"
+            inputMode="tel"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value.replace(/[^\d+\s-]/g, ""))}
+            placeholder="08123456789"
+            aria-label="Nomor WhatsApp"
+            required
+            autoFocus
+          />
+          {state.error && (
+            <p className="text-xs text-[var(--destructive)]">{state.error}</p>
+          )}
+          <button
+            type="submit"
+            disabled={pending}
+            className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] text-[15px] font-medium tracking-[-0.01em] text-[var(--accent-ink)] transition-all hover:brightness-110 active:scale-[0.97] active:opacity-90 disabled:opacity-60"
+          >
+            {pending ? "Mendaftar…" : "Beritahu saya"}
+          </button>
+        </form>
+      )}
+
+      {state.kind === "done" && (
+        <div className="mt-5 rounded-[var(--radius-lg)] border border-[var(--success)]/30 bg-[var(--success)]/5 p-4 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--success)]/15">
+            <CheckCircle2 className="h-5 w-5 text-[var(--success)]" />
+          </div>
+          <p className="font-medium text-[var(--foreground)]">
+            {state.alreadySubscribed ? "Kamu sudah terdaftar." : "Sip, kami catat ya."}
+          </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Kalau berubah pikiran, balas STOP saat kami WhatsApp kamu nanti.
+          </p>
+        </div>
+      )}
     </section>
   );
 }
