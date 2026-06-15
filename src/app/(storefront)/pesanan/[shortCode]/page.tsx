@@ -92,6 +92,7 @@ export default async function OrderConfirmationPage({
   const canSelfCancel =
     order.status === "PENDING_PAYMENT" &&
     !order.payment?.proofImageUrl &&
+    // eslint-disable-next-line react-hooks/purity -- Server Component renders once per request; Date.now() is the request clock.
     Date.now() - order.createdAt.getTime() < CANCEL_WINDOW_MS;
 
   // L-09: when the round closes for new orders but this customer's order

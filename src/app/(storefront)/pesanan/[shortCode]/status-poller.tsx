@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const POLL_MS = 30_000;
-const TERMINAL: ReadonlySet<string> = new Set([
-  "CONFIRMED",
-  "DELIVERED",
-  "CANCELLED",
-  "HOLD_EXPIRED",
-]);
 const POLLABLE: ReadonlySet<string> = new Set([
   "PENDING_PAYMENT",
   "PENDING_CONFIRMATION",

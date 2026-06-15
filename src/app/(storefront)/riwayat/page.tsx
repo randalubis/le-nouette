@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Receipt, Trash2 } from "lucide-react";
-import { removeOrderFromHistory, type SavedOrder } from "@/lib/cart";
+import { removeOrderFromHistory } from "@/lib/cart";
 import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

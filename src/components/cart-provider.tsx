@@ -50,10 +50,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [addPulse, setAddPulse] = useState(0);
 
   useEffect(() => {
+    // localStorage is unavailable during SSR, so the three slices hydrate
+    // here on mount rather than via lazy useState initializers.
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage is unavailable during SSR; hydrate on mount. */
     setCart(readCart());
     setCustomer(readCustomer());
     setOrderHistory(readOrderHistory());
     setHydrated(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
     // Cross-tab sync: when another tab writes to the order-history key
     // (e.g. customer places an order in tab A while tab B is open), the
     // header icon should appear in tab B too.

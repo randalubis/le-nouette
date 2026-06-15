@@ -17,6 +17,7 @@ export function Confetti({ shortCode }: { shortCode: string }) {
     const key = `${FLAG_PREFIX}${shortCode}`;
     if (window.sessionStorage.getItem(key) !== "fire") return;
     window.sessionStorage.removeItem(key);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage is unavailable during SSR; fire once on mount.
     setShow(true);
     const t = setTimeout(() => setShow(false), 2600);
     return () => clearTimeout(t);

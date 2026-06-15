@@ -18,7 +18,7 @@ import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
+import { formatIDR } from "@/lib/utils";
 import { BumpStockButton } from "./_components/bump-stock-button";
 
 export const dynamic = "force-dynamic";
@@ -199,7 +199,7 @@ export default async function AdminDashboard() {
               })}{" "}
               WIB ·{" "}
               <span className="font-medium text-[var(--foreground)]">
-                {formatRemaining(scheduledRound.opensAt.getTime() - Date.now())}
+                {formatRemaining(scheduledRound.opensAt.getTime() - nowDate.getTime())}
               </span>{" "}
               lagi
             </p>
@@ -285,7 +285,7 @@ export default async function AdminDashboard() {
                 <Clock className="h-3.5 w-3.5" />
                 Tutup dalam{" "}
                 <span className="font-medium text-[var(--foreground)]">
-                  {formatRemaining(openRound.closesAt.getTime() - Date.now())}
+                  {formatRemaining(openRound.closesAt.getTime() - nowDate.getTime())}
                 </span>
               </span>
               <span className="inline-flex items-center gap-1">
