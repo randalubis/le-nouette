@@ -55,6 +55,9 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!hydrated) return;
+    // Restore a saved draft / customer once the storage layer has hydrated;
+    // these reads can't run during SSR, hence the on-mount/after-hydration set.
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage is unavailable during SSR; restore after hydration. */
     const draft = readCheckoutDraft();
     if (draft) {
       setName(draft.name);
@@ -67,6 +70,7 @@ export default function CheckoutPage() {
       setName(customer.name);
       setWhatsapp(customer.whatsapp);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     draftReadyRef.current = true;
   }, [hydrated, customer]);
 

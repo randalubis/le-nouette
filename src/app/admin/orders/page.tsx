@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { GlobalOrdersTable, type GlobalOrderRow } from "./_components/global-orders-table";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +21,7 @@ export default async function AllOrdersPage({
   await requireAdmin();
   const { days, status } = await searchParams;
   const dayWindow = days && PRESETS[days] ? PRESETS[days] : 30;
+  // eslint-disable-next-line react-hooks/purity -- Server Component renders once per request; Date.now() is the request clock.
   const since = new Date(Date.now() - dayWindow * 24 * 60 * 60 * 1000);
 
   const orders = await prisma.order.findMany({

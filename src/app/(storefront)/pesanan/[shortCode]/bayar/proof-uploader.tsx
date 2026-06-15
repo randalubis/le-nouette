@@ -18,7 +18,9 @@ export function ProofUploader({ shortCode }: { shortCode: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // Prefill from the saved customer; localStorage can't be read during SSR.
     const saved = readCustomer();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is unavailable during SSR; hydrate on mount.
     if (saved?.whatsapp) setWhatsapp(saved.whatsapp);
   }, []);
 

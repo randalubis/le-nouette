@@ -58,6 +58,7 @@ export function RoundStatusActions({
   function handleOptionClick(next: NextStatus) {
     // Only the DRAFT → OPEN and CLOSED → OPEN transitions warrant the
     // schedule-vs-now choice. For all others, fire immediately.
+    // eslint-disable-next-line react-hooks/purity -- read at click time inside an event handler, not during render.
     if (next === "OPEN" && opensAt.getTime() > Date.now()) {
       setConfirmingOpen(true);
       return;

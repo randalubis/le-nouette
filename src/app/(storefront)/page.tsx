@@ -65,6 +65,7 @@ export default async function StorefrontHome() {
   // Round may still be flagged OPEN in the DB even after the close
   // timestamp passes (admin hasn't flipped status yet). The hero status
   // pill needs to reflect the wall-clock truth, not just the DB status.
+  // eslint-disable-next-line react-hooks/purity -- Server Component renders once per request; Date.now() is the request clock.
   const isPastClose = Date.now() > round.closesAt.getTime();
 
   return (

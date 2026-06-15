@@ -85,12 +85,11 @@ export function GlobalSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Throttle to one fetch per 200 ms while typing.
+  // Throttle to one fetch per 200 ms while typing. Clearing hits when the
+  // query is too short is done in onChange (an event handler), so this
+  // effect never calls setState synchronously in its body.
   useEffect(() => {
-    if (q.trim().length < 2) {
-      setHits([]);
-      return;
-    }
+    if (q.trim().length < 2) return;
     const t = setTimeout(() => {
       let cancelled = false;
       fetch(`/api/admin/search?q=${encodeURIComponent(q.trim())}`)
@@ -132,8 +131,10 @@ export function GlobalSearch() {
           ref={inputRef}
           value={q}
           onChange={(e) => {
-            setQ(e.target.value);
+            const value = e.target.value;
+            setQ(value);
             setOpen(true);
+            if (value.trim().length < 2) setHits([]);
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onListKey}
