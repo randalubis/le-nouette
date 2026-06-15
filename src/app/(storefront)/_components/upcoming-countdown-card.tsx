@@ -29,10 +29,11 @@ type NotifyState =
 // instead of backward to closesAt, and the grid is days/hours/minutes
 // (multi-day waits are common for "next round").
 //
-// The CTA is the page's single notify-me entry point: clicking it
+// The CTA is the notify-me entry point for this view: clicking it
 // reveals the phone input inline so customers can subscribe without
-// leaving the card. Replaces a separate notify-form section that was
-// duplicative on this view.
+// leaving the card. When a round is scheduled, the page hides the
+// standalone NotifyForm and lets this card own the pitch; with no
+// scheduled round the standalone NotifyForm renders instead.
 export function UpcomingCountdownCard({
   title,
   opensAtIso,

@@ -6,6 +6,21 @@ Audit basis: source code review of [github.com/randalubis/le-nouette](https://gi
 
 ---
 
+> ## Implementation status — as of 2026-05-11
+>
+> This document is the **original audit handoff** and is preserved as written: each ticket body describes the app *at audit time*, before any fix. Progress since then:
+>
+> - **Phase 1 (N-01 … N-13): shipped.** All thirteen NOW tickets are in the codebase.
+> - **Phase 2 (X-01 … X-16): substantially shipped.** Confirmed in schema + code: X-01 (admin re-skin), X-04 (soft hold — `stockHoldExpiresAt`, `HOLD_EXPIRED`), X-05 (`normalizedWhatsApp`), X-06 (`PENDING_CONFIRMATION`), X-10 (`check:hex` token enforcement), X-11 (image optimizer + `remotePatterns`), X-12 (`revalidate` + `revalidatePath`), among others.
+> - **Phase 3 (L-01 … L-12): partial.** Shipped include L-03 (reorder), L-04 (`aspectRatio`), L-06 (reviews), L-07 (dark mode + reduced motion), L-09 (round-transition / scheduled-round communication), L-10 (owner story).
+>   - **Deferred — blocked on a WhatsApp Business API provider:** L-01 (outbound notifications) and its dependents L-02 (find-my-orders) and L-05 (favorites). The `NotifySubscriber` table captures opt-ins today; the outbound fan-out is pending.
+>   - **Deferred — judged cosmetic:** L-08 (short-code split).
+>   - **Schema-ready, no admin UI yet:** L-11 (`BusinessSettings.faqAnswers` exists; editing UI not built).
+>
+> Treat this banner as the source of truth for *what's done*; treat the ticket bodies below as the source of truth for *what each ticket asked for*. Ticket IDs are stable — reference them as-is.
+
+---
+
 ## Table of contents
 
 - [How to use this document](#how-to-use-this-document)

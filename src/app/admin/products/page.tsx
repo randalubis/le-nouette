@@ -27,9 +27,12 @@ export default async function ProductsPage() {
     soldByProduct.set(id, (soldByProduct.get(id) ?? 0) + it.quantity);
   }
 
-  // Find products attached to the currently OPEN round
+  // Find products attached to the live round. Gate on opensAt <= now to
+  // match the storefront, dashboard, and order APIs — a round can be
+  // status=OPEN but scheduled for the future, and its products aren't
+  // sellable yet, so they shouldn't show as "in the open round" here.
   const openRound = await prisma.preorderRound.findFirst({
-    where: { status: "OPEN" },
+    where: { status: "OPEN", opensAt: { lte: new Date() } },
     select: {
       id: true,
       items: {
