@@ -73,20 +73,18 @@ These live in two places now (Supabase split them across the dashboard).
 
    ➡️ Goes into **`NEXT_PUBLIC_SUPABASE_URL`**.
 
-### 3b. The API keys
+### 3b. The API key
+
+The app only needs **one** key — the secret/service-role key, used server-side for image uploads. There's no public Supabase client, so the publishable/anon key isn't used.
 
 1. Sidebar → **Project Settings** → **API Keys**.
 
    You'll see two tabs: **API Keys** (the new format) and **Legacy API Keys** (the old JWT-based `anon` / `service_role` keys).
-2. On the **API Keys** tab, copy:
-   - The **Publishable key** (starts with `sb_publishable_`) → goes into **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**.
-   - The **Secret key** (starts with `sb_secret_`) → goes into **`SUPABASE_SERVICE_ROLE_KEY`**.
-
-   > 💡 The variable names in our `.env` are kept as `ANON_KEY` / `SERVICE_ROLE_KEY` because the `@supabase/ssr` SDK accepts both new and legacy formats interchangeably. The new `sb_publishable_*` and `sb_secret_*` keys are preferred.
+2. On the **API Keys** tab, copy the **Secret key** (starts with `sb_secret_`) → goes into **`SUPABASE_SERVICE_ROLE_KEY`**.
 
    > ⚠️ The **Secret key** bypasses Row-Level Security and represents full backend access. **Never** expose it to the browser. The app only uses it server-side (in [`src/lib/supabase/admin.ts`](../src/lib/supabase/admin.ts)) for image uploads. Don't paste it anywhere with `NEXT_PUBLIC_` in the name.
 
-   > If your dashboard only shows legacy keys: the **Legacy API Keys** tab has the JWT-format `anon` and `service_role` keys — those work too. Use the new ones if available.
+   > If your dashboard only shows legacy keys: the **Legacy API Keys** tab has the JWT-format `service_role` key — that works too. Use the new `sb_secret_*` key if available.
 
 ---
 
@@ -129,7 +127,6 @@ DIRECT_URL="postgresql://postgres.abcdxyz:my-secret-pw@aws-0-ap-southeast-1.pool
 NEXT_PUBLIC_SUPABASE_URL="https://abcdxyz.supabase.co"
 
 # Step 3b (Settings → API Keys → API Keys tab)
-NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."
 SUPABASE_SERVICE_ROLE_KEY="sb_secret_..."
 
 # Step 4 (default works)
@@ -176,7 +173,7 @@ Datasource "db": PostgreSQL database "postgres", schema "public" at "..."
 | `prepared statement "s0" already exists` | You used the pooler URL (`:6543`) for `DIRECT_URL`. It must be `:5432`. |
 | `relation "..." already exists` | Old migration state. Run `npx prisma migrate reset` (deletes data). |
 
-Verify in the dashboard: sidebar → **Table Editor** (or **Database → Tables**). You should see `Product`, `PreorderRound`, `RoundProduct`, `Order`, `OrderItem`, `Payment`, `OrderCounter`, plus Prisma's `_prisma_migrations`.
+Verify in the dashboard: sidebar → **Table Editor** (or **Database → Tables**). You should see every table defined in [`prisma/schema.prisma`](../prisma/schema.prisma) (`Product`, `PreorderRound`, `RoundProduct`, `Order`, `OrderItem`, `Payment`, `OrderStatusEvent`, `Review`, `StockAdjustment`, `BusinessSettings`, `NotifySubscriber`, `OrderCounter`), plus Prisma's `_prisma_migrations`.
 
 ---
 
@@ -254,7 +251,7 @@ Storage objects survive — wipe them via Storage → bucket → select all → 
 |---|---|
 | `Missing required environment variable: ...` at boot | `.env.local` not loaded — restart `npm run dev`. |
 | `Invalid email or password` at admin login | Mismatch with `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env.local`. Restart dev server after changes. |
-| Images don't render on storefront | Bucket isn't public, or `next.config.ts` `remotePatterns` doesn't match the host (we use `unoptimized: true` so this is unlikely). |
+| Images don't render on storefront | Bucket isn't public, or `next.config.ts` `remotePatterns` doesn't match the host. The optimizer only loads images from whitelisted hosts — confirm `*.supabase.co` is matched. |
 | `Can't reach database server` | Wrong hostname/region, or password contains unencoded special chars. Some networks (corporate firewalls) block port 5432; switch to a network that doesn't. |
 | Build fails on Vercel: `Module not found: @prisma/client` | Ensure `postinstall: prisma generate` is in `package.json` (it is). |
 
