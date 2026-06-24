@@ -6,46 +6,87 @@ import { errorMessage } from "@/lib/errors";
 import { checkoutSchema } from "@/lib/validators";
 
 const HOLD_WINDOW_MS = 30 * 60 * 1000; // X-04
+const SWEEP_THROTTLE_MS = 30 * 1000; // run the lazy sweep at most ~once per 30s per instance
+const SWEEP_BATCH = 50; // bound work per sweep; any leftovers are caught by the next order
 
-// Lazy reconciler — scans for expired soft holds and cancels them. Runs at
-// the start of every order-creation request so the system self-heals
-// without needing a cron route. Worst-case lag = time-to-next-order.
+// Per-instance throttle so a burst of concurrent checkouts at round-open
+// don't each re-run the full sweep (H1). Best-effort: each serverless
+// instance has its own clock, which is fine for a self-healing sweep.
+let lastSweepAt = 0;
+
+// Lazy reconciler — releases expired soft holds and restores their stock.
+// Runs (fire-and-forget) at the start of every order-creation request so the
+// system self-heals without a dedicated cron. Worst-case lag = time-to-next
+// order (+ the throttle window).
 async function releaseExpiredHolds(): Promise<void> {
+  const now = Date.now();
+  if (now - lastSweepAt < SWEEP_THROTTLE_MS) return;
+  lastSweepAt = now;
+
   const expired = await prisma.order.findMany({
     where: {
       status: "PENDING_PAYMENT",
       stockHoldExpiresAt: { lt: new Date() },
       payment: { is: { proofImageUrl: null } },
     },
-    select: { id: true, status: true, items: true },
+    select: { id: true, items: { select: { roundProductId: true, quantity: true } } },
+    take: SWEEP_BATCH,
   });
   if (expired.length === 0) return;
+
+  let releasedAny = false;
   for (const order of expired) {
     try {
-      await prisma.$transaction(async (tx) => {
-        for (const it of order.items) {
-          await tx.roundProduct.update({
-            where: { id: it.roundProductId },
-            data: { stockSold: { decrement: it.quantity } },
-          });
-        }
-        await tx.order.update({
-          where: { id: order.id },
+      const released = await prisma.$transaction(async (tx) => {
+        // Claim the order first: only the request that actually flips it out
+        // of PENDING_PAYMENT restores its stock. A concurrent sweep sees
+        // count 0 and skips, so stock is never double-decremented (H2).
+        const claim = await tx.order.updateMany({
+          where: { id: order.id, status: "PENDING_PAYMENT" },
           data: { status: "HOLD_EXPIRED", stockHoldExpiresAt: null },
         });
+        if (claim.count === 0) return false;
+
+        // Collapse line items to one decrement per distinct product (H1).
+        const byProduct = new Map<string, number>();
+        for (const it of order.items) {
+          byProduct.set(
+            it.roundProductId,
+            (byProduct.get(it.roundProductId) ?? 0) + it.quantity,
+          );
+        }
+        for (const [roundProductId, qty] of byProduct) {
+          await tx.roundProduct.update({
+            where: { id: roundProductId },
+            data: { stockSold: { decrement: qty } },
+          });
+        }
         await tx.orderStatusEvent.create({
           data: {
             orderId: order.id,
-            fromStatus: order.status,
+            fromStatus: "PENDING_PAYMENT",
             toStatus: "HOLD_EXPIRED",
             actor: "system",
             note: "Soft hold expired (no payment proof within 30 min)",
           },
         });
+        return true;
       });
+      if (released) releasedAny = true;
     } catch (e) {
       // Don't let one bad order kill the sweep.
       console.error("releaseExpiredHolds failed for order", order.id, e);
+    }
+  }
+
+  // M5: stock was just freed — refresh the storefront so those items stop
+  // showing as sold out before the 60s ISR window. Best-effort: if we're
+  // outside a revalidation-capable scope, the ISR safety net still covers it.
+  if (releasedAny) {
+    try {
+      revalidatePath("/");
+    } catch {
+      /* ISR safety net (revalidate=60) covers staleness */
     }
   }
 }
