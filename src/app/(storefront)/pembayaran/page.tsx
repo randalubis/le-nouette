@@ -146,7 +146,7 @@ export default function CheckoutPage() {
       }),
     });
 
-    const result = await res.json().catch(() => ({ ok: false, error: "Network error" }));
+    const result = await res.json().catch(() => ({ ok: false, error: errorMessage("NETWORK") }));
 
     if (!res.ok || !result.ok) {
       setSubmitting(false);

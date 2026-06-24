@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { errorMessage } from "@/lib/errors";
 
 const OPTIONS: Array<{ rating: 1 | 2 | 3; emoji: string; label: string }> = [
   { rating: 3, emoji: "😍", label: "Mantap" },
@@ -37,9 +38,9 @@ export function ReviewForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating, comment: comment.trim() || null }),
       });
-      const data = await res.json().catch(() => ({ ok: false, error: "Gagal submit." }));
+      const data = await res.json().catch(() => ({ ok: false, error: errorMessage("NETWORK") }));
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Gagal submit.");
+        toast.error(data.error ?? errorMessage("REVIEW_FAILED"));
         return;
       }
       toast.success("Makasih ya, ulasanmu sudah masuk.");

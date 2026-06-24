@@ -5,13 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// M7: build the Intl formatters once at module scope, not per call — these
+// run dozens of times per render on product grids and order tables.
+const IDR_CURRENCY = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+const IDR_PLAIN = new Intl.NumberFormat("id-ID");
+
 export function formatIDR(value: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+  return IDR_CURRENCY.format(value);
 }
 
 export function parseIDR(input: string): number {
@@ -22,7 +27,7 @@ export function parseIDR(input: string): number {
 export function formatIDRInput(value: number | string): string {
   const num = typeof value === "string" ? parseIDR(value) : value;
   if (!num) return "";
-  return new Intl.NumberFormat("id-ID").format(num);
+  return IDR_PLAIN.format(num);
 }
 
 /**

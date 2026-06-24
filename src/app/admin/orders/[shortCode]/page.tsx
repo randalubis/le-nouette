@@ -9,21 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
+import { adminStatusBadge } from "@/lib/order-status";
 import { OrderStatusActions } from "./status-actions";
 import { AdminNotesForm } from "./admin-notes-form";
 
 export const dynamic = "force-dynamic";
 
-const statusVariant: Record<
-  string,
-  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
-> = {
-  PENDING_PAYMENT: "warning",
-  PAID: "success",
-  CONFIRMED: "info",
-  DELIVERED: "outline",
-  CANCELLED: "destructive",
-};
 
 export default async function AdminOrderDetail({
   params,
@@ -77,7 +68,7 @@ export default async function AdminOrderDetail({
             {order.createdAt.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
           </p>
         </div>
-        <Badge variant={statusVariant[order.status]}>{order.status.replace("_", " ")}</Badge>
+        <Badge variant={adminStatusBadge(order.status)}>{order.status.replace("_", " ")}</Badge>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

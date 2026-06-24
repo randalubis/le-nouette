@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { buildWhatsAppMessage, paymentMethodLabel } from "@/lib/orders";
+import { storeStatusBadge, storeStatusLabel } from "@/lib/order-status";
 import { env } from "@/lib/env";
 import { getBusinessSettings } from "@/lib/settings";
 import { OrderHistoryRecorder } from "./history-recorder";
@@ -19,29 +20,6 @@ import { faqFor } from "@/lib/faq";
 const CANCEL_WINDOW_MS = 15 * 60 * 1000;
 
 export const dynamic = "force-dynamic";
-
-const statusLabel: Record<string, string> = {
-  PENDING_PAYMENT: "Menunggu pembayaran",
-  PENDING_CONFIRMATION: "Menunggu konfirmasi admin",
-  PAID: "Pembayaran diterima",
-  CONFIRMED: "Pesanan dikonfirmasi",
-  DELIVERED: "Sudah diantar",
-  CANCELLED: "Dibatalkan",
-  HOLD_EXPIRED: "Otomatis dibatalkan",
-};
-
-const statusVariant: Record<
-  string,
-  "default" | "secondary" | "success" | "info" | "warning" | "destructive"
-> = {
-  PENDING_PAYMENT: "warning",
-  PENDING_CONFIRMATION: "warning",
-  PAID: "success",
-  CONFIRMED: "info",
-  DELIVERED: "success",
-  CANCELLED: "destructive",
-  HOLD_EXPIRED: "destructive",
-};
 
 const STATUS_HELPER: Partial<Record<string, string>> = {
   PENDING_CONFIRMATION:
@@ -151,7 +129,7 @@ export default async function OrderConfirmationPage({
           {order.shortCode}
         </p>
         <div className="mt-3">
-          <Badge variant={statusVariant[order.status]}>{statusLabel[order.status]}</Badge>
+          <Badge variant={storeStatusBadge(order.status)}>{storeStatusLabel(order.status)}</Badge>
         </div>
         {STATUS_HELPER[order.status] && (
           <p className="mt-3 text-xs text-[var(--muted)]">{STATUS_HELPER[order.status]}</p>

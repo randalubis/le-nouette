@@ -8,19 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatIDR, formatWhatsAppLink, normalizeWhatsApp } from "@/lib/utils";
+import { adminStatusBadge } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
 
-const statusVariant: Record<
-  string,
-  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
-> = {
-  PENDING_PAYMENT: "warning",
-  PAID: "success",
-  CONFIRMED: "info",
-  DELIVERED: "outline",
-  CANCELLED: "destructive",
-};
 
 export default async function CustomerPage({
   params,
@@ -147,7 +138,7 @@ export default async function CustomerPage({
                     <Badge variant="outline">{o.paymentMethod}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant[o.status]}>
+                    <Badge variant={adminStatusBadge(o.status)}>
                       {o.status.replace("_", " ")}
                     </Badge>
                   </TableCell>

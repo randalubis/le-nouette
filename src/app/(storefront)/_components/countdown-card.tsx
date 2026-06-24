@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import { Clock, Lock } from "lucide-react";
 
-const ID_DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric" });
-const ID_MONTH_SHORT = new Intl.DateTimeFormat("id-ID", { month: "short" });
-const ID_WEEKDAY_LONG = new Intl.DateTimeFormat("id-ID", { weekday: "long" });
+// M4: pin to Asia/Jakarta so the displayed close date/time matches the
+// operator's timezone regardless of the customer's device, consistent with
+// every sibling component. (The countdown math uses epoch millis, so only the
+// rendered label was affected.)
+const ID_DAY = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", day: "numeric" });
+const ID_MONTH_SHORT = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", month: "short" });
+const ID_WEEKDAY_LONG = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", weekday: "long" });
 
 function pad(n: number) {
   return String(Math.max(0, n)).padStart(2, "0");
@@ -41,7 +45,11 @@ export function CountdownCard({
   const closeMonth = ID_MONTH_SHORT.format(closesAt).toUpperCase();
   const closeWeekday = ID_WEEKDAY_LONG.format(closesAt);
   const closeTime = closesAt
-    .toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+    .toLocaleTimeString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     .replace(":", ".");
 
   function scrollToMenu() {

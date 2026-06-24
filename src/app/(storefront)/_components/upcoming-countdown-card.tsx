@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { CheckCircle2, Clock } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { Input } from "@/components/ui/input";
+import { errorMessage } from "@/lib/errors";
 
 const ID_WEEKDAY_LONG = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Jakarta",
@@ -74,10 +75,10 @@ export function UpcomingCountdownCard({
       });
       const data = await res.json().catch(() => ({
         ok: false,
-        error: "Koneksi internet kamu putus. Cek sinyal lalu coba lagi.",
+        error: errorMessage("NETWORK"),
       }));
       if (!res.ok || !data.ok) {
-        setState({ kind: "form", error: data.error ?? "Gagal mendaftar." });
+        setState({ kind: "form", error: data.error ?? errorMessage("NOTIFY_FAILED") });
         return;
       }
       track("notify_subscribe");
