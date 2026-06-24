@@ -18,21 +18,12 @@ import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { adminStatusBadge } from "@/lib/order-status";
 import { formatIDR } from "@/lib/utils";
 import { BumpStockButton } from "./_components/bump-stock-button";
 
 export const dynamic = "force-dynamic";
 
-const orderStatusVariant: Record<
-  string,
-  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
-> = {
-  PENDING_PAYMENT: "warning",
-  PAID: "success",
-  CONFIRMED: "info",
-  DELIVERED: "outline",
-  CANCELLED: "destructive",
-};
 
 function formatRemaining(ms: number): string {
   if (ms <= 0) return "ditutup";
@@ -419,7 +410,7 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant={orderStatusVariant[o.status]}>
+                      <Badge variant={adminStatusBadge(o.status)}>
                         {o.status.replace("_", " ")}
                       </Badge>
                       <span className="text-sm font-medium tabular-nums">

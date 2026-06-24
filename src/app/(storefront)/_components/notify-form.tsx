@@ -5,6 +5,7 @@ import { Bell, CheckCircle2 } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { errorMessage } from "@/lib/errors";
 
 type State =
   | { kind: "idle" }
@@ -27,9 +28,9 @@ export function NotifyForm() {
       });
       const data = await res
         .json()
-        .catch(() => ({ ok: false, error: "Koneksi internet kamu putus. Cek sinyal lalu coba lagi." }));
+        .catch(() => ({ ok: false, error: errorMessage("NETWORK") }));
       if (!res.ok || !data.ok) {
-        setState({ kind: "error", message: data.error ?? "Gagal mendaftar." });
+        setState({ kind: "error", message: data.error ?? errorMessage("NOTIFY_FAILED") });
         return;
       }
       track("notify_subscribe");

@@ -10,19 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatIDR, formatWhatsAppLink } from "@/lib/utils";
 import { bulkSetOrderStatusAction } from "@/app/admin/orders/actions";
-
-const statusVariant: Record<
-  string,
-  "default" | "secondary" | "success" | "info" | "warning" | "destructive" | "outline"
-> = {
-  PENDING_PAYMENT: "warning",
-  PENDING_CONFIRMATION: "warning",
-  PAID: "success",
-  CONFIRMED: "info",
-  DELIVERED: "outline",
-  CANCELLED: "destructive",
-  HOLD_EXPIRED: "destructive",
-};
+import { adminStatusBadge } from "@/lib/order-status";
 
 export type OrderRow = {
   id: string;
@@ -289,7 +277,7 @@ export function OrdersTable({
                     <Badge variant="outline">{o.paymentMethod}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant[o.status]}>
+                    <Badge variant={adminStatusBadge(o.status)}>
                       {o.status.replace("_", " ")}
                     </Badge>
                   </TableCell>

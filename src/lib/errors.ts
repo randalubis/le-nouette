@@ -22,6 +22,8 @@ type ErrorMap = {
   WHATSAPP_MISMATCH: object;
   PROOF_FILE_REQUIRED: object;
   UPLOAD_FAILED: { reason?: string };
+  NOTIFY_FAILED: object;
+  REVIEW_FAILED: object;
   NETWORK: object;
   UNKNOWN: object;
 };
@@ -61,6 +63,10 @@ const RENDER: { [K in ErrorType]: (args: ErrorMap[K]) => string } = {
     reason
       ? `Upload bukti gagal: ${reason}. Coba lagi atau hubungi admin via WhatsApp.`
       : "Upload bukti gagal. Coba lagi atau hubungi admin via WhatsApp.",
+  NOTIFY_FAILED: () =>
+    "Gagal mendaftar. Coba lagi sebentar, ya — atau hubungi admin via WhatsApp.",
+  REVIEW_FAILED: () =>
+    "Gagal mengirim ulasan. Coba lagi sebentar, ya.",
   NETWORK: () =>
     "Koneksi internet kamu putus. Cek sinyal lalu coba lagi.",
   UNKNOWN: () =>
