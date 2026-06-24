@@ -6,9 +6,20 @@ tags, so entries are grouped by the date work landed on `main`.
 
 Each bullet links to the pull request that delivered it
 ([repo](https://github.com/randalubis/le-nouette/pulls)). As of this writing the
-project is **40 merged PRs / 84 commits** deep, with no open PRs. Ticket IDs
+project is **42 merged PRs** deep, with no open PRs. Ticket IDs
 like `N-04`, `X-11`, `L-06` refer to the 41-item audit in
 [docs/IMPROVEMENT_PLAN.md](docs/IMPROVEMENT_PLAN.md).
+
+---
+
+## 2026-06-24 — Admin login recovery & changelog
+
+### Added
+- **"Forgot email or password?" recovery guide** on the admin login page ([#42](https://github.com/randalubis/le-nouette/pull/42)) — admin auth is env-var based with no automated reset, so a toggleable inline panel discloses the real recovery path (update `ADMIN_PASSWORD` / `ADMIN_EMAIL` in Vercel → redeploy; or edit `.env.local` for local dev) and reminds the operator their sign-in email is `ADMIN_EMAIL`. Pure client-side disclosure — no backend, no new attack surface.
+- **This CHANGELOG** ([#41](https://github.com/randalubis/le-nouette/pull/41)) — the full project history captured in one document; README links it.
+
+### Fixed
+- Reconciled two stale doc lines ([#41](https://github.com/randalubis/le-nouette/pull/41)): README's "scale doesn't warrant a hold/release flow" note (X-04 added exactly a 30-min soft hold + `HOLD_EXPIRED` release) and DEPLOYMENT's env-var count (9 → 10).
 
 ---
 
