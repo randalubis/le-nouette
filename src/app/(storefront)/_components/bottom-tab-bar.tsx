@@ -42,6 +42,11 @@ export function BottomTabBar() {
       aria-label="Navigasi utama"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
+      {/* M15: announce cart-count changes to screen readers. The numeric
+          badge alone is silent; this polite live region speaks the count. */}
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {hydrated && totalItems > 0 ? `${totalItems} item di keranjang` : ""}
+      </span>
       <div className="pointer-events-auto mx-auto flex h-[60px] max-w-md items-center justify-around rounded-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--surface)]/95 px-1 shadow-[0_8px_30px_rgba(42,31,22,0.12)] backdrop-blur-md">
         <Tab
           href="/"

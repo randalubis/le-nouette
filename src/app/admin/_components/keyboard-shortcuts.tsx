@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Keyboard } from "lucide-react";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 // L-12: G-then-X navigation shortcuts modeled on GitHub. Plus Slash to
 // focus the global search and ? to open this cheat sheet.
@@ -18,6 +19,8 @@ export function KeyboardShortcuts() {
   const router = useRouter();
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [armedG, setArmedG] = useState(false);
+  const cheatRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(cheatRef, showCheatSheet, () => setShowCheatSheet(false));
 
   useEffect(() => {
     let armTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -99,7 +102,9 @@ export function KeyboardShortcuts() {
           onClick={() => setShowCheatSheet(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl"
+            ref={cheatRef}
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-2xl border-[0.5px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-xl outline-none"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-center gap-2">

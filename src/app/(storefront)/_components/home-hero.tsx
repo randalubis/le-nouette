@@ -92,7 +92,11 @@ export function HomeHero({
             )}
             <Link
               href="/keranjang"
-              aria-label="Keranjang"
+              aria-label={
+                hydrated && totalItems > 0
+                  ? `Keranjang, ${totalItems} item`
+                  : "Keranjang"
+              }
               className="relative inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/35 text-[var(--accent-ink)] backdrop-blur-md transition-colors hover:bg-black/50"
             >
               <span key={popKey} className={popKey > 0 ? "ln-anim-pop" : undefined}>

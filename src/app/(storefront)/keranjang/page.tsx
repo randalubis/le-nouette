@@ -82,9 +82,9 @@ export default function CartPage() {
                   variant="ghost"
                   onClick={() => setQuantity(it.roundProductId, it.quantity - 1)}
                   aria-label="Kurangi"
-                  className="h-7 w-7"
+                  className="h-9 w-9"
                 >
-                  <Minus className="h-3.5 w-3.5" />
+                  <Minus className="h-4 w-4" />
                 </Button>
                 <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
                   {it.quantity}
@@ -94,9 +94,9 @@ export default function CartPage() {
                   variant="ghost"
                   onClick={() => setQuantity(it.roundProductId, it.quantity + 1)}
                   aria-label="Tambah"
-                  className="h-7 w-7"
+                  className="h-9 w-9"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function CartPage() {
               <button
                 type="button"
                 onClick={() => handleRemove(it)}
-                className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--destructive)]"
+                className="mt-2 inline-flex items-center gap-1 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--destructive)]"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Hapus

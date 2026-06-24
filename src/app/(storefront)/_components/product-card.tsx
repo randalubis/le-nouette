@@ -98,9 +98,9 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
                 variant="ghost"
                 onClick={() => setQuantity(product.roundProductId, qty - 1)}
                 aria-label="Kurangi"
-                className="h-7 w-7"
+                className="h-9 w-9"
               >
-                <Minus className="h-3.5 w-3.5" />
+                <Minus className="h-4 w-4" />
               </Button>
               <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
                 {qty}
@@ -111,9 +111,9 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
                 onClick={() => setQuantity(product.roundProductId, qty + 1)}
                 disabled={atMax}
                 aria-label="Tambah"
-                className="h-7 w-7"
+                className="h-9 w-9"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
           )}

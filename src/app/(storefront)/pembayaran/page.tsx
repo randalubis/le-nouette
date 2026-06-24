@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { errorMessage } from "@/lib/errors";
 import { paymentMethodLabel } from "@/lib/orders";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import { formatIDR } from "@/lib/utils";
 
 const ID_DAY_MONTH = new Intl.DateTimeFormat("id-ID", {
@@ -381,6 +382,14 @@ function ConfirmSubmitOverlay({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  // H4: trap focus in the sheet while open, Escape closes (unless mid-submit),
+  // and focus returns to the trigger on close. Mounted only while open, so the
+  // trap is simply active for the component's lifetime.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(sheetRef, true, () => {
+    if (!submitting) onCancel();
+  });
+
   return (
     <div
       className="fixed inset-0 z-40 flex items-end justify-center"
@@ -398,7 +407,10 @@ function ConfirmSubmitOverlay({
         className="absolute inset-0 bg-black/40 ln-anim-fade-in"
       />
       {/* Sheet — anchored bottom on mobile, centered card on ≥sm. */}
-      <div className="relative ln-anim-slide-up w-full max-w-md rounded-t-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--background)] pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mb-8 sm:rounded-[var(--radius-xl)]">
+      <div
+        ref={sheetRef}
+        tabIndex={-1}
+        className="relative ln-anim-slide-up w-full max-w-md rounded-t-[var(--radius-xl)] border-[0.5px] border-[var(--border)] bg-[var(--background)] pb-[max(1.25rem,env(safe-area-inset-bottom))] outline-none sm:mb-8 sm:rounded-[var(--radius-xl)]">
         {/* Drag handle */}
         <div className="flex justify-center pt-2">
           <span
