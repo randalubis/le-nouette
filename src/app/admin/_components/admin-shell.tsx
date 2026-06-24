@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { GlobalSearch } from "./global-search";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -33,6 +34,8 @@ export function AdminShell({
 }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const drawerRef = useRef<HTMLElement>(null);
+  useFocusTrap(drawerRef, mobileOpen, () => setMobileOpen(false));
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -75,7 +78,11 @@ export function AdminShell({
             aria-label="Close menu"
             onClick={closeMobile}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-xl">
+          <aside
+            ref={drawerRef}
+            tabIndex={-1}
+            className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-xl outline-none"
+          >
             <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
               <BrandLockup size="sm" />
               <button
