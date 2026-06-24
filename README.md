@@ -189,10 +189,14 @@ npm run db:studio        # open Prisma Studio (DB browser)
 
 ## Design decisions worth knowing
 
-- **Stock decrements at order placement**, not at payment. Simpler reasoning, and the small scale doesn't warrant a hold/release flow. Cancelled orders auto-restore stock.
+- **Stock decrements at order placement**, not at payment. Cancelled orders auto-restore stock. Pay-later orders (QRIS / bank transfer) carry a 30-minute **soft hold** (X-04): if no payment proof is uploaded in time, a lazy reconciler releases the stock and marks the order `HOLD_EXPIRED`.
 - **One Supabase project, two Vercel envs.** Saves cost and complexity at this scale. Production data and dev data share a database — handle with care.
 - **Next image optimizer is on** (`next.config.ts`). Supabase Storage hosts are whitelisted via `remotePatterns` and the optimizer serves AVIF/WebP variants — meaningful byte savings on the storefront grid for Indonesian 4G. (Earlier the app rode `unoptimized: true`; that workaround is gone.)
 - **Prisma transaction timeout = 20s** on order creation, to absorb pooler latency from Indonesia to the Supabase region. Default of 5s wasn't enough.
+
+## Changelog
+
+Release-by-release history of what shipped lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

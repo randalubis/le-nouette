@@ -16,7 +16,7 @@ Run these once before you start:
       ```
 - [ ] You are signed in to GitHub.
 - [ ] You have a Supabase project set up per [SUPABASE_SETUP.md](SUPABASE_SETUP.md). It works on `localhost`.
-- [ ] Your `.env.local` has all 9 vars filled in and is **not** committed (it's gitignored).
+- [ ] Your `.env.local` has all 10 vars filled in and is **not** committed (it's gitignored).
 - [ ] You have a strong `ADMIN_PASSWORD` set (not the placeholder).
 
 ---
