@@ -6,7 +6,18 @@ import type { ItemId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
 import * as op from "./operations";
 
-const revalidateAll = () => { revalidatePath("/", "layout"); revalidatePath("/founder", "layout"); };
+// ponytail: revalidatePath throws when called outside a Next.js request scope
+// (e.g. the integration test, or any future script-driven call). The mutation
+// already committed by this point, so a missing cache invalidation shouldn't
+// fail the action — swallow it rather than adding a "are we in Next" check.
+const revalidateAll = () => {
+  try {
+    revalidatePath("/", "layout");
+    revalidatePath("/founder", "layout");
+  } catch {
+    // no-op outside a Next.js request scope
+  }
+};
 
 export async function createOrderAction(input: op.CreateOrderInput) {
   const { error, state } = await withDomainTransaction((current, now) => op.createOrder(current, input, now));

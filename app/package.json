@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test src/lib/domain/*.test.ts",
+    "test:integration": "tsx --env-file=.env.local --test --test-force-exit src/lib/db/actions.integration.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local drizzle/seed.ts"
