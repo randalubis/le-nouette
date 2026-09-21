@@ -1,27 +1,30 @@
 "use client";
 
 import { WarningCircle } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, type ItemId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
-import { formatDate, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
+import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
 import { itemsLabel } from "@/components/order-board";
-import { run, today, useSession } from "@/lib/session-store";
+import { receiveStockAction, stockOpnameAction, setDateStatusAction, setStoreStatusAction, rescheduleOrderAction } from "@/lib/domain/actions";
 import styles from "./founder.module.css";
+
+const today = () => jakartaNow(new Date()).date;
 
 // Raw cheese is entered in grams; everything else in pieces.
 const toStored = (item: ItemId, input: string) => Math.round(Number(input) * (item === "raw_cheese" ? 100 : 1));
 
-export function StockBoard() {
-  const session = useSession();
+export function StockBoard({ session }: { session: op.State }) {
   const [draft, setDraft] = useState<Partial<Record<ItemId, string>>>({});
   const [message, setMessage] = useState<{ id: ItemId; text: string } | null>(null);
-  if (!session) return null;
+  const [, startTransition] = useTransition();
 
-  const act = (id: ItemId, command: (state: op.State, now: Date) => op.State) => {
-    const error = run(command);
-    setMessage(error ? { id, text: error } : null);
-    if (!error) setDraft((current) => ({ ...current, [id]: "" }));
+  const act = (id: ItemId, action: Promise<{ error: string | null }>) => {
+    startTransition(async () => {
+      const { error } = await action;
+      setMessage(error ? { id, text: error } : null);
+      if (!error) setDraft((current) => ({ ...current, [id]: "" }));
+    });
   };
   const items = op.balances(session);
 
@@ -39,8 +42,8 @@ export function StockBoard() {
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
               <div className={styles.cardActions}>
                 <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Gram" : "Pcs"} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />
-                <button className="btn btn-quiet" disabled={!value} onClick={() => act(item.id, (s, now) => op.receiveStock(s, item.id, toStored(item.id, value), now))}>Terima stok</button>
-                <button className="btn btn-quiet" disabled={value === ""} onClick={() => act(item.id, (s, now) => op.stockOpname(s, item.id, toStored(item.id, value), now))}>Hasil opname</button>
+                <button className="btn btn-quiet" disabled={!value} onClick={() => act(item.id, receiveStockAction(item.id, toStored(item.id, value)))}>Terima stok</button>
+                <button className="btn btn-quiet" disabled={value === ""} onClick={() => act(item.id, stockOpnameAction(item.id, toStored(item.id, value)))}>Hasil opname</button>
               </div>
               {message?.id === item.id && <p role="alert" className={styles.hint}>{message.text}</p>}
               <div className={styles.stockFooter}><span>Ambang {formatQuantity(item.id, item.threshold)}</span></div>
@@ -58,9 +61,7 @@ export function StockBoard() {
   );
 }
 
-export function FinanceBoard() {
-  const session = useSession();
-  if (!session) return null;
+export function FinanceBoard({ session }: { session: op.State }) {
   const orders = session.orders.filter((o) => o.status !== "CANCELLED");
   const payments = session.orders.flatMap((o) => o.payments.filter((p) => !p.reversedAt));
   const received = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -87,18 +88,23 @@ export function FinanceBoard() {
   );
 }
 
-export function AvailabilityBoard() {
-  const session = useSession();
+export function AvailabilityBoard({ session }: { session: op.State }) {
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<DateStatus>("HOLIDAY");
   const [error, setError] = useState<string | null>(null);
-  if (!session) return null;
+  const [, startTransition] = useTransition();
 
   const affected = date ? op.ordersOnDate(session, date) : [];
   const suggestion = affected.length ? recommendReschedule(date, { ...session.calendar, [date]: status }, today()) : null;
-  const act = (command: (state: op.State, now: Date) => op.State) => setError(run(command));
-  const block = () => act((s, now) => op.setDateStatus(s, date, status, now));
-  const moveAndBlock = () => act((s, now) => op.setDateStatus(affected.reduce((acc, o) => op.rescheduleOrder(acc, o.id, suggestion!, now), s), date, status, now));
+  const act = (action: Promise<{ error: string | null }>) => startTransition(async () => setError((await action).error));
+  const block = () => act(setDateStatusAction(date, status));
+  const moveAndBlock = () => act((async () => {
+    for (const order of affected) {
+      const { error } = await rescheduleOrderAction(order.id, suggestion!);
+      if (error) return { error };
+    }
+    return setDateStatusAction(date, status);
+  })());
   const upcoming = Object.entries(session.calendar).filter(([d]) => d >= today()).sort();
   const paused = session.storeStatus === "PAUSED";
 
@@ -107,7 +113,7 @@ export function AvailabilityBoard() {
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
           <div><h2>Status toko</h2><p>{paused ? "Pesanan baru ditolak. Pesanan yang ada tetap berjalan." : "Toko menerima pesanan. Tanggal tertutup dilewati otomatis."}</p></div>
-          <button className={`btn ${paused ? "btn-primary" : "btn-quiet"}`} onClick={() => act((s, now) => op.setStoreStatus(s, paused ? "OPEN" : "PAUSED", now))}>{paused ? "Buka pemesanan" : "Jeda pemesanan"}</button>
+          <button className={`btn ${paused ? "btn-primary" : "btn-quiet"}`} onClick={() => act(setStoreStatusAction(paused ? "OPEN" : "PAUSED"))}>{paused ? "Buka pemesanan" : "Jeda pemesanan"}</button>
         </div>
       </section>
 
@@ -134,7 +140,7 @@ export function AvailabilityBoard() {
         <div className={styles.panelHeader}><div><h2>Tanggal tertutup</h2><p>Mandiri, BI, dan pengiriman memakai kalender yang sama.</p></div></div>
         {upcoming.length === 0 && <p className={styles.empty}>Belum ada tanggal tertutup.</p>}
         {upcoming.map(([d, s]) => (
-          <div className={styles.paymentRow} key={d}><div><strong>{formatDate(d)}</strong><small>{s === "HOLIDAY" ? "Libur nasional" : "Tidak tersedia"}</small></div><div /><button className={styles.textLink} onClick={() => act((st, now) => op.setDateStatus(st, d, null, now))}>Buka kembali</button></div>
+          <div className={styles.paymentRow} key={d}><div><strong>{formatDate(d)}</strong><small>{s === "HOLIDAY" ? "Libur nasional" : "Tidak tersedia"}</small></div><div /><button className={styles.textLink} onClick={() => act(setDateStatusAction(d, null))}>Buka kembali</button></div>
         ))}
       </section>
     </>
