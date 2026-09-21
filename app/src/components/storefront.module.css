@@ -1,0 +1,87 @@
+.shell { width: 100%; max-width: 760px; min-height: 100dvh; margin: 0 auto; background: var(--cream); box-shadow: 0 0 80px rgba(70,20,25,.08); padding-bottom: 92px; }
+.header { height: 68px; display: grid; grid-template-columns: 74px 1fr 74px; align-items: center; padding: 0 18px; position: sticky; top: 0; z-index: 20; background: rgba(255,250,242,.88); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(229,213,199,.7); }
+.back { border: 0; background: transparent; color: var(--wine-text); width: 44px; height: 44px; display: grid; place-items: center; }
+.wordmark { text-align: center; color: var(--wine-text); font-family: var(--font-display), Georgia, serif; font-weight: 700; letter-spacing: .09em; }
+.locale { justify-self: end; display: flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
+.locale button { min-width: 32px; height: 28px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; }
+.locale .localeActive { background: var(--wine); color: #fffaf2; }
+.hero { min-height: 420px; position: relative; overflow: hidden; }
+.hero img { object-fit: cover; object-position: 47% 43%; transform: scale(1.08); }
+.heroShade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42,10,12,.05) 28%, rgba(50,11,15,.8) 100%); }
+.heroCopy { position: absolute; inset: auto 24px 34px; color: #fffaf2; max-width: 530px; }
+.heroCopy p { text-transform: uppercase; font-size: 11px; letter-spacing: .18em; margin: 0 0 10px; }
+.heroCopy h1 { font-size: clamp(38px, 8vw, 62px); line-height: .98; letter-spacing: -.035em; margin: 0 0 14px; max-width: 600px; }
+.heroCopy span { font-size: 15px; }
+.catalog { padding: 22px 18px 30px; }
+.promise { border-left: 3px solid var(--wine); padding: 4px 0 4px 12px; margin-bottom: 28px; display: flex; flex-direction: column; gap: 3px; }
+.promise span { color: var(--green); font-size: 12px; font-weight: 750; }
+.promise strong { font-size: 14px; }
+.catalog > h2 { font-size: 31px; letter-spacing: -.025em; margin: 0 0 18px; }
+.product { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 18px; min-height: 190px; padding: 16px; margin-bottom: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: 0 12px 30px rgba(87,38,36,.06); }
+.productVisual { position: relative; overflow: hidden; border-radius: 14px; background: var(--sunken); }
+.productVisual img { object-fit: cover; object-position: 46% 51%; transform: scale(2.9); }
+.pouchVisual img { object-position: 67% 51%; transform: scale(2.7); }
+.productCopy { padding-bottom: 42px; }
+.productCopy h3 { color: var(--wine-text); font-size: 28px; margin: 1px 0 1px; }
+.productCopy p { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 7px 0; }
+.productCopy .detail { margin: 0; }
+.productCopy strong { display: block; color: var(--wine-text); font-size: 19px; margin-top: 10px; }
+.stepper { position: absolute; right: 16px; bottom: 15px; display: grid; grid-template-columns: 44px 32px 44px; align-items: center; text-align: center; }
+.stepper button { height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--cream); display: grid; place-items: center; color: var(--wine-text); }
+.stepper .plus { background: var(--wine); color: #fffaf2; border-color: var(--wine-text); }
+.formPage { padding: 18px 18px 30px; }
+.pageIntro span { color: var(--wine-text); font-weight: 750; font-size: 13px; }
+.pageIntro h1 { font-size: clamp(34px, 7vw, 50px); line-height: 1.05; letter-spacing: -.03em; margin: 8px 0; }
+.pageIntro p { color: var(--muted); margin: 0 0 24px; }
+.choices { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.choice:has(input:focus-visible) { outline: 2px solid var(--wine); outline-offset: 2px; }
+.choice { cursor: pointer; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--paper); color: var(--ink); min-height: 72px; display: grid; grid-template-columns: 34px 1fr 22px; text-align: left; align-items: center; gap: 10px; padding: 10px 13px; }
+.choice span { display: grid; gap: 4px; }
+.choice small { color: var(--muted); }
+.choice i { width: 20px; height: 20px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; color: #fffaf2; }
+.choiceActive { border-color: var(--wine-text); background: var(--wine-soft); }
+.choiceActive i { background: var(--wine); border-color: var(--wine-text); }
+.fields { margin-top: 28px; display: grid; gap: 14px; }
+.fields h2, .summary h2 { font-size: 18px; margin: 0 0 2px; }
+.fields label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
+.fields input:not([type="checkbox"]), .fields textarea { width: 100%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: var(--radius-control); padding: 13px 14px; outline: none; }
+.fields input:focus, .fields textarea:focus { border-color: var(--wine-text); box-shadow: 0 0 0 3px rgba(118,18,28,.12); }
+.fields .remember { display: flex; align-items: center; gap: 9px; color: var(--ink); }
+.remember input { accent-color: var(--wine-text); }
+.summary { margin-top: 24px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); display: grid; gap: 11px; }
+.summary > div { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+.summary .total { border-top: 1px solid var(--line); padding-top: 13px; font-size: 18px; }
+.summary .total strong { color: var(--wine-text); }
+.payNote { margin: 0; color: var(--muted); font-size: 13px; }
+.summaryCompact { margin-top: 10px; padding: 14px 0 0; background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+.success { min-height: calc(100dvh - 68px); padding: 46px 20px 34px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.check { width: 80px; height: 80px; display: grid; place-items: center; border: 2px solid var(--wine); color: var(--wine-text); border-radius: 50%; }
+.success > p { color: var(--wine-text); font-weight: 750; margin: 22px 0 4px; }
+.success > h1 { font-size: 42px; line-height: 1; margin: 0 0 12px; }
+.orderNo { color: var(--wine-text); font-size: 20px; margin-bottom: 9px; }
+.success > span { color: var(--muted); }
+.successCard { width: 100%; text-align: left; margin-top: 28px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: var(--shadow); }
+.successCard > div:first-child { display: flex; gap: 10px; align-items: center; }
+.whatsapp { display: flex; align-items: center; gap: 10px; color: var(--green); margin: 24px auto; max-width: 400px; text-align: left; font-size: 14px; }
+.qris { width: 100%; margin-top: 18px; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); display: grid; justify-items: center; gap: 12px; }
+.qris strong { color: var(--wine-text); }
+.qris p { margin: 0; color: var(--muted); font-size: 13px; max-width: 360px; }
+.qrisCode { width: 150px; height: 150px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: 14px; background: var(--surface); color: var(--wine-text); }
+.previewLink { margin-top: 12px; width: 100%; max-width: 360px; }
+.whatsapp { margin-top: auto; }
+.sticky { position: fixed; z-index: 30; bottom: 0; left: 50%; transform: translateX(-50%); width: min(760px, 100%); min-height: 76px; padding: 12px 18px; background: rgba(255,250,242,.94); backdrop-filter: blur(18px); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sticky > div { display: grid; grid-template-columns: 24px auto; gap: 0 7px; font-size: 12px; text-align: left; }
+.sticky > div svg { grid-row: 1 / 3; align-self: center; color: var(--wine-text); }
+.sticky > div strong { font-size: 13px; }
+.sticky button:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 520px) {
+  .hero { min-height: 360px; }
+  .heroCopy h1 { font-size: 39px; }
+  .product { grid-template-columns: 94px 1fr; min-height: 196px; gap: 13px; padding: 13px; }
+  .productCopy h3 { font-size: 25px; }
+  .sticky .btn { min-width: 142px; }
+}
+@media (prefers-color-scheme: dark) {
+  .header, .sticky { background: rgba(33,23,25,.9); }
+  .heroShade { background: linear-gradient(180deg, rgba(20,5,7,.08), rgba(20,5,7,.86)); }
+}

@@ -1,0 +1,1 @@
+{"version":"0.0.1","configurations":[{"name":"le-nouette","runtimeExecutable":"npm","runtimeArgs":["--prefix","app","run","dev"],"port":3000,"autoPort":true},{"name":"le-nouette-build","runtimeExecutable":"npm","runtimeArgs":["--prefix","app","run","start","--","-p","3100"],"port":3100}]}
