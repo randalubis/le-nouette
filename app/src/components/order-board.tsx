@@ -1,11 +1,11 @@
 "use client";
 
 import { Clock, MapPin, Truck } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { formatRupiah } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate } from "@/lib/domain/schedule";
-import { run, useSession } from "@/lib/session-store";
+import { recordPaymentAction, dispatchOrderAction, completeOrderAction, reversePaymentAction, cancelOrderAction } from "@/lib/domain/actions";
 import styles from "./founder.module.css";
 
 const tabs = [
@@ -19,17 +19,18 @@ export const placeLabel: Record<op.Fulfillment, string> = { PICKUP_MANDIRI: "Man
 const methodLabel: Record<op.PaymentMethod, string> = { TRANSFER: "Transfer", QRIS: "QRIS", CASH: "Tunai" };
 export const itemsLabel = (order: op.Order) => order.items.map((item) => `${item.quantity} × ${item.name}`).join(", ");
 
-export function OrderBoard({ initialTab }: { initialTab: op.OrderStatus }) {
-  const session = useSession();
+export function OrderBoard({ session, initialTab }: { session: op.State; initialTab: op.OrderStatus }) {
   const [tab, setTab] = useState<op.OrderStatus>(initialTab);
   const [query, setQuery] = useState("");
   const [paying, setPaying] = useState<string | null>(null);
   const [error, setError] = useState<{ id: string; message: string } | null>(null);
-  if (!session) return null;
+  const [, startTransition] = useTransition();
 
-  const act = (id: string, command: (state: op.State, now: Date) => op.State) => {
-    const message = run(command);
-    setError(message ? { id, message } : null);
+  const act = (id: string, action: Promise<{ error: string | null }>) => {
+    startTransition(async () => {
+      const { error } = await action;
+      setError(error ? { id, message: error } : null);
+    });
   };
   const needle = query.trim().toLowerCase();
   const visible = session.orders
@@ -75,18 +76,18 @@ export function OrderBoard({ initialTab }: { initialTab: op.OrderStatus }) {
               {paying === order.id ? (
                 <div className={styles.cardActions} role="group" aria-label={`Metode pembayaran ${order.id}`}>
                   {(Object.keys(methodLabel) as op.PaymentMethod[]).map((method) => (
-                    <button key={method} className="btn btn-quiet" onClick={() => { act(order.id, (s, now) => op.recordPayment(s, order.id, method, now)); setPaying(null); }}>{methodLabel[method]}</button>
+                    <button key={method} className="btn btn-quiet" onClick={() => { act(order.id, recordPaymentAction(order.id, method)); setPaying(null); }}>{methodLabel[method]}</button>
                   ))}
                   <button className={styles.textLink} onClick={() => setPaying(null)}>Batal</button>
                 </div>
               ) : (
                 <div className={styles.cardActions}>
                   {order.status === "NEEDS_PREPARATION" && <small className={styles.hint}>Pindah otomatis saat batch packing {formatDate(order.currentReadyDate, "short")} diselesaikan.</small>}
-                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => act(order.id, (s, now) => op.dispatchOrder(s, order.id, now))}>Tandai Dikirim</button>}
-                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => act(order.id, (s, now) => op.completeOrder(s, order.id, now))}>Tandai Selesai</button>}
+                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => act(order.id, dispatchOrderAction(order.id))}>Tandai Dikirim</button>}
+                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => act(order.id, completeOrderAction(order.id))}>Tandai Selesai</button>}
                   {!paid && order.status !== "CANCELLED" && <button className="btn btn-quiet" onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
-                  {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, (s, now) => op.reversePayment(s, order.id, lastPayment.id, now))}>Koreksi pembayaran</button>}
-                  {active && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?`) && act(order.id, (s, now) => op.cancelOrder(s, order.id, now))}>Batalkan pesanan</button>}
+                  {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
+                  {active && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}
                   {error?.id === order.id && <small role="alert" className={styles.hint}>{error.message}</small>}
                 </div>
