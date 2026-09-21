@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Plus, QrCode, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { formatRupiah, products, type ProductId } from "@/lib/domain/catalog";
-import { createOrder, type Fulfillment } from "@/lib/domain/operations";
+import type { Fulfillment, Order, State } from "@/lib/domain/operations";
+import { createOrderAction } from "@/lib/domain/actions";
 import { formatDate, promisedReadyDate } from "@/lib/domain/schedule";
 import { useTranslation, type Key } from "@/lib/i18n";
 import { readRemembered, saveRemembered } from "@/lib/remembered";
-import { run, useSession } from "@/lib/session-store";
 import styles from "./storefront.module.css";
 
 type Step = "shop" | "details" | "success";
@@ -21,25 +21,23 @@ const fulfillmentOptions: Option[] = [
   { id: "DELIVERY", title: "delivery", sub: "deliveryFee", icon: Truck },
 ];
 
-export function Storefront() {
-  const session = useSession();
+export function Storefront({ session }: { session: State }) {
   const { t, locale, setLocale } = useTranslation();
   const [step, setStep] = useState<Step>("shop");
   const [qty, setQty] = useState<Record<ProductId, number>>({ milieu: 1, grande: 0 });
   const [fulfillment, setFulfillment] = useState<Fulfillment>("PICKUP_MANDIRI");
-  // Prefilled from the device record, then validated and normalized again on submit like any untrusted input (§13.4).
   const [remembered] = useState(() => (typeof window === "undefined" ? null : readRemembered()));
   const [form, setForm] = useState({ name: remembered?.name ?? "", whatsapp: remembered?.whatsapp ?? "", address: "", note: "" });
   const [remember, setRemember] = useState(remembered !== null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const [placed, setPlaced] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showQris, setShowQris] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   const total = products.reduce((sum, product) => sum + product.price * qty[product.id], 0);
   const count = qty.milieu + qty.grande;
-  const paused = session?.storeStatus === "PAUSED";
-  const readyLabel = session ? formatDate(promisedReadyDate(new Date(), session.calendar), "long", locale) : "…";
-  const placed = session?.orders.find((order) => order.idempotencyKey === idempotencyKey);
+  const paused = session.storeStatus === "PAUSED";
+  const readyLabel = formatDate(promisedReadyDate(new Date(), session.calendar), "long", locale);
   const placedQty = { milieu: 0, grande: 0, ...Object.fromEntries((placed?.items ?? []).map((item) => [item.productId, item.quantity])) } as Record<ProductId, number>;
 
   const updateQty = (id: ProductId, delta: number) => setQty((current) => ({ ...current, [id]: Math.max(0, current[id] + delta) }));
@@ -47,23 +45,25 @@ export function Storefront() {
 
   const toggleRemember = (checked: boolean) => {
     setRemember(checked);
-    if (!checked) saveRemembered(null); // opting out clears saved identity immediately (§6.1)
+    if (!checked) saveRemembered(null);
   };
 
   const submit = () => {
-    const key = idempotencyKey ?? crypto.randomUUID();
-    setIdempotencyKey(key);
-    const message = run((state, now) => createOrder(state, { idempotencyKey: key, ...form, fulfillment, quantities: qty }, now));
-    setError(message);
-    if (message) return;
-    saveRemembered(remember ? { name: form.name.trim(), whatsapp: form.whatsapp.replace(/[\s-]/g, "") } : null);
-    setStep("success");
+    startTransition(async () => {
+      const key = crypto.randomUUID();
+      const { error, order } = await createOrderAction({ idempotencyKey: key, ...form, fulfillment, quantities: qty });
+      setError(error);
+      if (error || !order) return;
+      saveRemembered(remember ? { name: form.name.trim(), whatsapp: form.whatsapp.replace(/[\s-]/g, "") } : null);
+      setPlaced(order);
+      setStep("success");
+    });
   };
 
   const startOver = () => {
     setQty({ milieu: 1, grande: 0 });
     setForm((current) => ({ ...current, address: "", note: "" }));
-    setIdempotencyKey(null);
+    setPlaced(null);
     setShowQris(false);
     setStep("shop");
   };
@@ -178,7 +178,7 @@ export function Storefront() {
       {step !== "success" && (
         <footer className={styles.sticky}>
           <div><ShoppingBag size={22} /><span>{t("itemCount", { count })}</span><strong>{formatRupiah(total)}</strong></div>
-          <button className="btn btn-primary" disabled={count === 0 || paused} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder", { total: formatRupiah(total) })}<ArrowRight size={18} /></button>
+          <button className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder", { total: formatRupiah(total) })}<ArrowRight size={18} /></button>
         </footer>
       )}
     </main>
