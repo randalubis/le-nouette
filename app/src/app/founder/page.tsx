@@ -1,11 +1,12 @@
 import { FounderShell } from "@/components/founder-shell";
 import { DashboardSummary } from "@/components/packing-panel";
+import { getState } from "@/lib/db/get-state";
 
-export default function FounderDashboard() {
+export default async function FounderDashboard() {
+  const session = await getState();
   return (
-    <FounderShell active="Beranda" title="Beranda" subtitle="Ringkasan operasional hari ini · data sesi prototipe">
-      {/* ponytail: Product Ready to Sell panel removed until its ledger exists (Phase 3). */}
-      <DashboardSummary />
+    <FounderShell active="Beranda" title="Beranda" subtitle="Ringkasan operasional hari ini">
+      <DashboardSummary session={session} />
     </FounderShell>
   );
 }

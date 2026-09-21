@@ -2,19 +2,17 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle, WarningCircle } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow } from "@/lib/domain/schedule";
-import { run, today, useSession } from "@/lib/session-store";
+import { completeBatchAction } from "@/lib/domain/actions";
 import styles from "./founder.module.css";
 
 const shortMoney = (value: number) => (value >= 1_000_000 ? `Rp${(value / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} jt` : value >= 1000 ? `Rp${Math.round(value / 1000)} rb` : formatRupiah(value));
 
-export function DashboardSummary() {
-  const session = useSession();
-  if (!session) return null;
-  const month = today().slice(0, 7);
+export function DashboardSummary({ session }: { session: op.State }) {
+  const month = jakartaNow(new Date()).date.slice(0, 7);
   const active = session.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER");
   const unpaid = session.orders.filter((o) => o.status !== "CANCELLED" && !op.isPaid(o));
   const revenue = session.orders.filter((o) => o.status !== "CANCELLED" && jakartaNow(new Date(o.createdAt)).date.startsWith(month)).reduce((sum, o) => sum + o.total, 0);
@@ -44,16 +42,15 @@ export function DashboardSummary() {
             {lowStock.length === 0 && !unpaid.some((o) => o.status === "READY_FOR_HANDOVER") && <p className={styles.empty}>Tidak ada yang mendesak.</p>}
           </div>
         </article>
-        <PackingPanel />
+        <PackingPanel session={session} />
       </section>
     </>
   );
 }
 
-export function PackingPanel() {
-  const session = useSession();
+export function PackingPanel({ session }: { session: op.State }) {
   const [error, setError] = useState<string | null>(null);
-  if (!session) return null;
+  const [pending, startTransition] = useTransition();
 
   const date = op.pendingBatchDates(session)[0];
   const orders = session.orders.filter((o) => o.status === "NEEDS_PREPARATION" && o.currentReadyDate === date);
@@ -64,7 +61,10 @@ export function PackingPanel() {
 
   const complete = () => {
     if (!window.confirm(`Semua produk untuk ${orders.length} pesanan sudah dipacking? Stok bahan akan dikurangi dan pesanan pindah ke Siap Diserahkan.`)) return;
-    setError(run((state, now) => op.completeBatch(state, date, now)));
+    startTransition(async () => {
+      const { error } = await completeBatchAction(date);
+      setError(error);
+    });
   };
 
   return (
@@ -77,7 +77,7 @@ export function PackingPanel() {
         <div className={styles.materials}><span>Kebutuhan bahan baku</span><b>{formatQuantity("raw_cheese", rawCheese)} cheese stick</b></div>
         <div className={styles.materials}><span>Quality-selection Milieu</span><b>±{formatQuantity("raw_cheese", units.milieu * (products[0].recipe.raw_cheese - products[0].netGrams * 100))} untuk konsumsi pribadi</b></div>
         {cheese.onHand < rawCheese && <p className={styles.hint}>Stok fisik {formatQuantity("raw_cheese", cheese.onHand)} belum cukup untuk batch ini.</p>}
-        <button className={`btn btn-primary ${styles.batchButton}`} onClick={complete}>Selesaikan batch · {orders.length} pesanan</button>
+        <button className={`btn btn-primary ${styles.batchButton}`} disabled={pending} onClick={complete}>Selesaikan batch · {orders.length} pesanan</button>
         {error && <p role="alert" className={styles.hint}>{error}</p>}
       </> : <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua batch selesai.</p>}
     </article>
