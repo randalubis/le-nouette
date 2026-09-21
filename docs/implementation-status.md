@@ -17,28 +17,26 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | Customer storefront: 3-screen flow, ID/EN i18n | ✅ BUILT | `app/src/components/storefront.tsx`, `app/src/lib/i18n.ts` |
 | Founder OS: Beranda, Pesanan Kanban, Stok, Availability, Keuangan | ✅ BUILT | `app/founder/page.tsx`, `app/founder/orders`, `app/founder/stock`, `app/founder/availability`, `app/founder/finance`, shared `founder-shell.tsx` |
 | Remembered customer details (device-local opt-in) | ✅ BUILT | `app/src/lib/remembered.ts` |
+| Persistence (Postgres via Supabase, Drizzle) | ✅ BUILT | `app/src/lib/db/` (schema, client, loadState, diffAndWrite), server actions in `app/src/lib/domain/actions.ts`. Lean schema mirroring `operations.ts` state shape, not the full 18-table spec — see `docs/superpowers/specs/2026-09-21-supabase-persistence-design.md` for the scope decision. |
 
 ## Partial
 
 | Area | Status | Evidence |
 |---|---|---|
 | QRIS payment | 🚧 PARTIAL | Static placeholder image only (`storefront.tsx:165,189`); tapping "Bayar sekarang dengan QRIS" never changes payment status. Matches the spec's own note that a static display shouldn't auto-confirm payment ([§11.1](./product/payments-and-receivables.md)), but no real confirmation UX exists either. |
-| Order/inventory/payment transactions | 🚧 PARTIAL | Business logic is fully implemented and tested as pure functions, but none of it runs against a real transactional database — see Persistence below. |
 | Acceptance tests | 🚧 PARTIAL | [§19.1–§19.5](./technical/acceptance-tests.md) automated; §19.6–§19.8 have no code to test yet (no auth, no export, no Ready-to-Sell tier). |
 
 ## Backlog
 
 | Area | Status | Evidence |
 |---|---|---|
-| Persistence (Postgres via Supabase, the 18-table schema in [data-model.md](./technical/data-model.md)) | ⏳ BACKLOG | Everything lives in `app/src/lib/session-store.ts` — browser `sessionStorage`, seeded with fake demo data on first load, resets when the tab closes. This is the single biggest gap versus both specs. |
 | Founder authentication / access gating ([§8.1](./product/founder-os.md#81-access-model), [§15](./technical/security.md)) | ⏳ BACKLOG | `/founder/*` is a fully public route. No Supabase Auth, no login screen, no session, no server-side authorization check exists. |
 | Ready-to-Sell inventory tier ([§10.1–10.2](./product/inventory-model.md), [§6.14](./technical/data-model.md#614-ready_product_movements)) | ⏳ BACKLOG | Explicitly deferred in code: `operations.ts:100` ("Product Ready to Sell allocation ... is Phase 3; every unit is reserved from raw materials"); the dashboard panel was removed (`app/founder/page.tsx:7`). |
 | Referral capture ([§6.4](./product/storefront-experience.md#64-referral-capture)) | ⏳ BACKLOG | Not found anywhere in the storefront code. |
-| API routes / server actions ([§14](./technical/api-surface.md)) | ⏳ BACKLOG | No `app/src/app/api/` folder; every domain command runs client-side against sessionStorage instead of through a server action. |
 | CSV/XLSX business-data export ([§17.1](./technical/notifications-and-reporting.md#171-portable-business-data-export)) | ⏳ BACKLOG | No export code found (`grep -r "xlsx\|csv\|unduh" app/src` returns nothing). |
 | WhatsApp deep-link generation ([§16](./technical/notifications-and-reporting.md)) | ⏳ BACKLOG | No prefilled-message/deep-link code found. |
-| Component/integration/e2e tests | ⏳ BACKLOG | Only the domain-layer unit tests exist; no tests for UI components, `session-store.ts`, `i18n.ts`, or `remembered.ts`. |
-| Vercel deployment, Drizzle ORM, SQL migrations ([§3](./technical/architecture.md)) | ⏳ BACKLOG | Not set up; the app has not been deployed yet. |
+| Component/integration/e2e tests | ⏳ BACKLOG | Only the domain-layer unit tests and the Postgres load/diff/write integration test exist; no tests for UI components, `i18n.ts`, or `remembered.ts`. |
+| Vercel deployment | ⏳ BACKLOG | Not set up; the app has not been deployed yet. |
 
 ## How to keep this current
 
