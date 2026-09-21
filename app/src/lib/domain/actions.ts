@@ -95,3 +95,21 @@ export async function setStoreStatusAction(status: op.State["storeStatus"]) {
   if (!error) revalidateAll();
   return { error };
 }
+
+export async function resetSeedAction() {
+  if (process.env.NODE_ENV === "production") return { error: "Reset hanya tersedia di lingkungan development." };
+  const { db } = await import("@/lib/db/client");
+  const schema = await import("@/lib/db/schema");
+  await db.transaction(async (tx) => {
+    await tx.delete(schema.reservations);
+    await tx.delete(schema.orderItems);
+    await tx.delete(schema.payments);
+    await tx.delete(schema.orders);
+    await tx.delete(schema.movements);
+    await tx.delete(schema.auditEvents);
+    await tx.delete(schema.calendarDates);
+    await tx.update(schema.storeStatus).set({ status: "OPEN" });
+  });
+  revalidateAll();
+  return { error: null };
+}

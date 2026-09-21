@@ -1,7 +1,22 @@
 "use client";
 
-import { resetSession } from "@/lib/session-store";
+import { useTransition } from "react";
+import { resetSeedAction } from "@/lib/domain/actions";
 
 export function ResetSessionButton() {
-  return <button className="btn btn-quiet" onClick={() => window.confirm("Reset semua data sesi ke data contoh?") && resetSession()}>Reset data</button>;
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      className="btn btn-quiet"
+      disabled={pending}
+      onClick={() =>
+        window.confirm("Hapus semua data dan mulai kosong? (Jalankan `npm run db:seed` setelahnya untuk data contoh.)") &&
+        startTransition(() => {
+          void resetSeedAction();
+        })
+      }
+    >
+      Reset data
+    </button>
+  );
 }
