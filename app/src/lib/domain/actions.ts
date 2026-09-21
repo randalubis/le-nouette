@@ -6,16 +6,21 @@ import type { ItemId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
 import * as op from "./operations";
 
-// ponytail: revalidatePath throws when called outside a Next.js request scope
-// (e.g. the integration test, or any future script-driven call). The mutation
-// already committed by this point, so a missing cache invalidation shouldn't
-// fail the action — swallow it rather than adding a "are we in Next" check.
+// Best-effort cache invalidation: the domain mutation has already committed by the
+// time this runs, so a failed revalidation must never fail the action.
+//
+// ponytail: revalidatePath throws "static generation store missing" when called
+// outside a Next.js request scope (e.g. the integration test, or any future
+// script-driven call). That specific case is expected and swallowed; anything
+// else re-throws, since a real regression here should stay visible rather than
+// go silently stale in production.
 const revalidateAll = () => {
   try {
     revalidatePath("/", "layout");
     revalidatePath("/founder", "layout");
-  } catch {
-    // no-op outside a Next.js request scope
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("static generation store missing")) return;
+    throw e;
   }
 };
 
