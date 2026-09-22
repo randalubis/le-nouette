@@ -1,0 +1,63 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.card p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card input {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 0 14px;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.card button {
+  margin-top: 8px;
+}
+
+.error {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  border-radius: var(--radius-control);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}

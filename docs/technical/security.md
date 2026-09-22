@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: ⏳ BACKLOG** — nothing in this section is implemented. `/founder/*` is a fully public route with no login, no session, no server-side validation, and customer data lives unencrypted in browser sessionStorage. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — `/founder/*` is gated behind a login screen and an HMAC-signed, httpOnly session cookie (`app/src/proxy.ts`, `app/src/lib/founder-auth.ts`), but as a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential rather than per-founder Supabase Auth accounts — no CSRF-specific handling beyond Next.js Server Actions' built-in origin check, no rate-limiting/lockout, no account recovery flow. See [implementation-status.md](../implementation-status.md).
 
 ## 15. Authentication, authorization, and security
 

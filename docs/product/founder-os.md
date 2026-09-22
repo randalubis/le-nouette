@@ -2,7 +2,7 @@
 
 [← Product spec hub](../product-spec.md)
 
-**Implementation: 🚧 PARTIAL** — the full Founder OS UI (Beranda, Pesanan Kanban, Stok, Availability, Keuangan) is built at `app/founder/*`, but §8.1 Access model is entirely unbuilt: `/founder/*` is a public route with no login. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — the full Founder OS UI (Beranda, Pesanan Kanban, Stok, Availability, Keuangan) is built at `app/founder/*`. §8.1 Access model is partially built: `/founder/*` is gated by a login screen and signed session cookie, but with a single shared env-var credential rather than per-founder Supabase Auth accounts. See [implementation-status.md](../implementation-status.md).
 
 ## 8. Founder OS
 
@@ -16,7 +16,7 @@
 - Founder OS is restricted to two pre-approved individual founder accounts; public signup and shared credentials are not allowed.
 - Founder login uses Supabase Auth with individual email/password accounts. The two launch accounts are manually provisioned, public signup is disabled, and access is verified server-side against the approved founder records.
 
-**Implementation: ⏳ BACKLOG** — no auth, no login screen, no gating exists yet.
+**Implementation: 🚧 PARTIAL** — login screen and session gating exist (`app/src/proxy.ts`), but as a single shared credential, not individual per-founder Supabase Auth accounts as specced above.
 
 ### 8.2 Information architecture
 
