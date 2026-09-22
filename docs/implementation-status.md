@@ -18,6 +18,7 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | Founder OS: Beranda, Pesanan Kanban, Stok, Availability, Keuangan | ✅ BUILT | `app/founder/page.tsx`, `app/founder/orders`, `app/founder/stock`, `app/founder/availability`, `app/founder/finance`, shared `founder-shell.tsx` |
 | Remembered customer details (device-local opt-in) | ✅ BUILT | `app/src/lib/remembered.ts` |
 | Persistence (Postgres via Supabase, Drizzle) | ✅ BUILT | `app/src/lib/db/` (schema, client, loadState, diffAndWrite), server actions in `app/src/lib/domain/actions.ts`. Lean schema mirroring `operations.ts` state shape, not the full 18-table spec — see `docs/superpowers/specs/2026-09-21-supabase-persistence-design.md` for the scope decision. |
+| Vercel deployment | ✅ BUILT | Live at `le-nouette.vercel.app` (Vercel project `le-nouette`, root directory `app`, auto-deploys from `randalubis/le-nouette` `main`). DB is the same Supabase project used locally (`birojajosbxwkrxzepar`) — no separate prod database. |
 
 ## Partial
 
@@ -36,7 +37,6 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | CSV/XLSX business-data export ([§17.1](./technical/notifications-and-reporting.md#171-portable-business-data-export)) | ⏳ BACKLOG | No export code found (`grep -r "xlsx\|csv\|unduh" app/src` returns nothing). |
 | WhatsApp deep-link generation ([§16](./technical/notifications-and-reporting.md)) | ⏳ BACKLOG | No prefilled-message/deep-link code found. |
 | Component/integration/e2e tests | ⏳ BACKLOG | Only the domain-layer unit tests and the Postgres load/diff/write integration test exist; no tests for UI components, `i18n.ts`, or `remembered.ts`. |
-| Vercel deployment | ⏳ BACKLOG | Not set up; the app has not been deployed yet. |
 
 ## How to keep this current
 
