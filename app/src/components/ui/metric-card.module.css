@@ -1,0 +1,22 @@
+.card { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.card span { font-size: 13px; }
+.card strong { letter-spacing: -.04em; }
+.card small { font-size: 12px; }
+
+.neutral { min-height: 132px; padding: var(--pad-card); border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--line); }
+.neutral span { color: var(--muted); }
+.neutral strong { color: var(--wine-text); font-size: 32px; }
+.neutral small { color: var(--muted); }
+.neutral:hover { border-color: var(--wine-text); }
+.neutral.alert { background: var(--alert-bg); border-color: var(--alert-line); }
+
+.hero span { color: #dbc6c1; }
+.hero strong { color: #fff7ef; font-size: 44px; }
+.hero small { color: #dbc6c1; }
+.hero.compact strong { font-size: 22px; }
+
+@media (max-width: 560px) {
+  .neutral { min-height: 116px; padding: 15px; }
+  .neutral strong { font-size: 27px; }
+  .hero strong { font-size: 35px; }
+}

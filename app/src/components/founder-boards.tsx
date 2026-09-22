@@ -7,6 +7,9 @@ import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
 import { itemsLabel } from "@/components/order-board";
 import { receiveStockAction, stockOpnameAction, setDateStatusAction, setStoreStatusAction, rescheduleOrderAction } from "@/lib/domain/actions";
+import { ListRowCard } from "@/components/ui/list-row-card";
+import { ActionCard } from "@/components/ui/action-card";
+import { MetricCard } from "@/components/ui/metric-card";
 import styles from "./founder.module.css";
 
 const today = () => jakartaNow(new Date()).date;
@@ -54,7 +57,13 @@ export function StockBoard({ session }: { session: op.State }) {
       <section className={`${styles.panel} ${styles.receivables}`}>
         <div className={styles.panelHeader}><div><h2>Riwayat pergerakan stok</h2><p>Pergerakan tidak diubah atau dihapus; koreksi dicatat sebagai opname.</p></div></div>
         {session.movements.slice(-10).reverse().map((m) => (
-          <div className={styles.paymentRow} key={m.id}><div><strong>{items.find((i) => i.id === m.itemId)!.name}</strong><small>{new Date(m.at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}</small></div><div>{{ RECEIPT: "Penerimaan", STOCK_OPNAME: "Opname", PACKING_CONSUMPTION: "Konsumsi packing" }[m.reason]}</div><strong>{m.delta > 0 ? "+" : ""}{formatQuantity(m.itemId, m.delta)}</strong></div>
+          <ListRowCard
+            key={m.id}
+            title={items.find((i) => i.id === m.itemId)!.name}
+            subtitle={new Date(m.at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
+            middle={{ RECEIPT: "Penerimaan", STOCK_OPNAME: "Opname", PACKING_CONSUMPTION: "Konsumsi packing" }[m.reason]}
+            trailing={`${m.delta > 0 ? "+" : ""}${formatQuantity(m.itemId, m.delta)}`}
+          />
         ))}
       </section>
     </>
@@ -70,18 +79,24 @@ export function FinanceBoard({ session }: { session: op.State }) {
   return (
     <>
       <section className={styles.financeHero}>
-        <div><span>Omzet (sesi ini)</span><h2>{formatRupiah(orders.reduce((sum, o) => sum + o.total, 0))}</h2><p>{orders.length} pesanan · {orders.flatMap((o) => o.items).reduce((s, i) => s + i.quantity, 0)} produk</p></div>
+        <MetricCard variant="hero" label="Omzet (sesi ini)" value={formatRupiah(orders.reduce((sum, o) => sum + o.total, 0))} hint={`${orders.length} pesanan · ${orders.flatMap((o) => o.items).reduce((s, i) => s + i.quantity, 0)} produk`} />
         <div className={styles.financeSide}>
-          <div><strong>{formatRupiah(received)}</strong><span>Sudah diterima</span></div>
-          <div><strong>{formatRupiah(orders.reduce((sum, o) => sum + op.receivable(o), 0))}</strong><span>Belum dibayar</span></div>
-          <div><strong>{share("TRANSFER")}</strong><span>Transfer</span></div>
-          <div><strong>{share("QRIS")}</strong><span>QRIS · Tunai {share("CASH")}</span></div>
+          <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(received)} />
+          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(orders.reduce((sum, o) => sum + op.receivable(o), 0))} />
+          <MetricCard variant="hero" compact label="Transfer" value={share("TRANSFER")} />
+          <MetricCard variant="hero" compact label={`QRIS · Tunai ${share("CASH")}`} value={share("QRIS")} />
         </div>
       </section>
       <section className={`${styles.panel} ${styles.receivables}`}>
         <div className={styles.panelHeader}><div><h2>Pesanan & piutang</h2><p>Pesanan selesai boleh belum dibayar; konfirmasi pembayaran dilakukan founder di Pesanan.</p></div></div>
         {[...orders].reverse().map((o) => (
-          <div className={styles.paymentRow} key={o.id}><div><strong>{o.customer.name}</strong><small>{o.id} · {itemsLabel(o)}</small></div><div><span className={`status ${op.isPaid(o) ? "status-safe" : "status-danger"}`}>{op.isPaid(o) ? "Lunas" : `Piutang ${formatRupiah(op.receivable(o))}`}</span></div><strong>{formatRupiah(o.total)}</strong></div>
+          <ListRowCard
+            key={o.id}
+            title={o.customer.name}
+            subtitle={`${o.id} · ${itemsLabel(o)}`}
+            middle={<span className={`status ${op.isPaid(o) ? "status-safe" : "status-danger"}`}>{op.isPaid(o) ? "Lunas" : `Piutang ${formatRupiah(op.receivable(o))}`}</span>}
+            trailing={formatRupiah(o.total)}
+          />
         ))}
       </section>
     </>
@@ -117,30 +132,41 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
         </div>
       </section>
 
-      <section className={`${styles.panel} ${styles.receivables}`}>
-        <div className={styles.panelHeader}><div><h2>Tutup tanggal</h2><p>Libur nasional atau keperluan keluarga. Pesanan pada tanggal itu harus dipindahkan dulu.</p></div></div>
-        <div className={styles.cardActions}>
+      <div className={styles.receivables}>
+        <ActionCard
+          title="Tutup tanggal"
+          subtitle="Libur nasional atau keperluan keluarga. Pesanan pada tanggal itu harus dipindahkan dulu."
+          note={
+            <>
+              {affected.length > 0 && (
+                <div className={styles.attention}>
+                  <strong><WarningCircle size={16} /> {affected.length} pesanan pada {formatDate(date)}</strong>
+                  <span>{affected.map((o) => `${o.id} (${itemsLabel(o)})`).join(" · ")}</span>
+                  {suggestion
+                    ? <button className="btn btn-primary" onClick={moveAndBlock}>Pindahkan ke {formatDate(suggestion)} & tutup</button>
+                    : <span className="status status-danger">Tidak ada tanggal pengganti otomatis. Sepakati tanggal dengan pelanggan atau batalkan pesanan.</span>}
+                </div>
+              )}
+              {error && <p role="alert" className={styles.hint}>{error}</p>}
+            </>
+          }
+        >
           <input className={styles.search} type="date" min={today()} aria-label="Tanggal" value={date} onChange={(event) => setDate(event.target.value)} />
           <select className={styles.search} aria-label="Jenis" value={status} onChange={(event) => setStatus(event.target.value as DateStatus)}><option value="HOLIDAY">Libur nasional</option><option value="UNAVAILABLE">Tidak tersedia</option></select>
           {affected.length === 0 && <button className="btn btn-primary" disabled={!date} onClick={block}>Tutup tanggal</button>}
-        </div>
-        {affected.length > 0 && (
-          <div className={styles.attention}>
-            <strong><WarningCircle size={16} /> {affected.length} pesanan pada {formatDate(date)}</strong>
-            <span>{affected.map((o) => `${o.id} (${itemsLabel(o)})`).join(" · ")}</span>
-            {suggestion
-              ? <button className="btn btn-primary" onClick={moveAndBlock}>Pindahkan ke {formatDate(suggestion)} & tutup</button>
-              : <span className="status status-danger">Tidak ada tanggal pengganti otomatis. Sepakati tanggal dengan pelanggan atau batalkan pesanan.</span>}
-          </div>
-        )}
-        {error && <p role="alert" className={styles.hint}>{error}</p>}
-      </section>
+        </ActionCard>
+      </div>
 
       <section className={`${styles.panel} ${styles.receivables}`}>
         <div className={styles.panelHeader}><div><h2>Tanggal tertutup</h2><p>Mandiri, BI, dan pengiriman memakai kalender yang sama.</p></div></div>
         {upcoming.length === 0 && <p className={styles.empty}>Belum ada tanggal tertutup.</p>}
         {upcoming.map(([d, s]) => (
-          <div className={styles.paymentRow} key={d}><div><strong>{formatDate(d)}</strong><small>{s === "HOLIDAY" ? "Libur nasional" : "Tidak tersedia"}</small></div><div /><button className={styles.textLink} onClick={() => act(setDateStatusAction(d, null))}>Buka kembali</button></div>
+          <ListRowCard
+            key={d}
+            title={formatDate(d)}
+            subtitle={s === "HOLIDAY" ? "Libur nasional" : "Tidak tersedia"}
+            trailing={<button className={styles.textLink} onClick={() => act(setDateStatusAction(d, null))}>Buka kembali</button>}
+          />
         ))}
       </section>
     </>

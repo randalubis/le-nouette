@@ -101,8 +101,13 @@
   .avatar { width: 36px; height: 36px; font-size: 11px; }
   .content { padding: 18px 14px 92px; }
   .mobileNav { position: fixed; display: grid; grid-template-columns: repeat(5,1fr); z-index: 30; bottom: 0; left: 0; right: 0; min-height: 68px; background: rgba(255,250,245,.95); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
-  .mobileNav a { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: var(--muted); font-size: 11px; }
+  .mobileNav a { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: var(--muted); font-size: 11px; min-width: 0; }
+  .mobileNav a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .mobileNav .active { color: var(--wine-text); font-weight: 750; }
+  .tabs {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 4px, black calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, transparent, black 4px, black calc(100% - 28px), transparent);
+  }
   .metricGrid { grid-template-columns: repeat(2,1fr); }
   .dashboardGrid { grid-template-columns: 1fr; }
   .stockGrid { grid-template-columns: repeat(2,1fr); }

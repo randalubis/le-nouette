@@ -25,6 +25,7 @@
   --neutral-bg: #eee6dd; --neutral-fg: #675956;
   --radius-card: 20px;
   --radius-control: 12px;
+  --pad-card: 18px;
 }
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--cream); overflow-x: hidden; }

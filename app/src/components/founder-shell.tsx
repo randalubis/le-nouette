@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CalendarBlank, ChartLineUp, House, Package, ShoppingBagOpen, SquaresFour } from "@phosphor-icons/react/dist/ssr";
-import { ResetSessionButton } from "./reset-session";
 import { LogoutButton } from "./logout-button";
 import styles from "./founder.module.css";
 
@@ -23,7 +22,7 @@ export function FounderShell({ active, title, subtitle, children }: { active: st
       <div className={styles.workspace}>
         <header className={styles.topbar}>
           <div><h1>{title}</h1><p>{subtitle}</p></div>
-          <div className={styles.topActions}><ResetSessionButton /><LogoutButton /><span className={styles.avatar}>HS</span></div>
+          <div className={styles.topActions}><LogoutButton /><span className={styles.avatar}>HS</span></div>
         </header>
         <main className={styles.content}>{children}</main>
       </div>

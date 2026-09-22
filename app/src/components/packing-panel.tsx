@@ -7,6 +7,7 @@ import { formatQuantity, formatRupiah, products } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow } from "@/lib/domain/schedule";
 import { completeBatchAction } from "@/lib/domain/actions";
+import { MetricCard } from "@/components/ui/metric-card";
 import styles from "./founder.module.css";
 
 const shortMoney = (value: number) => (value >= 1_000_000 ? `Rp${(value / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} jt` : value >= 1000 ? `Rp${Math.round(value / 1000)} rb` : formatRupiah(value));
@@ -23,10 +24,10 @@ export function DashboardSummary({ session }: { session: op.State }) {
     <>
       {session.storeStatus === "PAUSED" && <p className={`status status-danger ${styles.banner}`}><WarningCircle size={15} /> Pemesanan sedang dijeda. <Link href="/founder/availability">Buka kalender</Link></p>}
       <section className={styles.metricGrid}>
-        <Link href="/founder/orders" className={styles.metric}><span>Pesanan aktif</span><strong>{active.length}</strong><small>{active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan</small></Link>
-        <Link href="/founder/finance" className={styles.metric}><span>Omzet bulan ini</span><strong>{shortMoney(revenue)}</strong><small>Pesanan tidak dibatalkan</small></Link>
-        <Link href="/founder/finance" className={`${styles.metric} ${unpaid.length ? styles.metricAlert : ""}`}><span>Belum dibayar</span><strong>{shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))}</strong><small>{unpaid.length} pesanan · lihat piutang</small></Link>
-        <Link href="/founder/availability" className={styles.metric}><span>Batch packing berikutnya</span><strong>{nextBatch ? formatDate(nextBatch, "short") : "—"}</strong><small>Cut-off harian 18.00 WIB</small></Link>
+        <MetricCard href="/founder/orders" label="Pesanan aktif" value={active.length} hint={`${active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan`} />
+        <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan tidak dibatalkan" />
+        <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`${unpaid.length} pesanan · lihat piutang`} alert={unpaid.length > 0} />
+        <MetricCard href="/founder/availability" label="Batch packing berikutnya" value={nextBatch ? formatDate(nextBatch, "short") : "—"} hint="Cut-off harian 18.00 WIB" />
       </section>
 
       <section className={styles.dashboardGrid}>
