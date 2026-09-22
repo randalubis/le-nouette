@@ -93,8 +93,12 @@
   .app { display: block; }
   .sidebar { display: none; }
   .topbar { padding: 15px 18px; min-height: 78px; }
+  .topbar > div:first-child { min-width: 0; }
   .topbar h1 { font-size: 20px; }
   .topbar p { max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topActions { gap: 8px; }
+  .topActions .btn { padding: 0 12px; font-size: 13px; min-height: 40px; }
+  .avatar { width: 36px; height: 36px; font-size: 11px; }
   .content { padding: 18px 14px 92px; }
   .mobileNav { position: fixed; display: grid; grid-template-columns: repeat(5,1fr); z-index: 30; bottom: 0; left: 0; right: 0; min-height: 68px; background: rgba(255,250,245,.95); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
   .mobileNav a { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: var(--muted); font-size: 11px; }
