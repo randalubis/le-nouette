@@ -152,6 +152,24 @@ export function dispatchOrder(state: State, id: string, now: Date): State {
   return withOrder(state, id, () => ({ dispatchedAt: now.toISOString() }), "ORDER_DISPATCHED", now);
 }
 
+export function dispatchOrders(state: State, ids: Set<string>, now: Date): State {
+  const orders = state.orders.filter((order) => ids.has(order.id));
+  if (orders.length === 0) fail("Tidak ada pesanan dipilih.");
+  for (const order of orders) {
+    if (order.fulfillment !== "DELIVERY") fail(`${order.id}: hanya pesanan kirim yang perlu ditandai dikirim.`);
+    if (order.status !== "READY_FOR_HANDOVER") fail(`${order.id}: belum selesai dipacking.`);
+    if (order.dispatchedAt) fail(`${order.id}: sudah dikirim.`);
+    if (!isPaid(order)) fail(`${order.id}: pengiriman perlu lunas terlebih dahulu.`);
+    if (jakartaNow(now).date < order.currentReadyDate) fail(`${order.id}: pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
+  }
+  const at = now.toISOString();
+  return {
+    ...state,
+    orders: state.orders.map((order) => (ids.has(order.id) ? { ...order, dispatchedAt: at } : order)),
+    audit: [...state.audit, { at, action: "ORDERS_DISPATCHED", ref: [...ids].join(",") }],
+  };
+}
+
 export function completeOrder(state: State, id: string, now: Date): State {
   const order = findOrder(state, id);
   if (order.status !== "READY_FOR_HANDOVER") fail("Pesanan belum siap diserahkan.");

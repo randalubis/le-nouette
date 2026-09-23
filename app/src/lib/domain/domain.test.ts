@@ -78,6 +78,23 @@ test("§19.5 delivery needs payment and ready date before dispatch; pickup may c
   assert.equal(op.receivable(pickup.orders[0]), 170000);
 });
 
+test("bulk dispatch: succeeds atomically for valid selection, rejects and changes nothing on a mixed one", () => {
+  let state = op.createOrder(op.emptyState(), order({ idempotencyKey: "k1", fulfillment: "DELIVERY", address: "Jl. Sudirman 1" }), wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k2", fulfillment: "DELIVERY", address: "Jl. Sudirman 2" }), wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k3" }), wib("2026-09-14")); // pickup, not a valid bulk-dispatch target
+  state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
+  state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-16"));
+  state = op.recordPayment(state, "LN-0002", "QRIS", wib("2026-09-16"));
+
+  const before = state;
+  assert.throws(() => op.dispatchOrders(before, new Set(["LN-0001", "LN-0002", "LN-0003"]), wib("2026-09-16")), /LN-0003/);
+  assert.ok(before.orders.every((o) => !o.dispatchedAt)); // rejected selection left the original state untouched
+
+  state = op.dispatchOrders(before, new Set(["LN-0001", "LN-0002"]), wib("2026-09-16"));
+  assert.ok(state.orders.filter((o) => o.id === "LN-0001" || o.id === "LN-0002").every((o) => o.dispatchedAt));
+  assert.equal(state.orders.find((o) => o.id === "LN-0003")!.dispatchedAt, undefined);
+});
+
 test("§10.6 stock opname posts an adjustment; blocking a date with orders is rejected", () => {
   let state = op.receiveStock(op.emptyState(), "jar", 34, wib("2026-09-14"));
   state = op.stockOpname(state, "jar", 31, wib("2026-09-14"));

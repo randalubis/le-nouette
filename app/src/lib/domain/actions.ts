@@ -54,6 +54,12 @@ export async function dispatchOrderAction(id: string) {
   return { error };
 }
 
+export async function dispatchOrdersAction(ids: string[]) {
+  const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now));
+  if (!error) revalidateAll();
+  return { error };
+}
+
 export async function completeOrderAction(id: string) {
   const { error } = await withDomainTransaction((state, now) => op.completeOrder(state, id, now));
   if (!error) revalidateAll();
