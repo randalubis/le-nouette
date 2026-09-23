@@ -16,7 +16,11 @@ import * as op from "./operations";
 // go silently stale in production.
 const revalidateAll = () => {
   try {
-    revalidatePath("/", "layout");
+    // "/" stays page-scoped (not "layout"): the storefront is a client component
+    // that holds its own step state (shop/details/success). A "layout" revalidation
+    // forces a full remount of everything below the layout when the RSC payload
+    // lands, which wiped out setStep("success") right after order creation.
+    revalidatePath("/");
     revalidatePath("/founder", "layout");
   } catch (e) {
     if (e instanceof Error && e.message.includes("static generation store missing")) return;
