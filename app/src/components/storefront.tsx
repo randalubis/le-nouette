@@ -164,8 +164,7 @@ export function Storefront({ session }: { session: State }) {
           {showQris ? (
             <div className={styles.qris}>
               <strong>{t("qrisTitle")}</strong>
-              {/* ponytail: drop the real QRIS artwork at public/le-nouette/qris.png and swap this placeholder for <Image>. */}
-              <div className={styles.qrisCode} role="img" aria-label={t("qrisTitle")}><QrCode size={72} /></div>
+              <Image className={styles.qrisCode} src="/le-nouette/qris.jpg" alt={t("qrisTitle")} width={1135} height={1600} />
               <p>{t("qrisNote")}</p>
             </div>
           ) : (
