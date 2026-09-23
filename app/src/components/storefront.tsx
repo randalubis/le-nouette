@@ -15,6 +15,8 @@ import styles from "./storefront.module.css";
 type Step = "shop" | "details" | "success";
 type Option = { id: Fulfillment; title: Key; sub: Key; icon: Icon };
 
+const productImage: Record<ProductId, string> = { milieu: "/le-nouette/milieu.png", grande: "/le-nouette/grande.png" };
+
 const fulfillmentOptions: Option[] = [
   { id: "PICKUP_MANDIRI", title: "pickupMandiri", sub: "free", icon: StoreIcon },
   { id: "PICKUP_BI", title: "pickupBi", sub: "free", icon: StoreIcon },
@@ -83,7 +85,7 @@ export function Storefront({ session }: { session: State }) {
       {step === "shop" && (
         <>
           <section className={`${styles.hero} fade-up`}>
-            <Image src="/le-nouette/packaging-concept.png" alt="Le Nouette cheese sticks" fill priority sizes="(max-width: 760px) 100vw, 760px" />
+            <Image src="/le-nouette/hero.png" alt="Le Nouette cheese sticks" fill priority sizes="(max-width: 760px) 100vw, 760px" />
             <div className={styles.heroShade} />
             <div className={styles.heroCopy}>
               <p>{t("eyebrow")}</p>
@@ -100,7 +102,7 @@ export function Storefront({ session }: { session: State }) {
             {products.map((product, index) => (
               <article className={styles.product} key={product.id}>
                 <div className={`${styles.productVisual} ${index === 1 ? styles.pouchVisual : ""}`}>
-                  <Image src="/le-nouette/packaging-concept.png" alt={`${product.name} ${t(`${product.id}Detail`)}`} fill sizes="120px" />
+                  <Image src={productImage[product.id]} alt={`${product.name} ${t(`${product.id}Detail`)}`} fill sizes="120px" />
                 </div>
                 <div className={styles.productCopy}>
                   <h3 className="display">{product.name}</h3>
