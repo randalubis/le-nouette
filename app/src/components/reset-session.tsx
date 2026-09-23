@@ -7,7 +7,7 @@ import styles from "./founder.module.css";
 
 const PHRASE = "HAPUS DATA";
 
-export function ResetSessionCard() {
+export function ResetSessionCard({ secretKey }: { secretKey?: string }) {
   const [confirm, setConfirm] = useState("");
   const [pending, startTransition] = useTransition();
   return (
@@ -17,7 +17,7 @@ export function ResetSessionCard() {
       note={`Ketik "${PHRASE}" untuk mengaktifkan tombol.`}
     >
       <input className={styles.search} value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={PHRASE} aria-label="Ketik untuk konfirmasi reset" />
-      <button className="btn btn-primary" disabled={pending || confirm !== PHRASE} onClick={() => startTransition(() => void resetSeedAction())}>Reset data</button>
+      <button className="btn btn-primary" disabled={pending || confirm !== PHRASE} onClick={() => startTransition(() => void resetSeedAction(secretKey))}>Reset data</button>
     </ActionCard>
   );
 }

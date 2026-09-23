@@ -102,8 +102,10 @@ export async function setStoreStatusAction(status: op.State["storeStatus"]) {
   return { error };
 }
 
-export async function resetSeedAction() {
-  if (process.env.NODE_ENV === "production") return { error: "Reset hanya tersedia di lingkungan development." };
+export async function resetSeedAction(key?: string) {
+  const secret = process.env.RESET_TOOL_SECRET;
+  const authorized = process.env.NODE_ENV !== "production" || (!!secret && key === secret);
+  if (!authorized) return { error: "Reset tidak diizinkan." };
   const { db } = await import("@/lib/db/client");
   const schema = await import("@/lib/db/schema");
   await db.transaction(async (tx) => {
