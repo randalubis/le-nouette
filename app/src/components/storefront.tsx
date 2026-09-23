@@ -178,7 +178,7 @@ export function Storefront({ session }: { session: State }) {
       {step !== "success" && (
         <footer className={styles.sticky}>
           <div><ShoppingBag size={22} /><span>{t("itemCount", { count })}</span><strong>{formatRupiah(total)}</strong></div>
-          <button className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder", { total: formatRupiah(total) })}<ArrowRight size={18} /></button>
+          <button key={step} className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder", { total: formatRupiah(total) })}<ArrowRight size={18} /></button>
         </footer>
       )}
     </main>
