@@ -15,6 +15,6 @@ Conventions:
 - i18n keys must exist in both language dictionaries — build fails otherwise.
 - Session persistence via `app/src/lib/session-store.ts` until Supabase lands.
 
-Model/effort: default Sonnet 5. If the session spans many files or many turns, escalate to Opus 5 low/medium per `AGENTS.md`'s shared table — state the escalation reason in one line before continuing. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
+Model/effort: default Sonnet 5. If the session spans many files or many turns, escalate to Opus 5.5 low/medium per `AGENTS.md`'s shared table — state the escalation reason in one line before continuing. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
 
 After a non-trivial build or fix, suggest dispatching `le-nouette-reviewer`.
