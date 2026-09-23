@@ -19,8 +19,7 @@
 .catalog > h2 { font-size: 31px; letter-spacing: -.025em; margin: 0 0 18px; }
 .product { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 18px; min-height: 190px; padding: 16px; margin-bottom: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: 0 12px 30px rgba(87,38,36,.06); }
 .productVisual { position: relative; overflow: hidden; border-radius: 14px; background: var(--sunken); }
-.productVisual img { object-fit: cover; object-position: 46% 51%; transform: scale(2.9); }
-.pouchVisual img { object-position: 67% 51%; transform: scale(2.7); }
+.productVisual img { object-fit: contain; }
 .productCopy { padding-bottom: 42px; }
 .productCopy h3 { color: var(--wine-text); font-size: 28px; margin: 1px 0 1px; }
 .productCopy p { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 7px 0; }
