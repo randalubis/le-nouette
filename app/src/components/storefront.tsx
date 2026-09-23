@@ -110,9 +110,20 @@ export function Storefront({ session }: { session: State }) {
                   <p>{t(`${product.id}Blurb`)}</p>
                   <strong>{formatRupiah(product.price)}</strong>
                 </div>
-                <div className={styles.stepper} aria-label={t("quantityOf", { product: product.name })}>
+                <div className={styles.stepper} role="group" aria-label={t("quantityOf", { product: product.name })}>
                   <button onClick={() => updateQty(product.id, -1)} disabled={qty[product.id] === 0} aria-disabled={qty[product.id] === 0} aria-label={t("decrease", { product: product.name })}><Minus size={16} /></button>
-                  <span aria-live="polite">{qty[product.id]}</span>
+                  <span
+                    role="spinbutton"
+                    tabIndex={0}
+                    aria-valuenow={qty[product.id]}
+                    aria-valuemin={0}
+                    aria-valuemax={99}
+                    aria-live="polite"
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowUp") { event.preventDefault(); updateQty(product.id, 1); }
+                      if (event.key === "ArrowDown") { event.preventDefault(); updateQty(product.id, -1); }
+                    }}
+                  >{qty[product.id]}</span>
                   <button className={styles.plus} onClick={() => updateQty(product.id, 1)} aria-label={t("increase", { product: product.name })}><Plus size={16} /></button>
                 </div>
               </article>
