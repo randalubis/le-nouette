@@ -70,9 +70,9 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
       </div>
 
       <div className={styles.tabs} role="group" aria-label="Filter tujuan">
-        <button className={fulfillment === "ALL" ? styles.tabActive : ""} onClick={() => setFulfillment("ALL")}>Semua</button>
+        <button aria-pressed={fulfillment === "ALL"} className={fulfillment === "ALL" ? styles.tabActive : ""} onClick={() => setFulfillment("ALL")}>Semua</button>
         {(Object.keys(placeLabel) as op.Fulfillment[]).map((id) => (
-          <button key={id} className={fulfillment === id ? styles.tabActive : ""} onClick={() => setFulfillment(id)}>{placeLabel[id]}</button>
+          <button key={id} aria-pressed={fulfillment === id} className={fulfillment === id ? styles.tabActive : ""} onClick={() => setFulfillment(id)}>{placeLabel[id]}</button>
         ))}
         <select className={styles.search} style={{ minWidth: 0 }} aria-label="Urutkan" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
           <option value="ready">Tanggal siap terdekat</option>
