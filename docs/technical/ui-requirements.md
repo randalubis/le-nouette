@@ -51,7 +51,7 @@ For each tracked item show:
 
 Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balances, append-only movement history, and a **Catat Produk Ekstra** action. Do not merge ready-product units into component on-hand, active reservations, or confirmed packing-batch quantities.
 
-**Implementation: ⏳ BACKLOG** — the Produk Siap Dijual section is not built; the panel was explicitly removed pending the Ready-to-Sell tier (`app/founder/page.tsx:7`).
+**Implementation: ✅ BUILT** — the Produk Siap Dijual section is implemented in `app/src/components/founder-boards.tsx` (ReadyToSell component) with available/expired unit display per source, write-off actions, and append-only ledger history. See [implementation-status.md](../implementation-status.md) for full integration details.
 
 ### 12.5 Keuangan
 

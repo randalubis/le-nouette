@@ -4,6 +4,8 @@
 
 This is the single source of truth for what's actually built versus backlog in the Le Nouette app (`./app`), as of 24 September 2026. It is a separate axis from the decision-confidence labels used throughout the product and technical spokes (`LOCKED`/`ASSUMPTION`/`OPEN`/`DEFERRED` and `REQUIRED`/`PROPOSED`/`OPEN`/`DEFERRED`) — a `LOCKED` business decision or a `REQUIRED` technical rule can still be entirely unbuilt. Spoke docs point back here with a short `**Implementation: ...**` line; the narrative and evidence live here, not duplicated across spokes.
 
+**Database note:** The app's runtime database connection uses Supabase project `xvbloiuwedrpcrjjusky` (`ordering-system-sg`, ap-southeast-1), not the value previously documented as `birojajosbxwkrxzepar`. This is configured via DATABASE_URL (.env.local, app/src/lib/db/schema.ts migrations applied). Vercel production was updated after migration 0000 landed; production DB is very likely the same but not directly confirmed.
+
 Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Built and tested
@@ -24,25 +26,29 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | Accessibility improvements pass | ✅ BUILT | Comprehensive a11y markup across storefront and Founder OS: semantic HTML, ARIA roles/labels/live regions, keyboard navigation, focus management (`app/src/components/storefront.tsx`, `app/src/components/order-board.tsx`, related modules) |
 | Remembered customer details (device-local opt-in) | ✅ BUILT | `app/src/lib/remembered.ts` |
 | Persistence (Postgres via Supabase, Drizzle) | ✅ BUILT | `app/src/lib/db/` (schema, client, loadState, diffAndWrite), server actions in `app/src/lib/domain/actions.ts`. Lean schema mirroring `operations.ts` state shape, not the full 18-table spec — see `docs/superpowers/specs/2026-09-21-supabase-persistence-design.md` for the scope decision. |
-| Vercel deployment | ✅ BUILT | Live at `le-nouette.vercel.app` (Vercel project `le-nouette`, root directory `app`, auto-deploys from `randalubis/le-nouette` `main`). DB is the same Supabase project used locally (`birojajosbxwkrxzepar`) — no separate prod database. |
+| Vercel deployment | ✅ BUILT | Live at `le-nouette.vercel.app` (Vercel project `le-nouette`, root directory `app`, auto-deploys from `randalubis/le-nouette` `main`). DB is Supabase project `xvbloiuwedrpcrjjusky` (see database note above) — no separate prod database. |
+| Ready-to-Sell inventory tier ([§10.1–10.2](./product/inventory-model.md), [§6.14](./technical/data-model.md#614-ready_product_movements)) | ✅ BUILT | `app/src/lib/domain/operations.ts` — recordExtraPacked (lines 265–277), adjustReady (280–288), readyBalances/readySources (56–74), FIFO allocation in createOrder (115–146) with fully-covered orders receiving today's readyDate, REVERSAL on cancelOrder (154–158). Schema: `app/src/lib/db/schema.ts` (ready_product_movements table applied via migration app/drizzle/0001_smart_spiral.sql), order_items.ready_quantity column. Founder OS: ReadyToSell panel in `app/src/components/founder-boards.tsx` (lines 20–82) with extra-pack form and write-off per source. Packing-panel and order-board use readyQuantity in layouts. Tests §19.8 (items 47, 48, 48b, 48c, 50): app/src/lib/domain/domain.test.ts (lines 109–195). |
+| CSV/XLSX business-data export ([§17.1](./technical/notifications-and-reporting.md#171-portable-business-data-export)) | ✅ BUILT | `app/src/lib/export.ts` — 9 datasets (Orders, Order Items, Customers, Payments, Inventory Movements, Inventory Balances, Ready Movements, Ready Balances, Availability Calendar; no Packing Batches); all-history only (date-range filtering is backlog). CSV cells with formula triggers and phone columns are apostrophe-prefixed (UTF-8 BOM for Excel). Routes `app/src/app/founder/export/{csv,xlsx}/route.ts`, export menu in founder-shell topbar 'Unduh Data Bisnis'. |
+| Share invite button on storefront success screen | ✅ BUILT | `app/src/components/storefront.tsx` (lines 29–34, 193) — 'Ajak teman'/'Invite friends' button, uses navigator.share with wa.me fallback, plain origin link, no referral params (referral capture §6.4 is backlog). |
 
 ## Partial
 
 | Area | Status | Evidence |
 |---|---|---|
 | QRIS payment | 🚧 PARTIAL | Real QRIS artwork image deployed (`app/public/le-nouette/qris.jpg`, displayed at `storefront.tsx:178`); tapping "Bayar sekarang dengan QRIS" displays the image but never changes payment status server-side. Matches the spec's own note that a static QRIS display does not automatically confirm payment ([§11.1](./product/payments-and-receivables.md)); real confirmation UX (e.g., webhook polling or manual verification) remains deferred. |
-| Acceptance tests | 🚧 PARTIAL | [§19.1–§19.5](./technical/acceptance-tests.md) automated; §19.6–§19.8 have no code to test yet (export, Ready-to-Sell tier still missing; §19.6 login coverage still backlog). |
+| Acceptance tests | 🚧 PARTIAL | [§19.1–§19.5](./technical/acceptance-tests.md) automated, plus §19.8 items 47, 48, 48b, 48c, 50 (Ready-to-Sell tests, §8.5, §10.6); §19.6 (login/auth), §19.8 item 49 (cancel quantity-reduction reversal is only partially implemented), and §19.7 (connectivity) have no code yet. |
 | Founder authentication / access gating ([§8.1](./product/founder-os.md#81-access-model), [§15](./technical/security.md)) | 🚧 PARTIAL | `/founder/*` is gated by `app/src/proxy.ts` behind a login screen (`app/src/app/login/page.tsx`) and an HMAC-signed session cookie (`app/src/lib/founder-auth.ts`, `app/src/lib/domain/auth-actions.ts`). Deviates from spec: a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential, not per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail of who logged in. |
 
 ## Backlog
 
 | Area | Status | Evidence |
 |---|---|---|
-| Ready-to-Sell inventory tier ([§10.1–10.2](./product/inventory-model.md), [§6.14](./technical/data-model.md#614-ready_product_movements)) | ⏳ BACKLOG | Explicitly deferred in code: `operations.ts:100` ("Product Ready to Sell allocation ... is Phase 3; every unit is reserved from raw materials"); the dashboard panel was removed (`app/founder/page.tsx:7`). |
 | Referral capture ([§6.4](./product/storefront-experience.md#64-referral-capture)) | ⏳ BACKLOG | Not found anywhere in the storefront code. |
-| CSV/XLSX business-data export ([§17.1](./technical/notifications-and-reporting.md#171-portable-business-data-export)) | ⏳ BACKLOG | No export code found (`grep -r "xlsx\|csv\|unduh" app/src` returns nothing). |
 | WhatsApp deep-link generation ([§16](./technical/notifications-and-reporting.md)) | ⏳ BACKLOG | No prefilled-message/deep-link code found. |
+| CSV/XLSX date-range filtering ([§17.1](./technical/notifications-and-reporting.md#171-portable-business-data-export)) | ⏳ BACKLOG | Export implemented for all-history; optional date-range mode is deferred. |
 | Component/integration/e2e tests | ⏳ BACKLOG | Only the domain-layer unit tests and the Postgres load/diff/write integration test exist; no tests for UI components, `i18n.ts`, or `remembered.ts`. |
+| Cancel quantity-reduction reversal ([§19.8 item 49](./technical/acceptance-tests.md#198-product-ready-to-sell)) | ⏳ PARTIAL | Order cancellation reverses all ready allocations (fully built), but quantity reduction (editOrder) that would return ready units to inventory is deferred. |
+| DB CHECK constraints on ready_product_movements | ⏳ BACKLOG | Schema enforces FIFO and expiry logic in domain code; database-level constraints for consistency during concurrent mutations are deferred. |
 
 ## How to keep this current
 

@@ -70,7 +70,7 @@ Show:
 - optional secondary action: **Bayar sekarang dengan QRIS**;
 - statement that order updates will be sent through WhatsApp.
 
-**Implementation: 🚧 PARTIAL** — the QRIS action currently displays a static placeholder image (`storefront.tsx`); tapping it never changes payment status, matching the spec's own note that a static QRIS display does not automatically confirm payment (§11.1), but real image artwork and any confirmation UX are not finished. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — the QRIS action currently displays a static placeholder image (`storefront.tsx`); tapping it never changes payment status, matching the spec's own note that a static QRIS display does not automatically confirm payment (§11.1), but real image artwork and any confirmation UX are not finished. A share-invite button ('Ajak teman'/'Invite friends') is implemented below the QRIS section; it uses navigator.share with a wa.me fallback and sends a plain origin link. See [implementation-status.md](../implementation-status.md).
 
 ### 6.3 Availability-facing behavior
 

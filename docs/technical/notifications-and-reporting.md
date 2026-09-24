@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: ⏳ BACKLOG** — neither WhatsApp deep-link generation nor the XLSX export exist in the codebase yet. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — Portable business-data export (§17.1) is built in CSV and XLSX formats for all-history mode (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). Optional date-range filtering is deferred. WhatsApp deep-link generation (§16) is still backlog. See [implementation-status.md](../implementation-status.md).
 
 ## 16. Notifications
 

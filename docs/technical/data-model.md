@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: ⏳ BACKLOG** — none of these 18 tables exist as real persistence yet; all state lives in `app/src/lib/session-store.ts` (browser sessionStorage, seeded with fake demo data, resets per tab). See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — Postgres persistence is live (`app/src/lib/db/`, migrations via Drizzle at `app/drizzle/`). The lean schema reflects `operations.ts` state shape, not the full 18-table spec (see `docs/superpowers/specs/2026-09-21-supabase-persistence-design.md`). In-memory fallback to browser sessionStorage remains for offline handling during development. See [implementation-status.md](../implementation-status.md).
 
 ## 6. Core data model
 
@@ -321,7 +321,7 @@ Recording `EXTRA_PACKED` is a separate founder command after the confirmed batch
 
 For a new or edited order, allocate ready units automatically from the oldest positive, unexpired `EXTRA_PACKED` sources first. Post negative `ALLOCATED_TO_ORDER` movements linked to the order and source. Exclude sources whose `expires_on` is before the local allocation date. `to_pack_quantity = order_item.quantity - order_item.ready_quantity`; only `to_pack_quantity` creates component reservations and packing demand. If every order item is fully covered, set the order to `READY_FOR_HANDOVER`; otherwise keep it `NEEDS_PREPARATION` until the uncovered quantities are packed. Cancellation or quantity reduction posts reversals that restore the linked ready units when still valid; expired restored units remain unavailable for allocation.
 
-**Implementation: ⏳ BACKLOG** — this entire ready-product tier is unbuilt; see [Founder OS](../product/founder-os.md) and [Inventory Model](../product/inventory-model.md).
+**Implementation: ✅ BUILT** — the ready-product tier is fully implemented. Schema: `ready_product_movements` table applied via migration `app/drizzle/0001_smart_spiral.sql`, with `order_items.ready_quantity` column for allocation tracking. Domain logic in `app/src/lib/domain/operations.ts` (recordExtraPacked, adjustReady, readyBalances, readySources, FIFO allocation in createOrder, reversal on cancelOrder). Quantity-reduction reversal on editOrder is deferred. See [Founder OS](../product/founder-os.md) and [Inventory Model](../product/inventory-model.md).
 
 ### 6.15 `availability_dates`
 

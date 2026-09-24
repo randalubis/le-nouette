@@ -2,7 +2,7 @@
 
 [← Product spec hub](../product-spec.md)
 
-**Implementation: 🚧 PARTIAL** — reservation/consumption/opname math is built and tested (`app/src/lib/domain/operations.ts`), but the Product Ready to Sell tier described in §10.1–10.2 is not implemented (explicitly deferred, panel removed from the dashboard). See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — reservation/consumption/opname math and the Product Ready to Sell tier (recordExtraPacked, adjustReady, readyBalances, FIFO allocation in createOrder, reversal on cancelOrder) are built and tested. See [implementation-status.md](../implementation-status.md) for detailed evidence and test sections §19.8 (items 47–50). Quantity-reduction reversal on editOrder is deferred.
 
 ## 10. Inventory model
 

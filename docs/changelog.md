@@ -4,6 +4,13 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.3.0 — 24 September 2026
+
+- Implemented the Product Ready to Sell inventory tier (§10.1–10.2, §6.14): recordExtraPacked consumes recipe components atomically and adds finished units to the ready ledger; new orders allocate the oldest unexpired units first (FIFO) before reserving raw materials; fully covered orders are ready today and can be dispatched same day; cancellation reverses allocations via append-only ledger (§19.8 items 47–48, 48b–48c, 50); one-calendar-month expiry from Jakarta packing date. Founder OS has a new 'Produk Siap Dijual' (Ready to Sell) card showing available and expired unit counts with write-off controls per source.
+- Added CSV and XLSX business-data export (§17.1) with authenticated 'Unduh Data Bisnis' (Download Business Data) menu in Founder OS. Supports 9 datasets: Orders, Order Items, Customers, Payments, Inventory Movements, Inventory Balances, Ready Product Movements, Ready Product Balances, Availability Calendar. All-history mode is built; optional date-range filtering is deferred. CSV cells with formula-trigger characters and phone columns are apostrophe-prefixed for Excel safety.
+- Added share-invite button ('Ajak teman'/'Invite friends') on the storefront success screen; uses navigator.share with wa.me fallback and plain origin link, no referral parameters (referral capture remains backlog).
+- Fixed Supabase project reference in documentation and deployment: DATABASE_URL points to project `xvbloiuwedrpcrjjusky` (ordering-system-sg, ap-southeast-1), not the previously documented `birojajosbxwkrxzepar`. Production database is very likely the same but not directly confirmed.
+
 ### 0.2.1 — 24 September 2026
 
 - Deployed real product photography (Milieu and Grande) and real QRIS artwork image to the storefront.

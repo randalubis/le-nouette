@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — the transaction logic in §9–§11 is fully implemented as pure functions against an in-memory state (`app/src/lib/domain/operations.ts`), but none of it runs against a real transactional database yet (no Supabase/Postgres). Ready-to-Sell allocation (§9.1 step 8) is not implemented. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — the transaction logic in §9–§11 is fully implemented, including Ready-to-Sell allocation (§9.1 step 8) as pure state machine functions in `app/src/lib/domain/operations.ts` with Postgres persistence via server actions. Order cancellation (§9.3) reverses ready allocations; order editing (§9.2) for quantity reduction reversal is deferred. See [implementation-status.md](../implementation-status.md).
 
 ## 9. Order lifecycle
 

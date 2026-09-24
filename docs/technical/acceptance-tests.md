@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — §19.1 through §19.5 (plus §8.5 and §10.6 referenced elsewhere) are implemented as automated tests in `app/src/lib/domain/domain.test.ts`. §19.6–§19.8 are not automated (no auth, no export, no Ready-to-Sell tier to test). Section numbering below is kept byte-identical to the original technical spec because the test file cites these numbers directly — do not renumber. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — §19.1–§19.5, §8.5, §10.6, and §19.8 items 47–48, 48b–48c, 50 are automated tests in `app/src/lib/domain/domain.test.ts`. §19.6 (auth/login), §19.8 item 49 (cancel quantity-reduction reversal, only partial), and §19.7 (connectivity) have no code yet. Section numbering is kept byte-identical to the original technical spec because the test file cites these numbers directly — do not renumber. See [implementation-status.md](../implementation-status.md).
 
 ## 19. Acceptance tests
 

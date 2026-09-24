@@ -105,7 +105,7 @@ Therefore, `COMPLETED + UNPAID` is valid and represents a receivable. Completed-
 8. Founders transport office orders during their normal commute or arrange customer-paid external delivery.
 9. Handover marks the order **Selesai**; payment may remain unpaid independently.
 
-**Implementation: 🚧 PARTIAL** — step 8's "allocate from Product Ready to Sell first" behavior (§10.1) is explicitly not built; every reservation currently draws straight from raw materials (`app/src/lib/domain/operations.ts:100`). See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — all steps including step 8's "allocate from Product Ready to Sell first" behavior (§10.1) are now built. Orders allocate oldest-first from the ready ledger before reserving raw materials. See [implementation-status.md](../implementation-status.md) for test sections §19.8 (items 47–50).
 
 ### 9.2 Packing batch behavior
 
