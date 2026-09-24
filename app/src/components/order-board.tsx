@@ -18,7 +18,7 @@ const tabs = [
 
 export const placeLabel: Record<op.Fulfillment, string> = { PICKUP_MANDIRI: "Mandiri", PICKUP_BI: "BI", DELIVERY: "Delivery" };
 const methodLabel: Record<op.PaymentMethod, string> = { TRANSFER: "Transfer", QRIS: "QRIS", CASH: "Tunai" };
-export const itemsLabel = (order: op.Order) => order.items.map((item) => `${item.quantity} × ${item.name}`).join(", ");
+export const itemsLabel = (order: op.Order) => order.items.map((item) => `${item.quantity} × ${item.name}${item.readyQuantity ? ` (${item.readyQuantity} dari stok siap)` : ""}`).join(", ");
 
 export function OrderBoard({ session, initialTab }: { session: op.State; initialTab: op.OrderStatus }) {
   const [tab, setTab] = useState<op.OrderStatus>(initialTab);

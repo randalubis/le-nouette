@@ -58,6 +58,8 @@ const id = {
   qrisNote: "Scan dengan aplikasi bank atau e-wallet, lalu kirim bukti lewat WhatsApp. Pembayaran tetap dikonfirmasi manual oleh kami.",
   whatsappUpdates: "Update pesanan akan kami kirim melalui WhatsApp.",
   orderAgain: "Pesan lagi",
+  inviteFriends: "Ajak teman",
+  inviteText: "Aku baru pre-order cheese stick Le Nouette, renyah dan gurih banget. Yuk ikut pesan juga!",
   founderPreview: "Lihat di Founder OS",
 } as const;
 
@@ -112,6 +114,8 @@ const en: Record<keyof typeof id, string> = {
   qrisNote: "Scan with your bank or e-wallet app, then send the receipt on WhatsApp. We still confirm every payment manually.",
   whatsappUpdates: "We will send order updates on WhatsApp.",
   orderAgain: "Order again",
+  inviteFriends: "Invite friends",
+  inviteText: "I just preordered Le Nouette cheese sticks, crispy and so cheesy. Come preorder yours too!",
   founderPreview: "Open in Founder OS",
 };
 

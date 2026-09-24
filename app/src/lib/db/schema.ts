@@ -27,6 +27,7 @@ export const orderItems = pgTable("order_items", {
   unitPrice: integer("unit_price").notNull(),
   quantity: integer("quantity").notNull(),
   recipe: jsonb("recipe").notNull().$type<Partial<Record<string, number>>>(),
+  readyQuantity: integer("ready_quantity").notNull().default(0),
 }, (table) => [index("order_items_order_id_idx").on(table.orderId)]);
 
 export const payments = pgTable("payments", {
@@ -71,3 +72,16 @@ export const auditEvents = pgTable("audit_events", {
   action: text("action").notNull(),
   ref: text("ref"),
 });
+
+export const readyProductMovements = pgTable("ready_product_movements", {
+  id: text("id").primaryKey(),
+  productId: text("product_id").notNull(),
+  quantityDelta: integer("quantity_delta").notNull(),
+  movementType: text("movement_type").notNull(),
+  packedAt: timestamp("packed_at", { withTimezone: true, mode: "string" }),
+  expiresOn: date("expires_on", { mode: "string" }),
+  orderId: text("order_id").references(() => orders.id),
+  sourceMovementId: text("source_movement_id"),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
+}, (table) => [index("ready_product_movements_order_id_idx").on(table.orderId)]);

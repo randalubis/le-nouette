@@ -56,7 +56,7 @@ export function PackingPanel({ session }: { session: op.State }) {
   const date = op.pendingBatchDates(session)[0];
   const orders = session.orders.filter((o) => o.status === "NEEDS_PREPARATION" && o.currentReadyDate === date);
   const ids = new Set(orders.map((o) => o.id));
-  const units = Object.fromEntries(products.map((p) => [p.id, orders.flatMap((o) => o.items).filter((i) => i.productId === p.id).reduce((sum, i) => sum + i.quantity, 0)]));
+  const units = Object.fromEntries(products.map((p) => [p.id, orders.flatMap((o) => o.items).filter((i) => i.productId === p.id).reduce((sum, i) => sum + i.quantity - (i.readyQuantity ?? 0), 0)]));
   const rawCheese = session.reservations.filter((r) => ids.has(r.orderId) && r.state === "ACTIVE" && r.itemId === "raw_cheese").reduce((sum, r) => sum + r.quantity, 0);
   const cheese = op.balances(session)[0];
 

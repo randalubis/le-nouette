@@ -2,14 +2,14 @@
 // it either returns a complete new state or throws DomainError and leaves the old state untouched.
 // The same functions move behind server actions + Postgres transactions when Supabase lands.
 
-import { inventoryItems, productById, type ItemId, type ProductId, type Recipe } from "./catalog.ts";
-import { formatDate, isOperational, jakartaNow, promisedReadyDate, type Calendar, type DateStatus } from "./schedule.ts";
+import { inventoryItems, productById, products, type ItemId, type ProductId, type Recipe } from "./catalog.ts";
+import { addMonth, formatDate, isOperational, jakartaNow, promisedReadyDate, type Calendar, type DateStatus } from "./schedule.ts";
 
 export type Fulfillment = "PICKUP_MANDIRI" | "PICKUP_BI" | "DELIVERY";
 export type OrderStatus = "NEEDS_PREPARATION" | "READY_FOR_HANDOVER" | "COMPLETED" | "CANCELLED";
 export type PaymentMethod = "TRANSFER" | "QRIS" | "CASH";
 
-export type OrderItem = { productId: ProductId; name: string; unitPrice: number; quantity: number; recipe: Recipe };
+export type OrderItem = { productId: ProductId; name: string; unitPrice: number; quantity: number; recipe: Recipe; readyQuantity?: number };
 export type Payment = { id: string; amount: number; method: PaymentMethod; at: string; reversedAt?: string };
 export type Order = {
   id: string; idempotencyKey: string; createdAt: string;
@@ -20,19 +20,23 @@ export type Order = {
   payments: Payment[];
 };
 export type Movement = { id: string; itemId: ItemId; delta: number; reason: "RECEIPT" | "STOCK_OPNAME" | "PACKING_CONSUMPTION"; at: string; ref?: string };
+export type ReadyMovement = {
+  id: string; productId: ProductId; delta: number; type: "EXTRA_PACKED" | "ALLOCATED_TO_ORDER" | "ADJUSTMENT" | "REVERSAL";
+  at: string; packedAt?: string; expiresOn?: string; orderId?: string; sourceId?: string; note?: string;
+};
 export type Reservation = { orderId: string; itemId: ItemId; quantity: number; state: "ACTIVE" | "CONSUMED" | "RELEASED" };
 export type AuditEvent = { at: string; action: string; ref?: string };
 
 export type State = {
   version: 1; seq: number;
-  orders: Order[]; movements: Movement[]; reservations: Reservation[];
+  orders: Order[]; movements: Movement[]; reservations: Reservation[]; readyMovements: ReadyMovement[];
   calendar: Calendar; storeStatus: "OPEN" | "PAUSED"; audit: AuditEvent[];
 };
 
 export class DomainError extends Error {}
 const fail = (message: string): never => { throw new DomainError(message); };
 
-export const emptyState = (): State => ({ version: 1, seq: 0, orders: [], movements: [], reservations: [], calendar: {}, storeStatus: "OPEN", audit: [] });
+export const emptyState = (): State => ({ version: 1, seq: 0, orders: [], movements: [], reservations: [], readyMovements: [], calendar: {}, storeStatus: "OPEN", audit: [] });
 
 // ---------- derived values (tech spec §7) ----------
 
@@ -45,6 +49,27 @@ export function balances(state: State) {
     const onHand = state.movements.filter((movement) => movement.itemId === item.id).reduce((sum, movement) => sum + movement.delta, 0);
     const reserved = state.reservations.filter((reservation) => reservation.itemId === item.id && reservation.state === "ACTIVE").reduce((sum, reservation) => sum + reservation.quantity, 0);
     return { ...item, onHand, reserved, available: onHand - reserved };
+  });
+}
+
+// Product Ready to Sell (§10.2, data model §6.14). Remaining units per source = sum of deltas sharing its sourceId.
+export function readySources(state: State, productId: ProductId, now: Date) {
+  const today = jakartaNow(now).date;
+  return state.readyMovements
+    .filter((m) => m.type === "EXTRA_PACKED" && m.productId === productId)
+    .map((m) => ({
+      sourceId: m.id, packedAt: m.packedAt!, expiresOn: m.expiresOn!,
+      remaining: state.readyMovements.filter((r) => r.sourceId === m.id).reduce((sum, r) => sum + r.delta, 0),
+      expired: m.expiresOn! < today,
+    }))
+    .sort((a, b) => Date.parse(a.packedAt) - Date.parse(b.packedAt) || a.sourceId.localeCompare(b.sourceId, undefined, { numeric: true }));
+}
+
+export function readyBalances(state: State, now: Date) {
+  return products.map((product) => {
+    const sources = readySources(state, product.id, now).filter((s) => s.remaining > 0);
+    const sum = (expired: boolean) => sources.filter((s) => s.expired === expired).reduce((total, s) => total + s.remaining, 0);
+    return { productId: product.id, name: product.name, available: sum(false), expired: sum(true), sources };
   });
 }
 
@@ -87,29 +112,49 @@ export function createOrder(state: State, input: CreateOrderInput, now: Date): S
     });
   if (items.length === 0) fail("Pilih minimal satu produk.");
 
+  // §9.1 step 8: allocate oldest unexpired ready units first; only the remainder is reserved from raw materials.
   const seq = state.seq + 1;
   const id = `LN-${String(seq).padStart(4, "0")}`;
-  const readyDate = promisedReadyDate(now, state.calendar);
+  
+  let readyMovements = state.readyMovements;
+  const covered = items.map((item) => {
+    let need = item.quantity;
+    for (const source of readySources({ ...state, readyMovements }, item.productId, now)) {
+      if (need === 0) break;
+      const take = source.expired ? 0 : Math.min(source.remaining, need);
+      if (take === 0) continue;
+      readyMovements = [...readyMovements, { id: `RM-${readyMovements.length + 1}`, productId: item.productId, delta: -take, type: "ALLOCATED_TO_ORDER", at: now.toISOString(), orderId: id, sourceId: source.sourceId }];
+      need -= take;
+    }
+    return { ...item, readyQuantity: item.quantity - need };
+  });
+  const fullyCovered = covered.every((item) => item.readyQuantity === item.quantity);
+  // Fully covered from ready stock: ready today, so the buyer sees it and dispatch's date guard doesn't block.
+  const readyDate = fullyCovered ? jakartaNow(now).date : promisedReadyDate(now, state.calendar);
   const order: Order = {
     id, idempotencyKey: input.idempotencyKey, createdAt: now.toISOString(),
     customer: { name, whatsapp }, fulfillment: input.fulfillment,
     address: input.fulfillment === "DELIVERY" ? address : undefined, note: note || undefined,
-    items, total: items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
-    promisedReadyDate: readyDate, currentReadyDate: readyDate, status: "NEEDS_PREPARATION", payments: [],
+    items: covered, total: items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+    promisedReadyDate: readyDate, currentReadyDate: readyDate, status: fullyCovered ? "READY_FOR_HANDOVER" : "NEEDS_PREPARATION", payments: [],
+    ...(fullyCovered ? { readyAt: now.toISOString() } : {}),
   };
-  // ponytail: Product Ready to Sell allocation (§9.1 step 8) is Phase 3; every unit is reserved from raw materials.
-  const reservations = items.flatMap((item) =>
-    Object.entries(item.recipe).map(([itemId, perUnit]) => ({ orderId: id, itemId: itemId as ItemId, quantity: perUnit! * item.quantity, state: "ACTIVE" as const })),
+  const reservations = covered.filter((item) => item.readyQuantity < item.quantity).flatMap((item) =>
+    Object.entries(item.recipe).map(([itemId, perUnit]) => ({ orderId: id, itemId: itemId as ItemId, quantity: perUnit! * (item.quantity - item.readyQuantity), state: "ACTIVE" as const })),
   );
 
-  return { ...state, seq, orders: [...state.orders, order], reservations: [...state.reservations, ...reservations], audit: [...state.audit, { at: now.toISOString(), action: "ORDER_CREATED", ref: id }] };
+  return { ...state, seq, orders: [...state.orders, order], reservations: [...state.reservations, ...reservations], readyMovements, audit: [...state.audit, { at: now.toISOString(), action: "ORDER_CREATED", ref: id }] };
 }
 
 export function cancelOrder(state: State, id: string, now: Date): State {
   const order = findOrder(state, id);
   if (order.status === "COMPLETED" || order.status === "CANCELLED") fail("Pesanan ini tidak bisa dibatalkan.");
   const next = withOrder(state, id, () => ({ status: "CANCELLED", cancelledAt: now.toISOString() }), "ORDER_CANCELLED", now);
-  return { ...next, reservations: state.reservations.map((r) => (r.orderId === id && r.state === "ACTIVE" ? { ...r, state: "RELEASED" } : r)) };
+  // Append-only reversal per allocation; a source that has since expired stays unavailable via readySources.
+  const reversals: ReadyMovement[] = state.readyMovements
+    .filter((m) => m.type === "ALLOCATED_TO_ORDER" && m.orderId === id)
+    .map((m, index) => ({ id: `RM-${state.readyMovements.length + index + 1}`, productId: m.productId, delta: -m.delta, type: "REVERSAL", at: now.toISOString(), orderId: id, sourceId: m.sourceId }));
+  return { ...next, readyMovements: [...state.readyMovements, ...reversals], reservations: state.reservations.map((r) => (r.orderId === id && r.state === "ACTIVE" ? { ...r, state: "RELEASED" } : r)) };
 }
 
 export function rescheduleOrder(state: State, id: string, date: string, now: Date): State {
@@ -214,6 +259,32 @@ export function stockOpname(state: State, itemId: ItemId, counted: number, now: 
   const onHand = balances(state).find((item) => item.id === itemId)!.onHand;
   if (counted === onHand) return state;
   return addMovement(state, itemId, counted - onHand, "STOCK_OPNAME", now);
+}
+
+// §6.14: an accidental extra consumes its recipe components and adds one finished unit, atomically.
+export function recordExtraPacked(state: State, productId: ProductId, quantity: number, now: Date, note?: string): State {
+  if (!Number.isInteger(quantity) || quantity < 1) fail("Jumlah produk ekstra harus bilangan bulat positif.");
+  const product = productById(productId);
+  const have = new Map(balances(state).map((b) => [b.id, b.onHand]));
+  for (const [itemId, perUnit] of Object.entries(product.recipe as Recipe)) {
+    if ((have.get(itemId as ItemId) ?? 0) < perUnit! * quantity) fail(`Stok ${inventoryItems.find((i) => i.id === itemId)!.name} tidak cukup. Lakukan penerimaan atau stok opname dulu.`);
+  }
+  const at = now.toISOString();
+  const readyId = `RM-${state.readyMovements.length + 1}`;
+  const consumption: Movement[] = Object.entries(product.recipe as Recipe).map(([itemId, perUnit], index) => ({ id: `M-${state.movements.length + index + 1}`, itemId: itemId as ItemId, delta: -perUnit! * quantity, reason: "PACKING_CONSUMPTION", at, ref: readyId }));
+  const ready: ReadyMovement = { id: readyId, productId, delta: quantity, type: "EXTRA_PACKED", at, packedAt: at, expiresOn: addMonth(jakartaNow(now).date), sourceId: readyId, note: note?.trim() || undefined };
+  return { ...state, movements: [...state.movements, ...consumption], readyMovements: [...state.readyMovements, ready], audit: [...state.audit, { at, action: "EXTRA_PACKED", ref: readyId }] };
+}
+
+// Write off units of one source (expired or consumed); never more than it still holds.
+export function adjustReady(state: State, sourceId: string, quantity: number, note: string | undefined, now: Date): State {
+  const source = state.readyMovements.find((m) => m.id === sourceId && m.type === "EXTRA_PACKED") ?? fail("Sumber produk siap jual tidak ditemukan.");
+  const remaining = readySources(state, source.productId, now).find((s) => s.sourceId === sourceId)!.remaining;
+  if (!Number.isInteger(quantity) || quantity < 1) fail("Jumlah penyesuaian harus bilangan bulat positif.");
+  if (quantity > remaining) fail(`Sisa unit hanya ${remaining}.`);
+  const at = now.toISOString();
+  const row: ReadyMovement = { id: `RM-${state.readyMovements.length + 1}`, productId: source.productId, delta: -quantity, type: "ADJUSTMENT", at, sourceId, note: note?.trim() || undefined };
+  return { ...state, readyMovements: [...state.readyMovements, row], audit: [...state.audit, { at, action: "READY_ADJUSTED", ref: sourceId }] };
 }
 
 // ---------- availability & store status ----------

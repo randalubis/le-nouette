@@ -20,7 +20,7 @@ export async function diffAndWrite(tx: Tx, prev: op.State, next: op.State): Prom
       if (order.items.length > 0) {
         await tx.insert(schema.orderItems).values(order.items.map((item) => ({
           orderId: order.id, productId: item.productId, name: item.name,
-          unitPrice: item.unitPrice, quantity: item.quantity, recipe: item.recipe,
+          unitPrice: item.unitPrice, quantity: item.quantity, recipe: item.recipe, readyQuantity: item.readyQuantity ?? 0,
         })));
       }
     } else if (
@@ -37,6 +37,15 @@ export async function diffAndWrite(tx: Tx, prev: op.State, next: op.State): Prom
         completedAt: order.completedAt ?? null, cancelledAt: order.cancelledAt ?? null,
       }).where(eq(schema.orders.id, order.id));
     }
+  }
+
+  // After orders (FK order_id); append-only, mirroring the movements slice diff below.
+  if (next.readyMovements.length > prev.readyMovements.length) {
+    await tx.insert(schema.readyProductMovements).values(next.readyMovements.slice(prev.readyMovements.length).map((m) => ({
+      id: m.id, productId: m.productId, quantityDelta: m.delta, movementType: m.type,
+      packedAt: m.packedAt ?? null, expiresOn: m.expiresOn ?? null, orderId: m.orderId ?? null,
+      sourceMovementId: m.sourceId ?? null, note: m.note ?? null, createdAt: m.at,
+    })));
   }
 
   const prevPaymentById = new Map(prev.orders.flatMap((order) => order.payments.map((payment) => [payment.id, payment] as const)));

@@ -9,7 +9,7 @@ import type * as op from "@/lib/domain/operations";
 export type LoadedReservation = op.Reservation & { dbId: number };
 
 export async function loadState(executor: Db | Tx): Promise<op.State> {
-  const [orderRows, itemRows, paymentRows, movementRows, reservationRows, calendarRows, storeRow, auditRows] = await Promise.all([
+  const [orderRows, itemRows, paymentRows, movementRows, reservationRows, calendarRows, storeRow, auditRows, readyRows] = await Promise.all([
     executor.select().from(schema.orders).orderBy(schema.orders.createdAt),
     executor.select().from(schema.orderItems).orderBy(schema.orderItems.id),
     executor.select().from(schema.payments).orderBy(schema.payments.at),
@@ -18,12 +18,13 @@ export async function loadState(executor: Db | Tx): Promise<op.State> {
     executor.select().from(schema.calendarDates),
     executor.select().from(schema.storeStatus),
     executor.select().from(schema.auditEvents).orderBy(schema.auditEvents.at),
+    executor.select().from(schema.readyProductMovements),
   ]);
 
   const itemsByOrder = new Map<string, op.OrderItem[]>();
   for (const row of itemRows) {
     const list = itemsByOrder.get(row.orderId) ?? [];
-    list.push({ productId: row.productId as op.OrderItem["productId"], name: row.name, unitPrice: row.unitPrice, quantity: row.quantity, recipe: row.recipe as op.OrderItem["recipe"] });
+    list.push({ productId: row.productId as op.OrderItem["productId"], name: row.name, unitPrice: row.unitPrice, quantity: row.quantity, recipe: row.recipe as op.OrderItem["recipe"], readyQuantity: row.readyQuantity });
     itemsByOrder.set(row.orderId, list);
   }
 
@@ -71,6 +72,14 @@ export async function loadState(executor: Db | Tx): Promise<op.State> {
     orders,
     movements: movementRows.map((row) => ({ id: row.id, itemId: row.itemId as op.Movement["itemId"], delta: row.delta, reason: row.reason as op.Movement["reason"], at: row.at, ref: row.ref ?? undefined })),
     reservations,
+    // ids are RM-<n> (append order); createdAt can tie within one transaction, so sort by the numeric suffix.
+    readyMovements: readyRows
+      .map((row): op.ReadyMovement => ({
+        id: row.id, productId: row.productId as op.ReadyMovement["productId"], delta: row.quantityDelta, type: row.movementType as op.ReadyMovement["type"],
+        at: row.createdAt, packedAt: row.packedAt ?? undefined, expiresOn: row.expiresOn ?? undefined, orderId: row.orderId ?? undefined,
+        sourceId: row.sourceMovementId ?? undefined, note: row.note ?? undefined,
+      }))
+      .sort((a, b) => Number(a.id.slice(3)) - Number(b.id.slice(3))),
     calendar,
     storeStatus: (storeRow[0]?.status as op.State["storeStatus"]) ?? "OPEN",
     audit: auditRows.map((row) => ({ at: row.at, action: row.action, ref: row.ref ?? undefined })),

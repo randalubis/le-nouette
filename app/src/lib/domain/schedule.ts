@@ -7,6 +7,12 @@ const DAY = 86_400_000;
 const WIB_OFFSET = 7 * 3_600_000; // Asia/Jakarta is UTC+7 with no DST
 
 export const addDays = (date: string, days: number) => new Date(Date.parse(date) + days * DAY).toISOString().slice(0, 10);
+// One calendar month later, clamped to the target month's last day (31 Jan -> 28 Feb).
+export function addMonth(date: string) {
+  const [y, m, d] = date.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m, Math.min(d, last))).toISOString().slice(0, 10);
+}
 export const weekday = (date: string) => new Date(date).getUTCDay(); // 0 = Sunday
 export const daysBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / DAY);
 

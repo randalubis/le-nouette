@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Plus, QrCode, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Plus, QrCode, ShareNetwork, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatRupiah, products, type ProductId } from "@/lib/domain/catalog";
 import type { Fulfillment, Order, State } from "@/lib/domain/operations";
@@ -26,6 +26,13 @@ const fulfillmentOptions: Option[] = [
 export function Storefront({ session }: { session: State }) {
   const { t, locale, setLocale } = useTranslation();
   const [step, setStep] = useState<Step>("shop");
+  async function invite() {
+    const text = t("inviteText");
+    const url = window.location.origin;
+    const fallback = () => void window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank", "noopener");
+    if (!navigator.share) return fallback();
+    try { await navigator.share({ title: "Le Nouette", text, url }); } catch (e) { if ((e as Error).name !== "AbortError") fallback(); }
+  }
   const [qty, setQty] = useState<Record<ProductId, number>>({ milieu: 1, grande: 0 });
   const [fulfillment, setFulfillment] = useState<Fulfillment>("PICKUP_MANDIRI");
   const [remembered] = useState(() => (typeof window === "undefined" ? null : readRemembered()));
@@ -183,6 +190,7 @@ export function Storefront({ session }: { session: State }) {
           )}
           <div className={styles.whatsapp}><WhatsappLogo size={26} weight="fill" /><span>{t("whatsappUpdates")}</span></div>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={startOver}>{t("orderAgain")}</button>
+          <button className={`${styles.previewLink} btn btn-quiet`} onClick={invite}><ShareNetwork size={18} /> {t("inviteFriends")}</button>
           <Link href="/founder/orders" className={`${styles.previewLink} btn btn-quiet`}>{t("founderPreview")} <ArrowRight size={18} /></Link>
         </section>
       )}

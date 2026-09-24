@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
-import type { ItemId } from "@/lib/domain/catalog";
+import type { ItemId, ProductId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
 import * as op from "./operations";
 
@@ -94,6 +94,18 @@ export async function stockOpnameAction(itemId: ItemId, counted: number) {
   return { error };
 }
 
+export async function recordExtraPackedAction(productId: ProductId, quantity: number, note?: string) {
+  const { error } = await withDomainTransaction((state, now) => op.recordExtraPacked(state, productId, quantity, now, note));
+  if (!error) revalidateAll();
+  return { error };
+}
+
+export async function adjustReadyAction(sourceId: string, quantity: number, note?: string) {
+  const { error } = await withDomainTransaction((state, now) => op.adjustReady(state, sourceId, quantity, note, now));
+  if (!error) revalidateAll();
+  return { error };
+}
+
 export async function setDateStatusAction(date: string, status: DateStatus | null) {
   const { error } = await withDomainTransaction((state, now) => op.setDateStatus(state, date, status, now));
   if (!error) revalidateAll();
@@ -113,6 +125,7 @@ export async function resetSeedAction(key?: string) {
   const { db } = await import("@/lib/db/client");
   const schema = await import("@/lib/db/schema");
   await db.transaction(async (tx) => {
+    await tx.delete(schema.readyProductMovements);
     await tx.delete(schema.reservations);
     await tx.delete(schema.orderItems);
     await tx.delete(schema.payments);

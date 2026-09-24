@@ -2,11 +2,11 @@
 
 import { WarningCircle } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
-import { formatQuantity, formatRupiah, type ItemId } from "@/lib/domain/catalog";
+import { formatQuantity, formatRupiah, products, type ItemId, type ProductId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
 import { itemsLabel } from "@/components/order-board";
-import { receiveStockAction, stockOpnameAction, setDateStatusAction, setStoreStatusAction, rescheduleOrderAction } from "@/lib/domain/actions";
+import { adjustReadyAction, recordExtraPackedAction, receiveStockAction, stockOpnameAction, setDateStatusAction, setStoreStatusAction, rescheduleOrderAction } from "@/lib/domain/actions";
 import { ListRowCard } from "@/components/ui/list-row-card";
 import { ActionCard } from "@/components/ui/action-card";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -17,14 +17,79 @@ const today = () => jakartaNow(new Date()).date;
 // Raw cheese is entered in grams; everything else in pieces.
 const toStored = (item: ItemId, input: string) => Math.round(Number(input) * (item === "raw_cheese" ? 100 : 1));
 
+function ReadyToSell({ session }: { session: op.State }) {
+  const [product, setProduct] = useState<ProductId>("milieu");
+  const [qty, setQty] = useState("");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const now = new Date();
+  const ready = op.readyBalances(session, now);
+  const [writeOffError, setWriteOffError] = useState<string | null>(null);
+  // Takes a thunk so a blocked double-submit never fires the server action.
+  const act = (run: () => Promise<{ error: string | null }>, reset = false) => {
+    if (isPending) return;
+    startTransition(async () => {
+      const { error } = await run();
+      if (reset) setError(error); else setWriteOffError(error);
+      if (!error && reset) { setQty(""); setNote(""); }
+    });
+  };
+  const typeLabel = { EXTRA_PACKED: "Ekstra dipacking", ALLOCATED_TO_ORDER: "Dialokasikan ke pesanan", ADJUSTMENT: "Penyesuaian", REVERSAL: "Pengembalian" };
+
+  return (
+    <>
+      <div className={styles.stockHeader}><div><h2>Produk Siap Dijual</h2><p>Produk jadi ekstra dari packing. Dialokasikan otomatis ke pesanan baru, yang terlama dulu. Kedaluwarsa 1 bulan sejak tanggal packing.</p></div></div>
+      <section className={styles.stockGrid}>
+        {ready.map((r) => (
+          <article key={r.productId} className={`${styles.stockCard} ${r.expired > 0 ? styles.warn : ""}`}>
+            <div className={styles.stockCardTop}><h3>{r.name}</h3>{r.expired > 0 && <span className="status status-warning"><WarningCircle size={13} /> {r.expired} kedaluwarsa</span>}</div>
+            <div className={styles.stockValue}>{r.available} pcs</div>
+            <p>siap dijual</p>
+            {r.sources.map((s) => (
+              <div key={s.sourceId} className={styles.stockFooter}>
+                <span>{s.remaining} pcs · exp {formatDate(s.expiresOn, "short")}{s.expired ? " (kedaluwarsa)" : ""}</span>
+                <button className={styles.textLink} disabled={isPending} aria-label={`Tulis off ${r.name} exp ${formatDate(s.expiresOn, "short")}`} onClick={() => { const n = window.prompt(`Berapa unit dihapus dari stok siap jual (maks ${s.remaining})? Untuk kedaluwarsa atau dikonsumsi.`, String(s.remaining)); if (n) act(() => adjustReadyAction(s.sourceId, Number(n), s.expired ? "Kedaluwarsa" : "Penyesuaian founder")); }}>Tulis off</button>
+              </div>
+            ))}
+          </article>
+        ))}
+      </section>
+      {writeOffError && <p role="alert" className={styles.hint}>{writeOffError}</p>}
+      <div className={styles.receivables}>
+        <ActionCard title="Catat Produk Ekstra" subtitle="Mengurangi bahan sesuai resep dan menambah stok siap jual dalam satu langkah." note={error && <p role="alert" className={styles.hint}>{error}</p>}>
+          <select className={styles.search} aria-label="Produk" value={product} onChange={(event) => setProduct(event.target.value as ProductId)}>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          <input className={styles.search} type="number" min={1} inputMode="numeric" aria-label="Jumlah ekstra" placeholder="Jumlah" value={qty} onChange={(event) => setQty(event.target.value)} />
+          <input className={styles.search} aria-label="Catatan" placeholder="Catatan (opsional)" value={note} onChange={(event) => setNote(event.target.value)} />
+          <button className="btn btn-primary" disabled={!qty || isPending} onClick={() => act(() => recordExtraPackedAction(product, Number(qty), note), true)}>Catat</button>
+        </ActionCard>
+      </div>
+      <section className={`${styles.panel} ${styles.receivables}`}>
+        <div className={styles.panelHeader}><div><h2>Riwayat produk siap dijual</h2><p>Append-only; pembatalan pesanan dicatat sebagai pengembalian.</p></div></div>
+        {session.readyMovements.length === 0 && <p className={styles.empty}>Belum ada produk ekstra.</p>}
+        {session.readyMovements.slice(-10).reverse().map((m) => (
+          <ListRowCard
+            key={m.id}
+            title={products.find((p) => p.id === m.productId)!.name}
+            subtitle={`${new Date(m.at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}${m.orderId ? ` · ${m.orderId}` : ""}${m.note ? ` · ${m.note}` : ""}`}
+            middle={typeLabel[m.type]}
+            trailing={`${m.delta > 0 ? "+" : ""}${m.delta} pcs`}
+          />
+        ))}
+      </section>
+    </>
+  );
+}
+
 export function StockBoard({ session }: { session: op.State }) {
   const [draft, setDraft] = useState<Partial<Record<ItemId, string>>>({});
   const [message, setMessage] = useState<{ id: ItemId; text: string } | null>(null);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
-  const act = (id: ItemId, action: Promise<{ error: string | null }>) => {
+  const act = (id: ItemId, run: () => Promise<{ error: string | null }>) => {
+    if (isPending) return;
     startTransition(async () => {
-      const { error } = await action;
+      const { error } = await run();
       setMessage(error ? { id, text: error } : null);
       if (!error) setDraft((current) => ({ ...current, [id]: "" }));
     });
@@ -45,8 +110,8 @@ export function StockBoard({ session }: { session: op.State }) {
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
               <div className={styles.cardActions}>
                 <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Gram" : "Pcs"} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />
-                <button className="btn btn-quiet" disabled={!value} onClick={() => act(item.id, receiveStockAction(item.id, toStored(item.id, value)))}>Terima stok</button>
-                <button className="btn btn-quiet" disabled={value === ""} onClick={() => act(item.id, stockOpnameAction(item.id, toStored(item.id, value)))}>Hasil opname</button>
+                <button className="btn btn-quiet" disabled={!value || isPending} onClick={() => act(item.id, () => receiveStockAction(item.id, toStored(item.id, value)))}>Terima stok</button>
+                <button className="btn btn-quiet" disabled={value === "" || isPending} onClick={() => act(item.id, () => stockOpnameAction(item.id, toStored(item.id, value)))}>Hasil opname</button>
               </div>
               {message?.id === item.id && <p role="alert" className={styles.hint}>{message.text}</p>}
               <div className={styles.stockFooter}><span>Ambang {formatQuantity(item.id, item.threshold)}</span></div>
@@ -66,6 +131,7 @@ export function StockBoard({ session }: { session: op.State }) {
           />
         ))}
       </section>
+      <ReadyToSell session={session} />
     </>
   );
 }
