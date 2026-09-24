@@ -37,7 +37,7 @@ const order = (overrides: Partial<op.CreateOrderInput> = {}): op.CreateOrderInpu
 test("§19.2 order reserves exact recipe quantities without touching on-hand", () => {
   const state = op.createOrder(op.emptyState(), order(), wib("2026-09-14"));
   const reserved = Object.fromEntries(op.balances(state).map((b) => [b.id, b.reserved]));
-  assert.deepEqual(reserved, { raw_cheese: 48816, jar: 2, pouch: 1, sticker_square: 3, sticker_round: 2, jar_seal: 2 });
+  assert.deepEqual(reserved, { raw_cheese: 47500, jar: 2, pouch: 1, sticker_square: 3, sticker_round: 2, jar_seal: 2 });
   assert.ok(op.balances(state).every((b) => b.onHand === 0));
   assert.equal(state.orders[0].total, 170000);
 });
@@ -59,7 +59,7 @@ test("§19.3 whole-batch packing consumes reservations once", () => {
   state = op.createOrder(state, order(), wib("2026-09-14"));
   state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
   const cheese = op.balances(state)[0];
-  assert.deepEqual([cheese.onHand, cheese.reserved], [100000 - 48816, 0]);
+  assert.deepEqual([cheese.onHand, cheese.reserved], [100000 - 47500, 0]);
   assert.equal(state.orders[0].status, "READY_FOR_HANDOVER");
   assert.throws(() => op.completeBatch(state, "2026-09-16", wib("2026-09-16")), op.DomainError);
 });
@@ -120,7 +120,7 @@ test("§19.8 (47) extra recorded under one SKU consumes recipe atomically; negat
   const base = stocked();
   const state = op.recordExtraPacked(base, "milieu", 2, wib("2026-09-14"), "salah isi");
   assert.equal(onHand(state).jar, 98);
-  assert.equal(onHand(state).raw_cheese, 1_000_000 - 2 * 13158);
+  assert.equal(onHand(state).raw_cheese, 1_000_000 - 2 * 12500);
   assert.equal(onHand(state).pouch, 100);
   assert.equal(state.readyMovements.length, 1);
   assert.deepEqual([state.readyMovements[0].productId, state.readyMovements[0].delta, state.readyMovements[0].type], ["milieu", 2, "EXTRA_PACKED"]);
@@ -192,4 +192,11 @@ test("§19.8 (50) expiry is +1 calendar month from Jakarta packing date; expired
   const written = op.adjustReady(late, state.readyMovements[0].id, 1, "kedaluwarsa", wib("2026-03-02"));
   assert.equal(op.readyBalances(written, wib("2026-03-02")).find((r) => r.productId === "milieu")!.expired, 0);
   assert.throws(() => op.adjustReady(written, state.readyMovements[0].id, 1, "", wib("2026-03-02")), op.DomainError);
+});
+
+test("raw cheese is one pooled stock: 5 supplier packs (1,125 g) cover exactly 9 Milieu jars", () => {
+  const state = op.createOrder(op.receiveStock(op.emptyState(), "raw_cheese", 5 * 22500, wib("2026-09-14")), order({ quantities: { milieu: 9 } }), wib("2026-09-14"));
+  const cheese = op.balances(state).find((b) => b.id === "raw_cheese")!;
+  assert.equal(cheese.reserved, 9 * 12500);
+  assert.equal(cheese.available, 0);
 });

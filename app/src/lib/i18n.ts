@@ -60,7 +60,6 @@ const id = {
   orderAgain: "Pesan lagi",
   inviteFriends: "Ajak teman",
   inviteText: "Aku baru pre-order cheese stick Le Nouette, renyah dan gurih banget. Yuk ikut pesan juga!",
-  founderPreview: "Lihat di Founder OS",
 } as const;
 
 const en: Record<keyof typeof id, string> = {
@@ -116,7 +115,6 @@ const en: Record<keyof typeof id, string> = {
   orderAgain: "Order again",
   inviteFriends: "Invite friends",
   inviteText: "I just preordered Le Nouette cheese sticks, crispy and so cheesy. Come preorder yours too!",
-  founderPreview: "Open in Founder OS",
 };
 
 const dictionaries = { ID: id, EN: en };

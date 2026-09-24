@@ -191,7 +191,6 @@ export function Storefront({ session }: { session: State }) {
           <div className={styles.whatsapp}><WhatsappLogo size={26} weight="fill" /><span>{t("whatsappUpdates")}</span></div>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={startOver}>{t("orderAgain")}</button>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={invite}><ShareNetwork size={18} /> {t("inviteFriends")}</button>
-          <Link href="/founder/orders" className={`${styles.previewLink} btn btn-quiet`}>{t("founderPreview")} <ArrowRight size={18} /></Link>
         </section>
       )}
 

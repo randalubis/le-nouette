@@ -1,12 +1,12 @@
 // Products, recipe version 1, and tracked inventory items (spec §4, tech spec §6.3–6.5).
-// Raw cheese quantities are integer centigrams (0.01 g) so 131.58 g never drifts.
+// Raw cheese quantities are integer centigrams (0.01 g) so fractional grams never drift.
 
 export type ProductId = "milieu" | "grande";
 export type ItemId = "raw_cheese" | "jar" | "pouch" | "sticker_square" | "sticker_round" | "jar_seal";
 export type Recipe = Partial<Record<ItemId, number>>;
 
 export const products = [
-  { id: "milieu", name: "Milieu", netGrams: 125, price: 50000, recipe: { raw_cheese: 13158, jar: 1, sticker_square: 1, sticker_round: 1, jar_seal: 1 } },
+  { id: "milieu", name: "Milieu", netGrams: 125, price: 50000, recipe: { raw_cheese: 12500, jar: 1, sticker_square: 1, sticker_round: 1, jar_seal: 1 } },
   { id: "grande", name: "Grande", netGrams: 225, price: 70000, recipe: { raw_cheese: 22500, pouch: 1, sticker_square: 1 } },
 ] as const satisfies readonly { id: ProductId; name: string; netGrams: number; price: number; recipe: Recipe }[];
 
