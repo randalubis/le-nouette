@@ -66,7 +66,7 @@ AVAILABLE_TO_PROMISE = ON_HAND - RESERVED
 Example for 2 Milieu + 1 Grande:
 
 ```text
-Raw cheese       488.16 g
+Raw cheese       475 g
 Plastic jars       2
 Plastic pouch      1
 Square stickers    3
@@ -77,7 +77,7 @@ Jar seals          2
 Example for 10 Milieu + 5 Grande:
 
 ```text
-Raw cheese       2,440.8 g
+Raw cheese       2,375 g
 Plastic jars          10
 Plastic pouches         5
 Square stickers        15
@@ -85,15 +85,18 @@ Round stickers         10
 Jar seals              10
 ```
 
-### 10.5 Consumption and quality selection
+### 10.5 Consumption
 
-**LOCKED**
+**LOCKED** (Superseded 24 Sep 2026 — see Changelog 0.3.1)
+
+- ~~Milieu consumption uses 131.58 g per unit under the current 95% yield assumption.~~
+- ~~The 125 g sellable portion becomes the customer product; approximately 6.58 g leaves commercial inventory as `QUALITY_SELECTION`.~~
+
+**LOCKED** (Current as of 24 Sep 2026)
 
 - `PACKING_COMPLETE` is the event that consumes reserved raw material and packaging.
-- Milieu consumption uses 131.58 g per unit under the current 95% yield assumption.
-- The 125 g sellable portion becomes the customer product; approximately 6.58 g leaves commercial inventory as `QUALITY_SELECTION` and is consumed personally.
+- Milieu consumption uses exactly **125 g per unit** (pooled-stock yield; 5 supplier packs yield 9 jars).
 - Grande consumes exactly 225 g per unit under the current direct-transfer rule.
-- No separate personal-consumption inventory is created for Milieu quality-selection remainder.
 
 ### 10.6 Stock opname and adjustment
 

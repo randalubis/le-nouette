@@ -93,7 +93,7 @@ Initial active recipes:
 
 | Product | Item | Quantity |
 |---|---|---:|
-| Milieu | Raw cheese | 131.58 g |
+| Milieu | Raw cheese | 125 g |
 | Milieu | Jar | 1 |
 | Milieu | Square sticker | 1 |
 | Milieu | Round sticker | 1 |

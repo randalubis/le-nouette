@@ -37,7 +37,7 @@
 21. The included orders become ready only after consumption commits.
 22. Completing the same batch twice creates no duplicate consumption.
 23. Grande consumes 225 g per unit.
-24. Milieu consumes and persists exactly 131.58 g per unit under recipe version 1 without binary floating-point drift; the batch requires no actual-remainder input, and rounded UI summaries never change the stored value.
+24. Milieu consumes and persists exactly 125 g per unit under the current pooled-stock yield rule; the batch requires no remainder input, and rounded UI summaries never change the stored value.
 
 ### 19.4 Inventory
 

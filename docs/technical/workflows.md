@@ -65,11 +65,11 @@ Single database transaction:
 8. write audit event;
 9. commit.
 
-For Milieu, the 131.58 g reservation already includes the estimated 6.58 g quality-selection remainder. Reporting may split the implied remainder using reason `QUALITY_SELECTION`, but V1 does not create separate edible-remnant stock.
+For Milieu, the 125 g reservation represents exactly the sellable quantity under the current pooled-stock yield rule (5 supplier packs yield 9 jars).
 
 Set customer-facing expiry to one calendar month after the physical local packing date for every completed product, including confirmed-order units and accidental extras. Order, promised-ready, dispatch, pickup, and payment dates never reset expiry.
 
-**REQUIRED:** Calculate the Milieu remainder from the active recipe; do not add actual-remainder weight input to packing-batch completion in V1. Any later yield revision creates a new effective-dated recipe and applies only to subsequent reservations and batches.
+**REQUIRED:** Any later yield revision creates a new effective-dated recipe and applies only to subsequent reservations and batches.
 
 **REQUIRED:** Packing completion is whole-batch only in V1. If any required quantity remains unpacked, the batch stays `OPEN`; no consumption movements are posted and none of its orders move automatically to `READY_FOR_HANDOVER`. Partial completion and partial material allocation are deferred.
 

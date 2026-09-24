@@ -4,6 +4,11 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.3.1 — 24 September 2026
+
+- **Recipe change:** Milieu cheese requirement reversed to **exactly 125 g per jar**, replacing the previous 95%-yield rule (131.58 g). Rationale: raw cheese is one pooled stock; 5 supplier packs (1,125 g) now yield exactly 9 Milieu jars. No remainder is modeled or tracked. All affected doc sections updated (products-and-economics, inventory-model, scope-and-decisions, workflows, architecture, acceptance-tests, data-model); COGS estimates recalculated.
+- Removed 'Lihat di Founder OS' link from the buyer success screen; order confirmation remains actionable through Founder OS independently.
+
 ### 0.3.0 — 24 September 2026
 
 - Implemented the Product Ready to Sell inventory tier (§10.1–10.2, §6.14): recordExtraPacked consumes recipe components atomically and adds finished units to the ready ledger; new orders allocate the oldest unexpired units first (FIFO) before reserving raw materials; fully covered orders are ready today and can be dispatched same day; cancellation reverses allocations via append-only ledger (§19.8 items 47–48, 48b–48c, 50); one-calendar-month expiry from Jakarta packing date. Founder OS has a new 'Produk Siap Dijual' (Ready to Sell) card showing available and expired unit counts with write-off controls per source.

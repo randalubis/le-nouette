@@ -23,7 +23,7 @@
 
 | Inventory item | Canonical unit | Milieu 125 g | Grande 225 g |
 |---|---:|---:|---:|
-| Raw cheese sticks | gram | **131.58 g theoretical input** | **225 g** |
+| Raw cheese sticks | gram | **125 g** | **225 g** |
 | Plastic jar | piece | 1 | 0 |
 | Plastic pouch | piece | 0 | 1 |
 | Square sticker | piece | 1 | 1 |
@@ -35,16 +35,19 @@
 
 ### 4.3 Yield rules
 
-**LOCKED**
+**LOCKED (Superseded 24 Sep 2026 — see Changelog 0.3.1)**
 
-- **Milieu:** 95% assumed packing yield for commercial presentation.
-- Formula: `125 g ÷ 0.95 = 131.5789 g`, rounded for planning to **131.58 g** raw input.
-- The approximate **6.58 g** difference per Milieu is a **quality-selection / packing yield remainder**. It consists of broken or unsuitable-length sticks that are excluded to preserve a consistent premium presentation.
-- The remainder is still edible and is consumed personally; it is not discarded and is not returned to commercial inventory.
-- Use movement/reason code `QUALITY_SELECTION` where the implementation records the yield component separately.
-- **Grande:** direct transfer with no 5% yield adjustment; **225 g input → 225 g sold**.
+- ~~95% assumed packing yield for commercial presentation.~~
+- ~~Formula: `125 g ÷ 0.95 = 131.5789 g`, rounded for planning to **131.58 g** raw input.~~
+- ~~The approximate 6.58 g difference per Milieu is a quality-selection / packing yield remainder.~~
 
-**LOCKED FOR V1:** The system infers Milieu quality-selection remainder from a fixed 95% yield and consumes 131.58 g per sellable jar. Founders do not weigh or enter the remainder for each packing batch. A later measured yield change must create a new effective-dated recipe and must not rewrite historical batches.
+**LOCKED** (Current as of 24 Sep 2026)
+
+- **Milieu:** Fixed pooled-stock yield: 5 supplier packs (1,125 g) yield exactly **9 Milieu jars at 125 g each**.
+- No remainder is modeled; raw cheese is one pooled stock, and 5 × 225 g yields exactly 9 × 125 g with no split accounting.
+- **Grande:** direct transfer with no yield adjustment; **225 g input → 225 g sold**.
+
+**LOCKED FOR V1:** The system consumes exactly 125 g raw cheese per Milieu jar. Founders do not track or enter per-batch remainder quantities. A later measured yield change must create a new effective-dated recipe and must not rewrite historical batches.
 
 ---
 
@@ -71,17 +74,17 @@ Sticker calculation used a conservative no-promo delivery assumption: Rp97,000 p
 
 | Component | Milieu 125 g | Grande 225 g |
 |---|---:|---:|
-| Cheese sticks including Milieu yield rule | ~Rp21,640 | Rp37,000 |
+| Cheese sticks | ~Rp20,555 | Rp37,000 |
 | Supplier delivery allocation | ~Rp152 | Rp260 |
 | Jar / pouch | Rp3,225 | Rp1,240 |
 | Brand sticker(s) | Rp1,000 | Rp550 |
 | Expiration label | Rp10 | Rp10 |
 | Jar seal | Rp150 | — |
 | Packing labor | Rp1,000 | Rp1,000 |
-| **Estimated product COGS** | **~Rp27,177** | **~Rp40,060** |
+| **Estimated product COGS** | **~Rp26,092** | **~Rp40,060** |
 | Selling price | Rp50,000 | Rp70,000 |
-| **Estimated gross profit per unit** | **~Rp22,823** | **~Rp29,940** |
-| **Estimated gross margin** | **~45.6%** | **~42.8%** |
+| **Estimated gross profit per unit** | **~Rp23,908** | **~Rp29,940** |
+| **Estimated gross margin** | **~47.8%** | **~42.8%** |
 
 **ASSUMPTION:** These figures are planning baselines, not audited accounting values. Actual purchase batches and landed costs should eventually drive rolling COGS without modifying historical records.
 
@@ -118,9 +121,9 @@ Sticker calculation used a conservative no-promo delivery assumption: Rp97,000 p
 For a packing date with 18 Milieu and 7 Grande:
 
 ```text
-Milieu cheese requirement = 18 × 131.58 g = 2,368.44 g
-Grande cheese requirement = 7 × 225 g    = 1,575.00 g
-Total raw cheese          =                3,943.44 g
+Milieu cheese requirement = 18 × 125 g = 2,250 g
+Grande cheese requirement = 7 × 225 g = 1,575 g
+Total raw cheese          =            3,825 g
 
 Plastic jars              = 18
 Plastic pouches           = 7

@@ -135,8 +135,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Accidental extra Milieu and Grande units enter a separate Product Ready to Sell ledger; confirmed packing-batch quantities remain exact.
 - Product Ready to Sell uses only the Milieu and Grande SKUs and automatically fulfills matching new-order quantities oldest-first before raw materials are reserved.
 - Customer expiry is one calendar month from packing date; ready stock allocates oldest unexpired units first.
-- Milieu consumes 131.58 g per sellable 125 g under a 95% yield rule; remainder is quality-selection food consumed personally.
-- Milieu's remainder is inferred automatically in V1; founders do not weigh or enter it per packing batch.
+- Milieu consumes exactly 125 g per sellable jar (pooled-stock yield: 5 supplier packs yield 9 jars).
 - Grande transfers 225 g directly with no 5% yield adjustment.
 - Supplier replenishment is normally 1–2 business days but may be capacity constrained during peak seasons.
 - Insufficient physical stock prompts replenishment planning rather than automatic rejection when the promise can still be met.

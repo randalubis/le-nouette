@@ -145,7 +145,7 @@ erDiagram
 
 - Packaging items use integer pieces.
 - Raw cheese uses decimal grams.
-- **REQUIRED:** store every persisted raw-cheese quantity as `numeric(..., 2)` with 0.01 g precision because Milieu reserves 131.58 g.
+- **REQUIRED:** store every persisted raw-cheese quantity as `numeric(..., 2)` with 0.01 g precision for consistent accounting across pooled cheese stock, supplier receipt batches, and historical audit trails.
 - Use decimal arithmetic and standard half-up rounding once at each persisted reservation or movement boundary. Never use binary floating-point or rounded display values for inventory calculations.
 - Founder-facing summaries may show whole grams, kilograms, or approximate pack equivalents; detailed history retains the two-decimal gram value.
 
