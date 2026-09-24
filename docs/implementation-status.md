@@ -2,7 +2,7 @@
 
 [← Product spec hub](./product-spec.md) · [← Technical spec hub](./technical-spec.md)
 
-This is the single source of truth for what's actually built versus backlog in the Le Nouette app (`./app`), as of this documentation restructure (21 September 2026). It is a separate axis from the decision-confidence labels used throughout the product and technical spokes (`LOCKED`/`ASSUMPTION`/`OPEN`/`DEFERRED` and `REQUIRED`/`PROPOSED`/`OPEN`/`DEFERRED`) — a `LOCKED` business decision or a `REQUIRED` technical rule can still be entirely unbuilt. Spoke docs point back here with a short `**Implementation: ...**` line; the narrative and evidence live here, not duplicated across spokes.
+This is the single source of truth for what's actually built versus backlog in the Le Nouette app (`./app`), as of 24 September 2026. It is a separate axis from the decision-confidence labels used throughout the product and technical spokes (`LOCKED`/`ASSUMPTION`/`OPEN`/`DEFERRED` and `REQUIRED`/`PROPOSED`/`OPEN`/`DEFERRED`) — a `LOCKED` business decision or a `REQUIRED` technical rule can still be entirely unbuilt. Spoke docs point back here with a short `**Implementation: ...**` line; the narrative and evidence live here, not duplicated across spokes.
 
 Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
@@ -16,6 +16,12 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | Domain unit tests | ✅ BUILT (unit-only) | `app/src/lib/domain/domain.test.ts`, 8 tests via `node --test`, covering [§19.1–§19.5](./technical/acceptance-tests.md), [§8.5](./technical/scheduling-engine.md#85-blocking-a-date), [§10.6](./product/inventory-model.md#106-stock-opname-and-adjustment) |
 | Customer storefront: 3-screen flow, ID/EN i18n | ✅ BUILT | `app/src/components/storefront.tsx`, `app/src/lib/i18n.ts` |
 | Founder OS: Beranda, Pesanan Kanban, Stok, Availability, Keuangan | ✅ BUILT | `app/founder/page.tsx`, `app/founder/orders`, `app/founder/stock`, `app/founder/availability`, `app/founder/finance`, shared `founder-shell.tsx` |
+| Orders board sort, filter, and bulk dispatch | ✅ BUILT | `app/src/components/order-board.tsx` — sort by ready date or created date (lines 26, 77–80), filter by fulfillment/destination (lines 27, 72–76), bulk-dispatch multiple ready-for-handover delivery orders (lines 46–51, 83–91, `dispatchOrdersAction` in `actions.ts`) |
+| Reset-data tool gating (dev-only by default) | ✅ BUILT | `/founder/dev-tools` route gated by `RESET_TOOL_SECRET` environment variable — available in dev (NODE_ENV !== "production") or when secret matches querystring (`app/src/app/founder/dev-tools/page.tsx`, `app/src/components/reset-session.tsx`) |
+| Quantity stepper accessibility (real spinbutton semantics) | ✅ BUILT | `app/src/components/storefront.tsx:116–125` — spinbutton role, aria-valuenow/valuemin/valuemax, keyboard arrow-up/down handlers, aria-live=polite |
+| Product photography (real images deployed) | ✅ BUILT | `app/public/le-nouette/milieu.png`, `app/public/le-nouette/grande.png`, referenced in `storefront.tsx:18` |
+| Mobile checkout form submission fix | ✅ BUILT | `storefront.tsx:136, 193` — details form has `id="checkout"` and submit button uses `form="checkout"` attribute to ensure form submission on mobile Safari/Chrome |
+| Accessibility improvements pass | ✅ BUILT | Comprehensive a11y markup across storefront and Founder OS: semantic HTML, ARIA roles/labels/live regions, keyboard navigation, focus management (`app/src/components/storefront.tsx`, `app/src/components/order-board.tsx`, related modules) |
 | Remembered customer details (device-local opt-in) | ✅ BUILT | `app/src/lib/remembered.ts` |
 | Persistence (Postgres via Supabase, Drizzle) | ✅ BUILT | `app/src/lib/db/` (schema, client, loadState, diffAndWrite), server actions in `app/src/lib/domain/actions.ts`. Lean schema mirroring `operations.ts` state shape, not the full 18-table spec — see `docs/superpowers/specs/2026-09-21-supabase-persistence-design.md` for the scope decision. |
 | Vercel deployment | ✅ BUILT | Live at `le-nouette.vercel.app` (Vercel project `le-nouette`, root directory `app`, auto-deploys from `randalubis/le-nouette` `main`). DB is the same Supabase project used locally (`birojajosbxwkrxzepar`) — no separate prod database. |
@@ -24,7 +30,7 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 | Area | Status | Evidence |
 |---|---|---|
-| QRIS payment | 🚧 PARTIAL | Static placeholder image only (`storefront.tsx:165,189`); tapping "Bayar sekarang dengan QRIS" never changes payment status. Matches the spec's own note that a static display shouldn't auto-confirm payment ([§11.1](./product/payments-and-receivables.md)), but no real confirmation UX exists either. |
+| QRIS payment | 🚧 PARTIAL | Real QRIS artwork image deployed (`app/public/le-nouette/qris.jpg`, displayed at `storefront.tsx:178`); tapping "Bayar sekarang dengan QRIS" displays the image but never changes payment status server-side. Matches the spec's own note that a static QRIS display does not automatically confirm payment ([§11.1](./product/payments-and-receivables.md)); real confirmation UX (e.g., webhook polling or manual verification) remains deferred. |
 | Acceptance tests | 🚧 PARTIAL | [§19.1–§19.5](./technical/acceptance-tests.md) automated; §19.6–§19.8 have no code to test yet (export, Ready-to-Sell tier still missing; §19.6 login coverage still backlog). |
 | Founder authentication / access gating ([§8.1](./product/founder-os.md#81-access-model), [§15](./technical/security.md)) | 🚧 PARTIAL | `/founder/*` is gated by `app/src/proxy.ts` behind a login screen (`app/src/app/login/page.tsx`) and an HMAC-signed session cookie (`app/src/lib/founder-auth.ts`, `app/src/lib/domain/auth-actions.ts`). Deviates from spec: a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential, not per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail of who logged in. |
 

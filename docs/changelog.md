@@ -4,6 +4,17 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.2.1 — 24 September 2026
+
+- Deployed real product photography (Milieu and Grande) and real QRIS artwork image to the storefront.
+- Improved hero text contrast with a full-height gradient fade scrim.
+- Added real spinbutton semantics and keyboard navigation to the quantity stepper on the storefront (aria-valuenow, ArrowUp/ArrowDown handlers).
+- Fixed mobile checkout form submission by explicitly associating the checkout button to the details form via the `form` attribute (Safari/Chrome mobile).
+- Gated the Reset-data dev tool to a secret-key querystring parameter (`RESET_TOOL_SECRET` env var), allowing deployment without removing the tool from the live site.
+- Added sort (by ready date or created date), fulfillment filtering, and multi-order bulk-dispatch actions to the Pesanan (orders) board.
+- Consolidated Founder OS card styling into a shared system and improved mobile topbar overflow handling.
+- Applied accessibility improvements across the storefront and Founder OS (semantic HTML, ARIA labels/roles/live regions, keyboard support).
+
 ### 0.2.0 — 21 September 2026
 
 - Restructured both living specs from two 1,200–1,600 line monolith files into a hub-and-spoke system: two short hubs (`docs/product-spec.md`, `docs/technical-spec.md`) linking to 19 topic spokes under `docs/product/` and `docs/technical/`.

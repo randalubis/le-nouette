@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: ⏳ BACKLOG** — the Next.js/TypeScript monolith exists (`app/`), but no deployment, database, or auth from this section is wired up. Everything currently runs client-side against browser sessionStorage. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ MOSTLY BUILT** — the Next.js/TypeScript monolith is deployed on Vercel with Supabase PostgreSQL and Drizzle ORM. Core domain state, domain actions, and Founder OS auth are implemented. See [implementation-status.md](../implementation-status.md) for detailed status of individual components.
 
 ## 2. System boundaries
 

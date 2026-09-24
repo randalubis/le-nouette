@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: ⏳ BACKLOG** — there are no API routes at all yet (`app/src/app` has no `api/` folder); every domain command runs client-side against sessionStorage instead of a server action. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ MOSTLY BUILT** — domain commands and reads are implemented as Next.js Server Actions in `app/src/lib/domain/actions.ts` and server-rendered Founder OS components. No separate REST API routes exist; the application uses Server Actions and server-side data fetching instead. See [implementation-status.md](../implementation-status.md) for details.
 
 ## 14. Application actions and API surface
 
