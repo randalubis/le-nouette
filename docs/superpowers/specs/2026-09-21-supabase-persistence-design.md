@@ -1,5 +1,7 @@
 # Supabase persistence — design
 
+**Status: shipped** — See [Implementation status](../../implementation-status.md) for evidence (Persistence row, ✅ BUILT).
+
 [← Implementation status](../../implementation-status.md) · [← Data model](../../technical/data-model.md) · [← Architecture](../../technical/architecture.md)
 
 ## Context

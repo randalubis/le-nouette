@@ -92,7 +92,13 @@ The web application may use server-rendered pages, client rendering, or a hybrid
 
 ---
 
-## 4. Domain relationship map
+## 4. Local development and testing
+
+See [dev-workflow.md](./dev-workflow.md) for the persona dispatch loop, Playwright review kit usage, startup checklist, pre-commit documentation gate, throwaway founder credentials, and the shared-database warning for local dev.
+
+---
+
+## 5. Domain relationship map
 
 ```mermaid
 erDiagram
@@ -115,7 +121,7 @@ erDiagram
     ORDER ||--o{ ORDER_RESCHEDULE : records
 ```
 
-### 4.1 Aggregate boundaries
+### 5.1 Aggregate boundaries
 
 - **Order aggregate:** order, items, fulfillment, captured totals, status, reservations.
 - **Inventory aggregate:** item, movements, reservations, derived balances.
@@ -126,22 +132,22 @@ erDiagram
 
 ---
 
-## 5. Data conventions
+## 6. Data conventions
 
-### 5.1 Identifiers
+### 6.1 Identifiers
 
 - Internal primary keys: UUID or database-native equivalent.
 - Customer-facing order number: immutable sequential display value such as `LN-0027`.
 - Do not use the public order number as the database primary key.
 
-### 5.2 Money
+### 6.2 Money
 
 - Store all money as integer rupiah.
 - Never use binary floating point for money.
 - Capture unit selling price on each `order_item`; do not derive historical revenue from the current product price.
 - Capture acquisition unit cost on inventory receipt movements.
 
-### 5.3 Quantities
+### 6.3 Quantities
 
 - Packaging items use integer pieces.
 - Raw cheese uses decimal grams.
@@ -149,14 +155,14 @@ erDiagram
 - Use decimal arithmetic and standard half-up rounding once at each persisted reservation or movement boundary. Never use binary floating-point or rounded display values for inventory calculations.
 - Founder-facing summaries may show whole grams, kilograms, or approximate pack equivalents; detailed history retains the two-decimal gram value.
 
-### 5.4 Dates and timestamps
+### 6.4 Dates and timestamps
 
 - Persist timestamps as UTC instants.
 - Render and calculate business dates in `Asia/Jakarta`.
 - Persist promised and current ready dates as local business dates, not timestamps.
 - Every table with mutable state should have `created_at` and `updated_at`.
 
-### 5.5 Deletion
+### 6.5 Deletion
 
 - Orders, inventory movements, payments, packing completions, and audit events are never hard-deleted through normal application behavior.
 - Cancellation or reversal uses explicit status or compensating entries.

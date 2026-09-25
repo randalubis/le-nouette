@@ -4,6 +4,19 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.3.2 — 25 September 2026
+
+- **UX audit fixes:** Empty-cart storefront state with placeholder messaging instead of forced purchase; sticky checkout CTA (responsive, fits 320px mobile, never covers primary content). Paused store disables increment buttons and hides hero subline, shows amber closed banner. Checkout CTA label 'Buat Pesanan' fits 320px. All disabled controls use solid `.btn:disabled` style; darker --muted color for better contrast. Tap targets >= 44px including ID/EN toggle buttons. Text size >= 12px throughout. Verified via Playwright audit kit.
+- **Founder OS mobile improvements:** Mobile header shows title + avatar; secondary actions (Unduh Data Bisnis, Keluar) moved into avatar dropdown menu, not always-visible top bar. Improves mobile header density and accessibility.
+- **Collapsible Stok cards:** Inventory item cards on Stok page support expand/collapse (details element); all collapsed by default on mobile (<= 900px), low-stock items sorted first. Desktop (>= 901px) forces open for scanability.
+- **Beranda grouped alerts:** 'Semua beres hari ini' (all clear) success state when no actionable items exist (no orders to prepare, no shortages, no receivables). Low-stock alerts grouped and linked to Pesan ulang action.
+- **Order filter wrapping:** Pesanan Kanban filter controls and status tabs wrap gracefully on narrow mobile viewport; no horizontal scroll or overflow.
+- **Playwright review kit:** `.claude/playwright/` (audit.js, flow.js, README.md) — mobile 390px + desktop 1440px in light and dark modes; measures load time, LCP, CLS, contrast, tap targets, text size; generates screenshots and metrics JSON. Embedded in reviewer workflow (AGENTS.md).
+- **Development workflow:** Added [docs/technical/dev-workflow.md](./technical/dev-workflow.md) covering persona dispatch (engineer → reviewer → docs), Playwright kit setup, startup checklist, pre-commit documentation gate, local Founder OS login, and shared-database safety.
+- **Startup checklist:** `.claude/startup-check.sh` (wired as SessionStart hook in `.claude/settings.json`) verifies plugins, MCP servers, agents, git hooks, local env. Warns on missing setup without blocking.
+- **Pre-commit documentation gate:** `.githooks/pre-commit` (enforced via `git config core.hooksPath .githooks`) requires `docs/` changes when staging `app/src/` or `.claude/` changes. Ensures every code change ships with doc sync; bypass with `SKIP_DOCS_CHECK=1` only if truly no-doc-impact.
+- **Registered agent names:** `le-nouette-engineer`, `le-nouette-designer`, `le-nouette-reviewer`, `le-nouette-docs` in `.claude/agents/`; documented in AGENTS.md and used with Agent-tool dispatches.
+
 ### 0.3.1 — 24 September 2026
 
 - **Recipe change:** Milieu cheese requirement reversed to **exactly 125 g per jar**, replacing the previous 95%-yield rule (131.58 g). Rationale: raw cheese is one pooled stock; 5 supplier packs (1,125 g) now yield exactly 9 Milieu jars. No remainder is modeled or tracked. All affected doc sections updated (products-and-economics, inventory-model, scope-and-decisions, workflows, architecture, acceptance-tests, data-model); COGS estimates recalculated.

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Docs persona rule (AGENTS.md): code/tooling changes must ship with doc updates.
+[ -n "$SKIP_DOCS_CHECK" ] && exit 0
+staged=$(git diff --cached --name-only)
+echo "$staged" | grep -qE '^(app/src/|\.claude/)' || exit 0
+echo "$staged" | grep -q '^docs/' && exit 0
+echo "pre-commit: app/src or .claude changed but no docs/ file staged." >&2
+echo "Run the le-nouette-docs persona (see AGENTS.md), or set SKIP_DOCS_CHECK=1 with a reason." >&2
+exit 1

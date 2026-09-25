@@ -97,7 +97,8 @@ export function StockBoard({ session }: { session: op.State }) {
       if (!error) setDraft((current) => ({ ...current, [id]: "" }));
     });
   };
-  const items = op.balances(session);
+  // Low items first (stable sort keeps catalog order within each group).
+  const items = op.balances(session).sort((a, b) => Number(b.available < b.threshold) - Number(a.available < a.threshold));
 
   return (
     <>
@@ -111,7 +112,7 @@ export function StockBoard({ session }: { session: op.State }) {
               <div className={styles.stockCardTop}><h3>{item.name}</h3>{low ? <span className="status status-warning"><WarningCircle size={13} /> Rendah</span> : <span className="status status-safe">Aman</span>}</div>
               <div className={styles.stockValue}>{formatQuantity(item.id, item.available)}</div>
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
-              <details className={styles.stockMore} open={low || desktop}>
+              <details className={styles.stockMore} open={desktop}>
                 <summary>Ubah stok</summary>
               <div className={styles.cardActions}>
                 <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Pak supplier (225 g)" : "Pcs"} step={item.id === "raw_cheese" ? "any" : 1} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />

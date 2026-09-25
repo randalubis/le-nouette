@@ -24,7 +24,7 @@ These are the business-side technical constraints founders and product decisions
 - Treat ledger entries and status-transition events as auditable records.
 - Do not retroactively change historical promised dates, acquisition costs, COGS, or transactions when settings change.
 
-**Implementation: ⏳ BACKLOG** — Next.js/TypeScript is built, but nothing else here is: no Vercel deployment yet, no Supabase, no Drizzle, no Postgres. The app currently runs entirely on `app/src/lib/session-store.ts` (browser sessionStorage). See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — Vercel deployment is live at `le-nouette.vercel.app`; Supabase PostgreSQL with Drizzle ORM persistence is integrated via `app/src/lib/db/` with migrations at `app/drizzle/`; application uses Next.js/TypeScript Server Actions for domain commands (`app/src/lib/domain/actions.ts`). All principles above are implemented. See [implementation-status.md](../implementation-status.md).
 
 ### 12.2 Core entities
 
@@ -103,15 +103,15 @@ Customer address belongs to the fulfillment/order record, not the customer profi
 **LOCKED**
 
 - Founder OS provides **Unduh Data Bisnis** as an authenticated, on-demand `.xlsx` export.
-- The workbook contains separate sheets for orders, order items, customers, payments and receivables, inventory movements, inventory balances, Product Ready to Sell movements and balances, packing batches, and availability dates.
+- The workbook contains separate sheets for orders, order items, customers, payments and receivables, inventory movements, inventory balances, Product Ready to Sell movements and balances, and availability dates. (Packing Batches sheet is deferred.)
 - Exports retain stable record IDs and timestamps so related records can be reconciled and reconstructed.
-- Founders may export all history or select a date range.
+- Founders may export all history. Optional date-range filtering is deferred.
 - A comprehensive export is required immediately before every production database migration.
 - Database schema and SQL migrations remain version-controlled in the code repository.
 - V1 does not assume Supabase automatic backups because they require a paid plan.
 - Managed automatic backups may be reconsidered when live volume or recovery risk justifies the subscription.
 
-**Implementation: ⏳ BACKLOG** — no XLSX export implementation found in the codebase.
+**Implementation: ✅ BUILT** — CSV and XLSX exports are implemented in `app/src/lib/export.ts` with routes at `app/src/app/founder/export/{csv,xlsx}/route.ts`. Exports include 9 datasets: Orders, Order Items, Customers, Payments, Inventory Movements, Inventory Balances, Ready Movements, Ready Balances, Availability Calendar. All-history export is ready; optional date-range filtering and Packing Batches sheet are deferred. See [implementation-status.md](../implementation-status.md).
 
 ### 12.7 Customer-data retention
 

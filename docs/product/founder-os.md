@@ -27,6 +27,8 @@ Primary navigation:
 3. **Stok** — raw materials, packaging, reservations, packing requirements, receipts, projected shortages, and stock opname.
 4. **Keuangan** — payment reconciliation, receivables, revenue, costs, and estimated gross profit.
 
+**Mobile header:** On narrow screens, the header displays page title and founder avatar only. Secondary actions (export, logout) are accessed via the avatar menu dropdown, not always-visible in the top bar, to preserve screen space for primary content.
+
 **ASSUMPTION:** Availability Calendar and Pause Orders may live within Beranda and/or Pengaturan, but must remain easy to reach.
 
 ### 8.3 Beranda

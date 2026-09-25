@@ -1,5 +1,7 @@
 # Supabase Persistence Implementation Plan
 
+**Status: shipped** — All tasks completed. See [Implementation status](../../implementation-status.md) for evidence (Persistence row, ✅ BUILT). This plan is archived; refer to [dev-workflow.md](../../technical/dev-workflow.md) for local dev setup.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace `app/src/lib/session-store.ts` (browser sessionStorage) with real Supabase Postgres persistence via Drizzle, keeping `app/src/lib/domain/operations.ts` byte-for-byte unchanged, and rewire the 5 UI call sites onto Server Actions.

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Plus, QrCode, ShareNetwork, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Plus, ProhibitInset, QrCode, ShareNetwork, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatRupiah, products, type ProductId } from "@/lib/domain/catalog";
 import type { Fulfillment, Order, State } from "@/lib/domain/operations";
@@ -49,7 +49,7 @@ export function Storefront({ session }: { session: State }) {
   const readyLabel = formatDate(promisedReadyDate(new Date(), session.calendar), "long", locale);
   const placedQty = { milieu: 0, grande: 0, ...Object.fromEntries((placed?.items ?? []).map((item) => [item.productId, item.quantity])) } as Record<ProductId, number>;
 
-  const updateQty = (id: ProductId, delta: number) => setQty((current) => ({ ...current, [id]: Math.max(0, current[id] + delta) }));
+  const updateQty = (id: ProductId, delta: number) => !(paused && delta > 0) && setQty((current) => ({ ...current, [id]: Math.max(0, current[id] + delta) }));
   const field = (key: keyof typeof form) => ({ value: form[key], onChange: (event: { target: { value: string } }) => setForm((current) => ({ ...current, [key]: event.target.value })) });
 
   const toggleRemember = (checked: boolean) => {
@@ -97,17 +97,17 @@ export function Storefront({ session }: { session: State }) {
             <div className={styles.heroCopy}>
               <p>{t("eyebrow")}</p>
               <h1 className="display">{t("heroTitle")}</h1>
-              <span>{t("heroSub")}</span>
+              {!paused && <span>{t("heroSub")}</span>}
             </div>
           </section>
 
           <section className={`${styles.catalog} fade-up-delay`} aria-labelledby="products-title">
-            <div className={styles.promise}>
-              {paused ? <><span>{t("pausedTitle")}</span><strong>{t("pausedSub")}</strong></> : <><span>{t("openForOrders")}</span><strong>{t("readyEstimate", { date: readyLabel })}</strong></>}
+            <div className={`${styles.promise} ${paused ? styles.promisePaused : ""}`} role={paused ? "status" : undefined}>
+              {paused ? <><span><ProhibitInset size={14} weight="bold" aria-hidden="true" /> {t("pausedTitle")}</span><strong>{t("pausedSub")}</strong></> : <><span>{t("openForOrders")}</span><strong>{t("readyEstimate", { date: readyLabel })}</strong></>}
             </div>
             <h2 id="products-title" className="display">{t("catalogTitle")}</h2>
             {products.map((product, index) => (
-              <article className={styles.product} key={product.id}>
+              <article className={`${styles.product} ${paused ? styles.productPaused : ""}`} key={product.id}>
                 <div className={`${styles.productVisual} ${index === 1 ? styles.pouchVisual : ""}`}>
                   <Image src={productImage[product.id]} alt={`${product.name} ${t(`${product.id}Detail`)}`} fill sizes="120px" />
                 </div>
@@ -131,7 +131,7 @@ export function Storefront({ session }: { session: State }) {
                       if (event.key === "ArrowDown") { event.preventDefault(); updateQty(product.id, -1); }
                     }}
                   >{qty[product.id]}</span>
-                  <button className={styles.plus} onClick={() => updateQty(product.id, 1)} aria-label={t("increase", { product: product.name })}><Plus size={16} /></button>
+                  <button className={styles.plus} disabled={paused} onClick={() => updateQty(product.id, 1)} aria-label={t("increase", { product: product.name })}><Plus size={16} /></button>
                 </div>
               </article>
             ))}
@@ -194,7 +194,7 @@ export function Storefront({ session }: { session: State }) {
         </section>
       )}
 
-      {step !== "success" && (step !== "shop" || count > 0) && (
+      {step !== "success" && (step !== "shop" || (count > 0 && !paused)) && (
         <footer className={styles.sticky}>
           <div><ShoppingBag size={22} /><span>{t("itemCount", { count })}</span><strong>{formatRupiah(total)}</strong></div>
           <button key={step} className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder")}<ArrowRight size={18} /></button>

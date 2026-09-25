@@ -3,7 +3,7 @@
 **Document type:** Living specification hub — see topic spokes below for detail
 **Version:** 0.2.0
 **Status:** Working baseline
-**Last updated:** 21 September 2026
+**Last updated:** 25 September 2026
 **Primary market and timezone:** Indonesia · Asia/Jakarta
 **Source:** Decisions and facts captured in the referenced Cheese Stick Micro Business conversation
 

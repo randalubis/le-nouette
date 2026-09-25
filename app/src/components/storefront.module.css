@@ -3,8 +3,7 @@
 .back { border: 0; background: transparent; color: var(--wine-text); width: 44px; height: 44px; display: grid; place-items: center; }
 .wordmark { padding: 12px 0; text-align: center; color: var(--wine-text); font-family: var(--font-display), Georgia, serif; font-weight: 700; letter-spacing: .09em; }
 .locale { justify-self: end; display: flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
-.locale button { position: relative; min-width: 32px; height: 28px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; }
-.locale button::after { content: ""; position: absolute; inset: -8px -2px; }
+.locale button { min-width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; }
 .locale .localeActive { background: var(--wine); color: #fffaf2; }
 .hero { min-height: 420px; position: relative; overflow: hidden; }
 .hero img { object-fit: cover; object-position: 47% 43%; transform: scale(1.08); }
@@ -17,6 +16,10 @@
 .promise { border-left: 3px solid var(--wine); padding: 4px 0 4px 12px; margin-bottom: 28px; display: flex; flex-direction: column; gap: 3px; }
 .promise span { color: var(--green); font-size: 12px; font-weight: 750; }
 .promise strong { font-size: 14px; }
+.promise span { display: inline-flex; align-items: center; gap: 5px; }
+.promisePaused { border-left-color: var(--warn-fg); background: var(--warn-bg); padding: 10px 12px; border-radius: 0 10px 10px 0; }
+.promisePaused span { color: var(--warn-fg); font-size: 13px; }
+.productPaused { opacity: .6; filter: grayscale(.5); }
 .catalog > h2 { font-size: 31px; letter-spacing: -.025em; margin: 0 0 18px; }
 .product { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 18px; min-height: 190px; padding: 16px; margin-bottom: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: 0 12px 30px rgba(87,38,36,.06); }
 .productVisual { position: relative; overflow: hidden; border-radius: 14px; background: var(--sunken); }

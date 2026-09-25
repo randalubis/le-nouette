@@ -55,7 +55,7 @@ Fields:
 
 **LOCKED:** The order note is intended for short practical instructions such as "Titip di resepsionis." It is visible to founders but does not alter fulfillment scheduling, reservations, material calculations, or packing-batch quantities.
 
-Show the calculated ready date before the customer submits the order. Display order items, total, and **Bayar saat pesanan diterima**. Primary action: **Buat Pesanan · Rp…**
+Show the calculated ready date before the customer submits the order. Display order items, total, and **Bayar saat pesanan diterima**. Primary action: **Buat Pesanan** (price shown in summary above, not in button label for mobile fit).
 
 #### Screen 3 — Confirmation
 

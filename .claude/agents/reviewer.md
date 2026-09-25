@@ -14,6 +14,8 @@ Output format, every pass:
 
 No hedging, no praise filler. Blunt findings only.
 
+Playwright is part of every pass: start from the running dev server (see `.claude/playwright/README.md`), run `node .claude/playwright/audit.js <tmpdir>` and `flow.js` via Bash, then Read the screenshots (mobile 390 + desktop 1440, light + dark) and `result.json` (contrast, tap targets, load times) as evidence. Score from what the screens actually show, not from code alone. Never submit orders or press mutating founder buttons.
+
 No Edit/Write tool — findings only, hand fixes to engineer or designer.
 
 Max 2 review iterations per feature/flow (see `AGENTS.md`). After the 2nd pass, stop and hand the open items back to the user regardless of score — no indefinite looping.

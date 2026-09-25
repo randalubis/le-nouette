@@ -2,7 +2,7 @@
 
 **Version:** 0.2.0
 **Status:** Proposed implementation baseline — hub, see topic spokes below for detail
-**Last updated:** 21 September 2026
+**Last updated:** 25 September 2026
 **Business authority:** [`docs/product-spec.md`](./product-spec.md)
 **Timezone:** `Asia/Jakarta`
 
@@ -45,6 +45,7 @@ These labels describe **decision confidence**, not build status. For what's actu
 | Spoke | Covers |
 |---|---|
 | [Architecture](./technical/architecture.md) | System boundaries, high-level architecture, domain relationship map (ER diagram), data conventions (§2–5) |
+| [Development Workflow](./technical/dev-workflow.md) | Persona loop (engineer→reviewer→docs), Playwright audit kit, startup checklist, pre-commit gate, local Founder OS login, shared-database safety (local dev setup guide) |
 | [Core Data Model](./technical/data-model.md) | Full field-level schema for all 18 tables, plus derived values and required invariants (§6–7) |
 | [Fulfillment Scheduling Engine](./technical/scheduling-engine.md) | Weekday mapping, availability evaluation, new-order algorithm, checkout cutoff, date blocking, Pause Orders (§8) |
 | [Order, Inventory, and Payment Workflows](./technical/workflows.md) | Order lifecycle, inventory workflows, payment workflow, failure handling (§9–11, 18) |

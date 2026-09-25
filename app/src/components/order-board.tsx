@@ -59,7 +59,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
   return (
     <>
       <div className={styles.orderToolbar}>
-        <div className={styles.tabs} role="tablist">
+        <div className={`${styles.tabs} ${styles.chips}`} role="tablist">
           {tabs.map(({ status, title }) => (
             <button key={status} role="tab" aria-selected={tab === status} className={tab === status ? styles.tabActive : ""} onClick={() => changeTab(status)}>
               {title} <span className={styles.tabCount}>{session.orders.filter((order) => order.status === status).length}</span>
