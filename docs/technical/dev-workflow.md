@@ -84,12 +84,17 @@ From `.claude/startup-check.sh`:
 
 | Check | Failure reason | Fix |
 |---|---|---|
-| Plugins enabled | caveman, ponytail, superpowers, frontend-design, playwright, vercel not found in user + project settings | `/plugin`, enable each, restart |
+| Plugins enabled (1) | caveman, ponytail, superpowers, frontend-design, playwright, vercel, supabase not found in user + project settings | `/plugin`, enable each, restart |
+| Plugin LOAD check (1b) | Plugin installed but install directory missing, or ships no skills/hooks/commands/.mcp.json | Reinstall via `/plugin install <plugin-name>` |
 | Project agents exist and resolve | `.claude/agents/{engineer,designer,reviewer,docs}.md` missing, or frontmatter `name:` is not `le-nouette-<role>` (so `agentType` would not resolve) | Repo should have these; fix the frontmatter name |
 | Git hooks active | `core.hooksPath` not set to `.githooks` | `git config core.hooksPath .githooks` |
 | Playwright kit present | `.claude/playwright/audit.js`, `/flow.js` missing | Repo should have these; check git status |
 | Playwright executable | module or Chrome not found | Set `PLAYWRIGHT_PATH`, `CHROME_PATH` if custom install |
+| Next.js bundled docs (1c) | `app/node_modules/next/dist/docs` missing | `cd app && npm install` (app/AGENTS.md requires reading Next docs before writing code) |
 | .env.local exists | Missing local database config | Create `app/.env.local` with `DATABASE_URL=...` |
+| Dev server info (1d) | Dev server status; does not fail | Run `npm run dev` from `app/` when needed |
+| Database reachable (1d) | Cannot connect to DATABASE_URL or store_status query fails | Check DATABASE_URL in `app/.env.local`, network, `node_modules` |
+| Store status (1d) | Database reachable; store status unknown, PAUSED, or other | `[warn]` if PAUSED (DB shared with production); check Founder OS > Kalender to reopen |
 | MCP servers online | plugin:playwright, plugin:supabase, plugin:vercel report offline | Rare; usually self-heal. Restart Claude. |
 | Playwright MCP Chrome stale | PID reported but not used | Kill: `pkill -f ms-playwright-mcp/mcp-chrome` |
 
@@ -97,7 +102,14 @@ The checklist warns (does not block); check [RED] items before starting work. cl
 
 ### 3.1a What it injects into the session
 
-Besides the `[ok]/[RED]/[warn]/[info]` lines, the hook injects the persona workflow (engineer/designer, then reviewer running the Playwright kit, iterate, at most two review passes, docs persona after every change, tsc/tests/lint/build, commit and push), the rule to pass `le-nouette-*` names as `agentType`, and the guardrail to never mutate the shared production database in tests. The first reply of a session reports any `[RED]` item in one line.
+Besides the `[ok]/[RED]/[warn]/[info]` lines, the hook injects the persona workflow (engineer/designer, then reviewer running the Playwright kit, iterate, at most two review passes, docs persona after every change, tsc/tests/lint/build, commit and push), the rule to pass `le-nouette-*` names as `agentType`, and the guardrail to never mutate the shared production database in tests.
+
+New checks added in 0.3.2:
+- **1b (Plugin LOAD check):** Verifies each required plugin is installed in `~/.claude/plugins/` with a valid install directory and ships at least one of: `skills/`, `hooks/`, `commands/`, `agents/`, `.mcp.json`, `.claude-plugin`. Prevents "plugin listed but not actually loaded" surprises. Cannot auto-install; run `/plugin install <name>` if missing.
+- **1c (Next.js bundled docs):** Checks `app/node_modules/next/dist/docs` exists (reminder to read it per `app/AGENTS.md`). Run `npm install` in `app/` if missing.
+- **1d (Dev server + database):** Checks dev server running on :3000 (info only), database connectivity via DATABASE_URL, and live store status from `store_status` table. Store PAUSED triggers `[warn]` (DB is shared with production); unknown status or connection errors trigger `[RED]`.
+
+The first reply of a session reports any `[RED]` item in one line.
 
 ### 3.2 Keep plugin/MCP lists in sync
 
