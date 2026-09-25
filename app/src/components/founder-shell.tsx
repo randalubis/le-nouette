@@ -17,6 +17,13 @@ const exportLinks = [
   ["inventory-movements", "Mutasi stok"], ["inventory-balances", "Saldo stok"], ["ready-movements", "Mutasi produk siap"], ["ready-balances", "Saldo produk siap"], ["availability", "Kalender"],
 ] as const;
 
+const exportItems = (
+  <>
+    <a href="/founder/export/xlsx">Semua data (XLSX)</a>
+    {exportLinks.map(([key, label]) => <a key={key} href={`/founder/export/csv?dataset=${key}`}>{label} (CSV)</a>)}
+  </>
+);
+
 export function FounderShell({ active, title, subtitle, children }: { active: string; title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className={styles.app}>
@@ -29,14 +36,23 @@ export function FounderShell({ active, title, subtitle, children }: { active: st
         <header className={styles.topbar}>
           <div><h1>{title}</h1><p>{subtitle}</p></div>
           <div className={styles.topActions}>
-            <ExportMenu>
-              <summary className="btn"><span className={styles.exportLong}>Unduh Data Bisnis</span><span className={styles.exportShort} aria-hidden="true">Unduh</span></summary>
-              <div className={styles.exportList}>
-                <a href="/founder/export/xlsx">Semua data (XLSX)</a>
-                {exportLinks.map(([key, label]) => <a key={key} href={`/founder/export/csv?dataset=${key}`}>{label} (CSV)</a>)}
-              </div>
-            </ExportMenu>
-            <LogoutButton /><span className={styles.avatar}>HS</span></div>
+            <div className={styles.deskActions}>
+              <ExportMenu>
+                <summary className="btn"><span className={styles.exportLong}>Unduh Data Bisnis</span><span className={styles.exportShort} aria-hidden="true">Unduh</span></summary>
+                <div className={styles.exportList}>{exportItems}</div>
+              </ExportMenu>
+              <LogoutButton /><span className={styles.avatar}>HS</span>
+            </div>
+            <div className={styles.mobileMenu}>
+              <ExportMenu>
+                <summary className={styles.avatar} aria-label="Menu akun dan unduh data">HS</summary>
+                <div className={styles.exportList}>
+                  {exportItems}
+                  <div className={styles.menuLogout}><LogoutButton /></div>
+                </div>
+              </ExportMenu>
+            </div>
+          </div>
         </header>
         <main className={styles.content}>{children}</main>
       </div>

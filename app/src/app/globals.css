@@ -5,7 +5,7 @@
   --cream: #fffaf2;
   --paper: #f7efe4;
   --ink: #2f1c1c;
-  --muted: #746564;
+  --muted: #665857;
   --line: #e5d5c7;
   --green: #31745b;
   --amber: #a86712;
@@ -43,6 +43,7 @@ button { cursor: pointer; }
 .btn-primary { background: var(--wine); color: #fffaf2; }
 .btn-primary:hover { background: var(--wine-deep); }
 .btn-secondary { background: transparent; color: var(--wine-text); border-color: var(--wine); }
+.btn:disabled { background: var(--sunken); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
 .btn-quiet { background: var(--cream); border-color: var(--line); color: var(--ink); }
 .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--cream); display: grid; place-items: center; color: var(--wine-text); }
 .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { WarningCircle } from "@phosphor-icons/react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products, SUPPLIER_PACK, type ItemId, type ProductId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
@@ -83,6 +83,9 @@ function ReadyToSell({ session }: { session: op.State }) {
 
 export function StockBoard({ session }: { session: op.State }) {
   const [draft, setDraft] = useState<Partial<Record<ItemId, string>>>({});
+  // Desktop shows every stock form; older browsers lack ::details-content, so force open via JS.
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => { const mq = window.matchMedia("(min-width: 901px)"); const sync = () => setDesktop(mq.matches); sync(); mq.addEventListener("change", sync); return () => mq.removeEventListener("change", sync); }, []);
   const [message, setMessage] = useState<{ id: ItemId; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -108,13 +111,17 @@ export function StockBoard({ session }: { session: op.State }) {
               <div className={styles.stockCardTop}><h3>{item.name}</h3>{low ? <span className="status status-warning"><WarningCircle size={13} /> Rendah</span> : <span className="status status-safe">Aman</span>}</div>
               <div className={styles.stockValue}>{formatQuantity(item.id, item.available)}</div>
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
+              <details className={styles.stockMore} open={low || desktop}>
+                <summary>Ubah stok</summary>
               <div className={styles.cardActions}>
                 <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Pak supplier (225 g)" : "Pcs"} step={item.id === "raw_cheese" ? "any" : 1} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />
                 <button className="btn btn-quiet" disabled={!value || isPending} onClick={() => act(item.id, () => receiveStockAction(item.id, toStored(item.id, value)))}>Terima stok</button>
                 <button className="btn btn-quiet" disabled={value === "" || isPending} onClick={() => act(item.id, () => stockOpnameAction(item.id, toStored(item.id, value)))}>Hasil opname</button>
+                {value === "" && <p className={styles.hint}>Isi jumlah dulu</p>}
               </div>
               {message?.id === item.id && <p role="alert" className={styles.hint}>{message.text}</p>}
               <div className={styles.stockFooter}><span>Ambang {formatQuantity(item.id, item.threshold)}</span></div>
+              </details>
             </article>
           );
         })}
@@ -219,7 +226,7 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
         >
           <input className={styles.search} type="date" min={today()} aria-label="Tanggal" value={date} onChange={(event) => setDate(event.target.value)} />
           <select className={styles.search} aria-label="Jenis" value={status} onChange={(event) => setStatus(event.target.value as DateStatus)}><option value="HOLIDAY">Libur nasional</option><option value="UNAVAILABLE">Tidak tersedia</option></select>
-          {affected.length === 0 && <button className="btn btn-primary" disabled={!date} onClick={block}>Tutup tanggal</button>}
+          {affected.length === 0 && <button className={`btn btn-primary ${styles.noGrow}`} disabled={!date} onClick={block}>Tutup tanggal</button>}
         </ActionCard>
       </div>
 

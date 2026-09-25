@@ -69,7 +69,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
         <input className={styles.search} type="search" aria-label="Cari pesanan" placeholder="Cari nama atau nomor pesanan" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
 
-      <div className={styles.tabs} role="group" aria-label="Filter tujuan">
+      <div className={`${styles.tabs} ${styles.chips}`} role="group" aria-label="Filter tujuan">
         <button aria-pressed={fulfillment === "ALL"} className={fulfillment === "ALL" ? styles.tabActive : ""} onClick={() => setFulfillment("ALL")}>Semua</button>
         {(Object.keys(placeLabel) as op.Fulfillment[]).map((id) => (
           <button key={id} aria-pressed={fulfillment === id} className={fulfillment === id ? styles.tabActive : ""} onClick={() => setFulfillment(id)}>{placeLabel[id]}</button>

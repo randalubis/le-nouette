@@ -33,7 +33,7 @@ export function Storefront({ session }: { session: State }) {
     if (!navigator.share) return fallback();
     try { await navigator.share({ title: "Le Nouette", text, url }); } catch (e) { if ((e as Error).name !== "AbortError") fallback(); }
   }
-  const [qty, setQty] = useState<Record<ProductId, number>>({ milieu: 1, grande: 0 });
+  const [qty, setQty] = useState<Record<ProductId, number>>({ milieu: 0, grande: 0 });
   const [fulfillment, setFulfillment] = useState<Fulfillment>("PICKUP_MANDIRI");
   const [remembered] = useState(() => (typeof window === "undefined" ? null : readRemembered()));
   const [form, setForm] = useState({ name: remembered?.name ?? "", whatsapp: remembered?.whatsapp ?? "", address: "", note: "" });
@@ -70,7 +70,7 @@ export function Storefront({ session }: { session: State }) {
   };
 
   const startOver = () => {
-    setQty({ milieu: 1, grande: 0 });
+    setQty({ milieu: 0, grande: 0 });
     setForm((current) => ({ ...current, address: "", note: "" }));
     setPlaced(null);
     setShowQris(false);
@@ -194,10 +194,10 @@ export function Storefront({ session }: { session: State }) {
         </section>
       )}
 
-      {step !== "success" && (
+      {step !== "success" && (step !== "shop" || count > 0) && (
         <footer className={styles.sticky}>
           <div><ShoppingBag size={22} /><span>{t("itemCount", { count })}</span><strong>{formatRupiah(total)}</strong></div>
-          <button key={step} className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder", { total: formatRupiah(total) })}<ArrowRight size={18} /></button>
+          <button key={step} className="btn btn-primary" disabled={count === 0 || paused || pending} type={step === "shop" ? "button" : "submit"} form={step === "shop" ? undefined : "checkout"} onClick={step === "shop" ? () => setStep("details") : undefined}>{step === "shop" ? t("continue") : t("placeOrder")}<ArrowRight size={18} /></button>
         </footer>
       )}
     </main>

@@ -19,30 +19,35 @@ export function DashboardSummary({ session }: { session: op.State }) {
   const revenue = session.orders.filter((o) => o.status !== "CANCELLED" && jakartaNow(new Date(o.createdAt)).date.startsWith(month)).reduce((sum, o) => sum + o.total, 0);
   const lowStock = op.balances(session).filter((item) => item.available < item.threshold);
   const nextBatch = op.pendingBatchDates(session)[0];
+  const unpaidReady = unpaid.filter((o) => o.status === "READY_FOR_HANDOVER");
+  const allClear = active.length === 0 && lowStock.length === 0 && unpaidReady.length === 0;
 
   return (
     <>
       {session.storeStatus === "PAUSED" && <p className={`status status-danger ${styles.banner}`}><WarningCircle size={15} /> Pemesanan sedang dijeda. <Link href="/founder/availability">Buka kalender</Link></p>}
-      <section className={styles.metricGrid}>
+      {allClear ? <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua beres hari ini</p> : <section className={styles.metricGrid}>
         <MetricCard href="/founder/orders" label="Pesanan aktif" value={active.length} hint={`${active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan`} />
         <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan tidak dibatalkan" />
         <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`${unpaid.length} pesanan · lihat piutang`} alert={unpaid.length > 0} />
         <MetricCard href="/founder/availability" label="Batch packing berikutnya" value={nextBatch ? formatDate(nextBatch, "short") : "—"} hint="Cut-off harian 18.00 WIB" />
-      </section>
+      </section>}
 
       <section className={styles.dashboardGrid}>
-        <article className={styles.panel}>
+        {!allClear && <article className={styles.panel}>
           <div className={styles.panelHeader}><div><h2>Perlu perhatian</h2><p>Tindakan yang disarankan hari ini</p></div></div>
           <div className={styles.attentionList}>
-            {lowStock.map((item) => (
+            {lowStock.length > 2 && (
+              <div className={styles.attention}><Link href="/founder/stock"><strong><WarningCircle size={16} /> {lowStock.length} bahan di bawah ambang</strong></Link><span>{lowStock.map((item) => `${item.name} ${formatQuantity(item.id, item.available)}`).join(" · ")}</span><span className="status status-warning">Pesan ulang</span></div>
+            )}
+            {lowStock.length <= 2 && lowStock.map((item) => (
               <div className={styles.attention} key={item.id}><Link href="/founder/stock"><strong><WarningCircle size={16} /> {item.name} di bawah ambang</strong></Link><span>{formatQuantity(item.id, item.available)} tersedia setelah reservasi</span><span className={`status ${item.available < 0 ? "status-danger" : "status-warning"}`}>Pesan ulang</span></div>
             ))}
-            {unpaid.filter((o) => o.status === "READY_FOR_HANDOVER").map((o) => (
+            {unpaidReady.map((o) => (
               <div className={styles.attention} key={o.id}><Link href="/founder/orders?tab=READY_FOR_HANDOVER"><strong>Pembayaran {o.id}</strong></Link><span>{o.fulfillment === "DELIVERY" ? "Wajib lunas sebelum dikirim" : "Jatuh tempo saat serah terima"}</span><span className="status status-danger">{formatRupiah(op.receivable(o))}</span></div>
             ))}
-            {lowStock.length === 0 && !unpaid.some((o) => o.status === "READY_FOR_HANDOVER") && <p className={styles.empty}>Tidak ada yang mendesak.</p>}
+            {lowStock.length === 0 && unpaidReady.length === 0 && <p className={styles.empty}>Tidak ada yang mendesak.</p>}
           </div>
-        </article>
+        </article>}
         <PackingPanel session={session} />
       </section>
     </>
