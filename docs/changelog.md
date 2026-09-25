@@ -8,6 +8,7 @@ Merged, deduplicated history from the former `le-nouette-product-operating-speci
 
 - **Recipe change:** Milieu cheese requirement reversed to **exactly 125 g per jar**, replacing the previous 95%-yield rule (131.58 g). Rationale: raw cheese is one pooled stock; 5 supplier packs (1,125 g) now yield exactly 9 Milieu jars. No remainder is modeled or tracked. All affected doc sections updated (products-and-economics, inventory-model, scope-and-decisions, workflows, architecture, acceptance-tests, data-model); COGS estimates recalculated.
 - Removed 'Lihat di Founder OS' link from the buyer success screen; order confirmation remains actionable through Founder OS independently.
+- **Stok raw cheese entered in supplier packs:** Terima stok and Hasil opname on the Stok page take supplier packs (225 g each, decimals allowed for a part-used pack) instead of grams; balances display as packs with the gram equivalent. Storage is unchanged (centigrams).
 
 ### 0.3.0 — 24 September 2026
 

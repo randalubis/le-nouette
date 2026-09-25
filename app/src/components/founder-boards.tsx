@@ -2,7 +2,7 @@
 
 import { WarningCircle } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
-import { formatQuantity, formatRupiah, products, type ItemId, type ProductId } from "@/lib/domain/catalog";
+import { formatQuantity, formatRupiah, products, SUPPLIER_PACK, type ItemId, type ProductId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
 import { itemsLabel } from "@/components/order-board";
@@ -14,8 +14,8 @@ import styles from "./founder.module.css";
 
 const today = () => jakartaNow(new Date()).date;
 
-// Raw cheese is entered in grams; everything else in pieces.
-const toStored = (item: ItemId, input: string) => Math.round(Number(input) * (item === "raw_cheese" ? 100 : 1));
+// Raw cheese is entered in supplier packs (225 g each, decimals allowed for a part-used pack); everything else in pieces.
+const toStored = (item: ItemId, input: string) => Math.round(Number(input) * (item === "raw_cheese" ? SUPPLIER_PACK : 1));
 
 function ReadyToSell({ session }: { session: op.State }) {
   const [product, setProduct] = useState<ProductId>("milieu");
@@ -109,7 +109,7 @@ export function StockBoard({ session }: { session: op.State }) {
               <div className={styles.stockValue}>{formatQuantity(item.id, item.available)}</div>
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
               <div className={styles.cardActions}>
-                <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Gram" : "Pcs"} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />
+                <input className={styles.search} style={{ minWidth: 0, flex: "1 1 100%" }} type="number" min={0} inputMode="decimal" aria-label={`Jumlah ${item.name}`} placeholder={item.id === "raw_cheese" ? "Pak supplier (225 g)" : "Pcs"} step={item.id === "raw_cheese" ? "any" : 1} value={value} onChange={(event) => setDraft((current) => ({ ...current, [item.id]: event.target.value }))} />
                 <button className="btn btn-quiet" disabled={!value || isPending} onClick={() => act(item.id, () => receiveStockAction(item.id, toStored(item.id, value)))}>Terima stok</button>
                 <button className="btn btn-quiet" disabled={value === "" || isPending} onClick={() => act(item.id, () => stockOpnameAction(item.id, toStored(item.id, value)))}>Hasil opname</button>
               </div>

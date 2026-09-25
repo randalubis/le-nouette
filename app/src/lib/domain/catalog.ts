@@ -27,5 +27,5 @@ export const formatRupiah = (value: number) => `Rp${new Intl.NumberFormat("id-ID
 
 export const formatQuantity = (item: ItemId, quantity: number) =>
   item === "raw_cheese"
-    ? `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(quantity / 100)}g`
+    ? `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(quantity / SUPPLIER_PACK)} pak (${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(quantity / 100)} g)`
     : `${quantity} pcs`;
