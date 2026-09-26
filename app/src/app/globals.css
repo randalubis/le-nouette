@@ -43,7 +43,8 @@ button { cursor: pointer; }
 .btn-primary { background: var(--wine); color: #fffaf2; }
 .btn-primary:hover { background: var(--wine-deep); }
 .btn-secondary { background: transparent; color: var(--wine-text); border-color: var(--wine); }
-.btn:disabled { background: var(--sunken); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
+/* Disabled: flat sunken fill, dashed border, muted label (5.4:1 light / high dark) — still reads as a button, clearly inert. */
+button.btn:disabled { background: var(--sunken); color: var(--muted); border: 1px dashed var(--muted); cursor: not-allowed; transform: none; }
 .btn-quiet { background: var(--cream); border-color: var(--line); color: var(--ink); }
 .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--cream); display: grid; place-items: center; color: var(--wine-text); }
 .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -56,7 +57,7 @@ button { cursor: pointer; }
     --canvas: #211719; --surface: #2b1e20; --sunken: #34282a; --sunken-green: #24342d; --sunken-neutral: #2d2c28;
     --alert-bg: #4a2226; --alert-line: #7a3a3f; --wine-text: #f0a6a3;
     --danger-bg: #4a2226; --danger-fg: #f4b4ae; --safe-bg: #1f3a2e; --safe-fg: #9fd8bb;
-    --warn-bg: #43321a; --warn-fg: #f0c77f; --neutral-bg: #3a2e2f; --neutral-fg: #d2c3be; }
+    --warn-bg: #43321a; --warn-fg: #f0c77f; --neutral-bg: #3a2e2f; --neutral-fg: #d2c3be; --green: #6fc29d; }
   html { color-scheme: dark; }
 }
 @media (prefers-reduced-motion: no-preference) {

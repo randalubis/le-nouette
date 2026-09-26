@@ -92,7 +92,7 @@ export function Storefront({ session }: { session: State }) {
       {step === "shop" && (
         <>
           <section className={`${styles.hero} fade-up`}>
-            <Image src="/le-nouette/hero.png" alt="Le Nouette cheese sticks" fill priority sizes="(max-width: 760px) 100vw, 760px" />
+            <Image src="/le-nouette/hero.png" alt="Le Nouette cheese sticks" fill priority quality={60} sizes="(max-width: 760px) 100vw, 760px" />
             <div className={styles.heroShade} />
             <div className={styles.heroCopy}>
               <p>{t("eyebrow")}</p>
@@ -109,7 +109,7 @@ export function Storefront({ session }: { session: State }) {
             {products.map((product, index) => (
               <article className={`${styles.product} ${paused ? styles.productPaused : ""}`} key={product.id}>
                 <div className={`${styles.productVisual} ${index === 1 ? styles.pouchVisual : ""}`}>
-                  <Image src={productImage[product.id]} alt={`${product.name} ${t(`${product.id}Detail`)}`} fill sizes="120px" />
+                  <Image src={productImage[product.id]} alt={`${product.name} ${t(`${product.id}Detail`)}`} fill quality={60} sizes="120px" />
                 </div>
                 <div className={styles.productCopy}>
                   <h3 className="display">{product.name}</h3>
@@ -182,7 +182,7 @@ export function Storefront({ session }: { session: State }) {
           {showQris ? (
             <div className={styles.qris}>
               <strong>{t("qrisTitle")}</strong>
-              <Image className={styles.qrisCode} src="/le-nouette/qris.jpg" alt={t("qrisTitle")} width={1135} height={1600} />
+              <Image className={styles.qrisCode} src="/le-nouette/qris.jpg" alt={t("qrisTitle")} width={1135} height={1600} sizes="280px" />
               <p>{t("qrisNote")}</p>
             </div>
           ) : (
