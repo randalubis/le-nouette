@@ -28,12 +28,58 @@ Potential messages:
 - Failure to open WhatsApp must never roll back or block the underlying order, payment, packing, or rescheduling transaction.
 - Do not integrate WhatsApp Business API, automated delivery, webhooks, chatbot behavior, retries, or delivery-status tracking in V1.
 
-**Implementation: 🚧 PARTIAL (4 of 5 kinds built)** — `app/src/lib/domain/whatsapp.ts` provides `toWaNumber()` (normalizes 0812…/+62…/62… to 62…), `waMessage(kind, order)`, and `waLink(kind, order)` pure functions. Kind selection via `waKindFor(order)`: COMPLETED → null (no message), CANCELLED → "cancelled", READY_FOR_HANDOVER → "ready", currentReadyDate !== promisedReadyDate → "rescheduled", else "confirmation". Bahasa Indonesia only (no customer-language field in V1). Founder OS order board renders **Kirim WhatsApp** link (full-width row with icon) when not COMPLETED and number valid; invalid number shows muted "Nomor WA tidak valid" instead. Payment-reminder kind not built (deferred). Message templates (items as "quantity × name", no "Kakak", handles blank firstName):
+**Implementation: 🚧 PARTIAL (4 of 5 kinds built)** — `app/src/lib/domain/whatsapp.ts` provides `toWaNumber()` (normalizes 0812…/+62…/62… to 62…), `waMessage(kind, order)`, and `waLink(kind, order)` pure functions. Kind selection via `waKindFor(order)`: COMPLETED → null (no message), CANCELLED → "cancelled", READY_FOR_HANDOVER → "ready", currentReadyDate !== promisedReadyDate → "rescheduled", else "confirmation". Bahasa Indonesia only (no customer-language field in V1). Founder OS order board renders **Kirim WhatsApp** link (full-width row with icon) when not COMPLETED and number valid; invalid number shows muted "Nomor WA tidak valid" instead. Payment-reminder kind not built (deferred). Message templates use multi-line format (paragraphs separated by blank lines) with order details as a block:
 
-- **confirmation:** `{greeting} Terima kasih sudah memesan! Pesanan {orderId}: {items}. Total {total}. Siap {date}. {place} {paymentMsg}` — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan di Kantor [BI/Mandiri]." — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer."
-- **ready:** `{greeting} Pesanan {orderId} sudah siap{fulfillment}. {items}. Total {total}.{receivable} Terima kasih!` — fulfillment: " dan segera kami antar" for DELIVERY, " untuk diambil" for pickup — receivable: " Sisa pembayaran {amount}." if > 0
-- **rescheduled:** `{greeting} Mohon maaf, jadwal pesanan {orderId} berubah. Pesanan kini siap {date}. {items}. Total {total}. Terima kasih atas pengertiannya!`
-- **cancelled:** `{greeting} Mohon maaf, pesanan {orderId} kami batalkan.{refund} Terima kasih atas pengertiannya, semoga bisa melayani lain waktu.` — refund: " Pembayaran {amount} akan kami kembalikan, kami hubungi untuk pengembaliannya." if paid > 0
+- **confirmation:**
+  ```
+  Halo [first], ini Le Nouette.
+  
+  Terima kasih sudah memesan! Pesanan *LN-0001*
+  • 1 × Milieu 125g
+  • 2 × Grande 250g
+  Total: Rp 45.000
+  Siap: 2 Oktober 2026
+  Pesanan akan kami antar ke Jl. Gatot Subroto 123.
+  
+  Pembayaran sudah kami terima, terima kasih!
+  ```
+  — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan di Kantor [BI/Mandiri]." — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer."
+
+- **ready:**
+  ```
+  Pesanan *LN-0001* sudah siap dan segera kami antar.
+  
+  • 1 × Milieu 125g
+  • 2 × Grande 250g
+  Total: Rp 45.000
+  
+  Sisa pembayaran Rp 5.000.
+  
+  Terima kasih!
+  ```
+  — fulfillment in intro: " dan segera kami antar" for DELIVERY, " untuk diambil" for pickup — receivable paragraph included only if > 0
+
+- **rescheduled:**
+  ```
+  Mohon maaf, jadwal pesanan *LN-0001* berubah.
+  
+  • 1 × Milieu 125g
+  • 2 × Grande 250g
+  Total: Rp 45.000
+  Kini siap: 3 Oktober 2026
+  
+  Terima kasih atas pengertiannya!
+  ```
+
+- **cancelled:**
+  ```
+  Mohon maaf, pesanan *LN-0001* kami batalkan.
+  
+  Pembayaran Rp 45.000 akan kami kembalikan, kami hubungi untuk pengembaliannya.
+  
+  Terima kasih atas pengertiannya, semoga bisa melayani lain waktu.
+  ```
+  — refund paragraph included only if paid > 0
 
 See [implementation-status.md](../implementation-status.md).
 

@@ -22,24 +22,40 @@ export function waKindFor(order: Order): WaKind | null {
 const place = (o: Order) =>
   o.fulfillment === "DELIVERY" ? `Pesanan akan kami antar${o.address ? ` ke ${o.address}` : ""}.` : `Pengambilan di Kantor ${o.fulfillment === "PICKUP_BI" ? "BI" : "Mandiri"}.`;
 
+/** Paragraphs are separated by a blank line so the message reads well in WhatsApp; *x* is WhatsApp bold. */
 export function waMessage(kind: WaKind, order: Order): string {
   const first = order.customer.name.trim().split(/\s+/)[0];
-  const items = order.items.map((i) => `${i.quantity} × ${i.name}`).join(", ");
-  const date = formatDate(order.currentReadyDate);
   const head = first ? `Halo ${first}, ini Le Nouette.` : "Halo, ini Le Nouette.";
-  const summary = `${items}. Total ${formatRupiah(order.total)}.`;
+  const details = (when?: string, title = true) =>
+    [
+      ...(title ? [`Pesanan *${order.id}*`] : []),
+      ...order.items.map((i) => `• ${i.quantity} × ${i.name}`),
+      `Total: ${formatRupiah(order.total)}`,
+      ...(when ? [`${when}: ${formatDate(order.currentReadyDate)}`] : []),
+    ].join("\n");
   const due = receivable(order);
   const paid = amountPaid(order);
+  const paragraphs: string[] = [head];
   switch (kind) {
     case "confirmation":
-      return `${head} Terima kasih sudah memesan! Pesanan ${order.id}: ${summary} Siap ${date}. ${place(order)} ${isPaid(order) ? "Pembayaran sudah kami terima, terima kasih!" : "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer."}`;
+      paragraphs.push("Terima kasih sudah memesan!", `${details("Siap")}\n${place(order)}`);
+      paragraphs.push(isPaid(order) ? "Pembayaran sudah kami terima, terima kasih!" : "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer.");
+      break;
     case "ready":
-      return `${head} Pesanan ${order.id} sudah siap${order.fulfillment === "DELIVERY" ? " dan segera kami antar" : " untuk diambil"}. ${summary}${due > 0 ? ` Sisa pembayaran ${formatRupiah(due)}.` : ""} Terima kasih!`;
+      paragraphs.push(`Pesanan *${order.id}* sudah siap${order.fulfillment === "DELIVERY" ? " dan segera kami antar" : " untuk diambil"}.`, details(undefined, false));
+      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}.`);
+      paragraphs.push("Terima kasih!");
+      break;
     case "rescheduled":
-      return `${head} Mohon maaf, jadwal pesanan ${order.id} berubah. Pesanan kini siap ${date}. ${summary} Terima kasih atas pengertiannya!`;
+      paragraphs.push(`Mohon maaf, jadwal pesanan *${order.id}* berubah.`, details("Kini siap", false), "Terima kasih atas pengertiannya!");
+      break;
     case "cancelled":
-      return `${head} Mohon maaf, pesanan ${order.id} kami batalkan.${paid > 0 ? ` Pembayaran ${formatRupiah(paid)} akan kami kembalikan, kami hubungi untuk pengembaliannya.` : ""} Terima kasih atas pengertiannya, semoga bisa melayani lain waktu.`;
+      paragraphs.push(`Mohon maaf, pesanan *${order.id}* kami batalkan.`);
+      if (paid > 0) paragraphs.push(`Pembayaran ${formatRupiah(paid)} akan kami kembalikan, kami hubungi untuk pengembaliannya.`);
+      paragraphs.push("Terima kasih atas pengertiannya, semoga bisa melayani lain waktu.");
+      break;
   }
+  return paragraphs.join("\n\n");
 }
 
 export function waLink(kind: WaKind, order: Order): string | null {
