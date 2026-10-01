@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.9.1 — 1 October 2026
+
+- **Auth/permission acceptance tests (§19.6/19.7):** DB-free tests for `checkCredentials`, `proxy()` redirects and matcher, export route gates (401 before any DB call, 400 for an unknown CSV dataset), no secret-like export columns, order price/recipe snapshot after catalog edits, and idempotent order retry. No behaviour change; the export routes' pre-DB checks moved into `app/src/lib/export-guard.ts` and `proxy.ts` imports are relative (`./lib/founder-auth.ts`, `next/server.js`) so they run under `node --test`. Items 43–44 recorded as not implemented.
+
 ### 0.9.0 — 1 October 2026
 
 - **Referral capture on order success:** One-time native HTML `<dialog>` on the order success screen (Screen 3), asking "Siapa yang memperkenalkan Le Nouette ke kamu?" with chips for Teman, keluarga, Instagram, WhatsApp, Lainnya, plus optional name/account field (max 60 chars, control chars stripped). Dialog dismissible by selection, Lewati (skip), or Escape; shown once per phone number via localStorage key `le-nouette:referral-asked`. Public server action `saveReferralAction({id, token, source, name})` verifies the order's public_token (same lookup as customer order tracking), validates the source enum, and records the referral as set-once (no overwrite); returns `{error}` on validation failure. New nullable columns: `orders.referral_source` (enum) and `orders.referral_name` (text). Founder order card displays referral when present. CSV/XLSX exports include referral columns. Migration: `app/drizzle/0003_referral.sql`. Implementation: `app/src/lib/referral.ts`, `app/src/components/storefront.tsx` (Screen 3 dialog), `app/src/components/order-board.tsx` (card display), `app/src/lib/db/schema.ts`.

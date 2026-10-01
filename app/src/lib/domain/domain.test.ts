@@ -225,3 +225,25 @@ test("setReferral: valid, trimmed, limited, guarded", () => {
   assert.throws(() => op.setReferral(s, id, "tok-r1", "TIKTOK", ""), op.DomainError);
   assert.throws(() => op.setReferral(ok, id, "tok-r1", "INSTAGRAM", "z"), op.DomainError);
 });
+
+test("§19.7 (46) same idempotency key returns the same order, one order created", () => {
+  const once = op.createOrder(op.emptyState(), order({ idempotencyKey: "retry" }), wib("2026-09-14"));
+  const twice = op.createOrder(once, order({ idempotencyKey: "retry" }), wib("2026-09-14"));
+  assert.equal(twice, once);
+  assert.equal(twice.orders.length, 1);
+  assert.equal(twice.reservations.length, once.reservations.length);
+});
+
+test("§19.6 (40) catalog price/recipe edits do not change an existing order's snapshot", async () => {
+  const { products } = await import("./catalog.ts");
+  const milieu = products[0] as { price: number; recipe: unknown };
+  const [price, recipe] = [milieu.price, milieu.recipe];
+  try {
+    const s = op.createOrder(op.emptyState(), order({ quantities: { milieu: 1 } }), wib("2026-09-14"));
+    const before = structuredClone(s.orders[0]);
+    milieu.price = 99999; milieu.recipe = { raw_cheese: 1 };
+    assert.deepEqual(s.orders[0], before);
+    assert.equal(s.orders[0].items[0].unitPrice, 50000);
+    assert.equal(s.orders[0].total, 50000);
+  } finally { milieu.price = price; milieu.recipe = recipe; }
+});

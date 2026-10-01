@@ -3,13 +3,15 @@ import ExcelJS from "exceljs";
 import { getState } from "@/lib/db/get-state";
 import { datasetKeys, datasetTable, datasets, exportFilename, parseDateParam, safeText } from "@/lib/export";
 import { jakartaNow } from "@/lib/domain/schedule";
-import { FOUNDER_SESSION_COOKIE, verifySessionCookieValue } from "@/lib/founder-auth";
+import { exportAuthError } from "@/lib/export-guard";
+import { FOUNDER_SESSION_COOKIE } from "@/lib/founder-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
-  if (!verifySessionCookieValue(request.cookies.get(FOUNDER_SESSION_COOKIE)?.value)) return new Response("Unauthorized", { status: 401 });
+  const denied = exportAuthError(request.cookies.get(FOUNDER_SESSION_COOKIE)?.value);
+  if (denied) return denied;
   const from = parseDateParam(request.nextUrl.searchParams.get("from")), to = parseDateParam(request.nextUrl.searchParams.get("to"));
   const state = await getState();
   const workbook = new ExcelJS.Workbook();

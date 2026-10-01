@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — §19.1–§19.5, §8.5, §10.6, and §19.8 items 47–48, 48b–48c, 50 are automated tests in `app/src/lib/domain/domain.test.ts`. §19.6 (auth/login), §19.8 item 49 (cancel quantity-reduction reversal, only partial), and §19.7 (connectivity) have no code yet. Section numbering is kept byte-identical to the original technical spec because the test file cites these numbers directly — do not renumber. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — §19.1–§19.5, §8.5, §10.6, and §19.8 items 47–48, 48b–48c, 50 are automated tests in `app/src/lib/domain/domain.test.ts`. §19.6 items 38, 40, 41 (partly) and §19.7 item 46 are automated (see coverage notes below); items 39, 43–44, 45 are not applicable / not implemented / e2e (Phase C); §19.8 item 49 (cancel quantity-reduction reversal, only partial). Section numbering is kept byte-identical to the original technical spec because the test file cites these numbers directly — do not renumber. See [implementation-status.md](../implementation-status.md).
 
 ## 19. Acceptance tests
 
@@ -68,6 +68,16 @@
 42. An all-history export preserves the IDs needed to relate orders, items, customers, payments, and inventory records.
 43. A completed order's delivery address and customer note are cleared after 90 days without changing totals or operational history.
 44. Customer anonymization removes identifying profile values while preserving historical relationships and reports.
+
+**Coverage notes (items 38–46):**
+- 38: `app/src/lib/founder-auth.test.ts` (checkCredentials, cookie verify), `app/src/proxy.test.ts` (redirect to /login, matcher), `app/src/lib/export-guard.test.ts` (export routes 401 before DB). `requireFounder` redirect in server actions is not unit-tested (needs `next/headers`); e2e (Phase C).
+- 39: not applicable: single shared credential.
+- 40: `domain.test.ts` (order price/recipe snapshot survives catalog edits).
+- 41: `export-guard.test.ts` (401 without valid session; no secret-like column names). XLSX happy-path content is not tested (route needs the DB).
+- 42: `export.test.ts` (ID columns relate datasets).
+- 43–44: not implemented (see implementation-status.md BACKLOG).
+- 45: e2e (Phase C).
+- 46: `domain.test.ts` (same idempotency key creates one order).
 
 ### 19.7 Connectivity
 

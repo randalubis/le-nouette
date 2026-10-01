@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { FOUNDER_SESSION_COOKIE, verifySessionCookieValue } from "@/lib/founder-auth";
+import { NextRequest, NextResponse } from "next/server.js";
+import { FOUNDER_SESSION_COOKIE, verifySessionCookieValue } from "./lib/founder-auth.ts";
 
 // "proxy" (the Next.js middleware convention) always runs on the Node.js runtime,
 // so node:crypto (HMAC) here is safe.

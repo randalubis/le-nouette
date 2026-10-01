@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/domain/*.test.ts src/lib/export.test.ts src/lib/founder-auth.test.ts",
+    "test": "node --test src/lib/domain/*.test.ts src/lib/export.test.ts src/lib/founder-auth.test.ts src/lib/export-guard.test.ts src/proxy.test.ts",
     "test:integration": "tsx --conditions=react-server --env-file=.env.local --test --test-force-exit src/lib/db/actions.integration.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
