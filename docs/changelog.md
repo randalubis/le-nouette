@@ -4,6 +4,11 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.10.0 — 1 October 2026
+
+- **Offline order submit:** a failed network call during "Buat Pesanan" now shows an inline "Koneksi bermasalah" message instead of Next.js's error page, and the order keeps the same idempotency key across retries, so a lost reply can never create a duplicate order (§19.7 items 45–46). Covered by the e2e offline test.
+- **Playwright e2e suite:** `app/e2e/` with `customer`, `founder` and `safety` specs on mobile (390) and desktop (1440) projects, system Chrome (`channel: "chrome"`), 1 worker. Runs `next dev -p 3100` against a local Postgres database `le_nouette_e2e` with throwaway `ADMIN_*` env; `global-setup.ts` aborts unless `DATABASE_URL` is localhost + `le_nouette_e2e`, then truncates and reseeds. `npm run e2e:setup` creates the DB, `pgcrypto`, applies `drizzle/*.sql`; `npm run e2e` runs the tests. New devDependency `@playwright/test`. Not part of `npm test`. Prod/Supabase is never touched.
+
 ### 0.9.1 — 1 October 2026
 
 - **Auth/permission acceptance tests (§19.6/19.7):** DB-free tests for `checkCredentials`, `proxy()` redirects and matcher, export route gates (401 before any DB call, 400 for an unknown CSV dataset), no secret-like export columns, order price/recipe snapshot after catalog edits, and idempotent order retry. No behaviour change; the export routes' pre-DB checks moved into `app/src/lib/export-guard.ts` and `proxy.ts` imports are relative (`./lib/founder-auth.ts`, `next/server.js`) so they run under `node --test`. Items 43–44 recorded as not implemented.

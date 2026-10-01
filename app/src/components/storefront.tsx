@@ -107,12 +107,22 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
     if (!checked) saveRemembered(null);
   };
 
+  const idempotencyKey = useRef<string | null>(null);
   const submit = () => {
     startTransition(async () => {
-      const key = crypto.randomUUID();
-      const { error, order } = await createOrderAction({ idempotencyKey: key, ...form, fulfillment, quantities: qty });
+      // Same key across retries: if the first attempt reached the server but the reply was lost, a retry must not create a duplicate order (§19.7).
+      const key = (idempotencyKey.current ??= crypto.randomUUID());
+      let result: Awaited<ReturnType<typeof createOrderAction>>;
+      try {
+        result = await createOrderAction({ idempotencyKey: key, ...form, fulfillment, quantities: qty });
+      } catch {
+        setError(t("submitNetworkError"));
+        return;
+      }
+      const { error, order } = result;
       setError(error);
       if (error || !order) return;
+      idempotencyKey.current = null;
       saveRemembered(remember ? { name: form.name.trim(), whatsapp: form.whatsapp.replace(/[\s-]/g, "") } : null);
       addOrder({ id: order.id, token: order.publicToken });
       setPlacedName(form.name.trim());

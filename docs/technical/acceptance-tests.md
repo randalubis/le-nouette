@@ -76,7 +76,8 @@
 - 41: `export-guard.test.ts` (401 without valid session; no secret-like column names). XLSX happy-path content is not tested (route needs the DB).
 - 42: `export.test.ts` (ID columns relate datasets).
 - 43–44: not implemented (see implementation-status.md BACKLOG).
-- 45: e2e (Phase C).
+- 45: partly covered by Playwright e2e (`app/e2e/customer.spec.ts`, offline during order submit never shows the success state); founder-mutation offline is not tested.
+- E2E scenario map (Playwright, `npm run e2e`, see [dev-workflow §8](./dev-workflow.md)): `customer.spec.ts` = order flow, validation, referral once, Lacak tracking, WhatsApp href, sticky header, scroll-to-top, offline submit; `founder.spec.ts` = auth gate (§19.6), board, Kirim WhatsApp link, payment, ranged CSV export, logout; `safety.spec.ts` = DB isolation.
 - 46: `domain.test.ts` (same idempotency key creates one order).
 
 ### 19.7 Connectivity

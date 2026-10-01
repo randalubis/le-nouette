@@ -236,6 +236,22 @@ Integration tests run with Node's `--conditions=react-server` flag so that `serv
 
 ---
 
+## 8. End-to-end tests (Playwright, local DB only)
+
+Safety rule: e2e uses ONLY a local Postgres database named `le_nouette_e2e`. Never point it at `app/.env.local`'s DATABASE_URL (shared production Supabase). `e2e/playwright.config.ts` hard-sets `DATABASE_URL=postgres://localhost:5432/le_nouette_e2e` (process env beats `.env.local` in Next), `global-setup.ts` aborts unless host is localhost/127.0.0.1 and db is `le_nouette_e2e`, and `safety.spec.ts` proves the running app reads that DB (marker calendar row `2099-01-01`). The webServer never reuses an existing server.
+
+Prerequisites: a local Postgres on `localhost:5432` (e.g. Homebrew `postgresql@17`, running as your user), `psql`/`createdb` on PATH, Google Chrome installed.
+
+```bash
+cd app
+npm run e2e:setup   # create le_nouette_e2e if missing, pgcrypto, apply drizzle/*.sql once, reset + seed baseline
+npm run e2e         # mobile 390 + desktop 1440, headless Chrome, 1 worker, next dev on :3100
+```
+
+Each spec file resets the DB in `beforeAll` (truncate all app tables, receive baseline stock, store OPEN, marker date). Founder credentials are throwaway (`e2e@test.local` / `e2e-pass`). Scenario-to-acceptance mapping: [acceptance-tests.md](./acceptance-tests.md). Known behaviour: going offline during order submit shows Next's "This page couldn't load" error page rather than an inline message; the test only asserts no success state.
+
+---
+
 ## 7. Related docs
 
 - [architecture.md](./architecture.md) — system boundaries, components, domain model.

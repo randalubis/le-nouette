@@ -8,6 +8,8 @@ Persona/subagent workflow, model/effort rules, and handoff protocol live in **`A
 
 Domain logic lives in `app/src/lib/domain/`.
 
+E2E (`npm run e2e`) uses a local Postgres `le_nouette_e2e` only, never the production Supabase DB; see `docs/technical/dev-workflow.md` §8.
+
 Run from `./app`: `npm run dev` · `npm test` · `npm run lint` · `npm run build`
 
 UI/UX changes must be checked in a browser at 390px mobile and 1440px desktop, light and dark, using the Playwright kit in `.claude/playwright/` (baseline in `AGENTS.md`). Founder pages need throwaway `ADMIN_*` env vars for local dev — never commit or use real credentials. After EVERY change or feature, run the docs persona (`le-nouette-docs`) before committing — see `AGENTS.md`; `.githooks/pre-commit` enforces it (`git config core.hooksPath .githooks` on a fresh clone).
