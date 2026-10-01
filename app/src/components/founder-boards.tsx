@@ -144,23 +144,33 @@ export function StockBoard({ session }: { session: op.State }) {
   );
 }
 
+const methodLabel: Record<op.PaymentMethod, string> = { TRANSFER: "Transfer", QRIS: "QRIS", CASH: "Tunai" };
+const refundMethods = (o: op.Order) => [...new Set(o.payments.filter((p) => !p.reversedAt).map((p) => methodLabel[p.method]))].join(" + ");
+
 export function FinanceBoard({ session }: { session: op.State }) {
   const orders = session.orders.filter((o) => o.status !== "CANCELLED");
-  const payments = session.orders.flatMap((o) => o.payments.filter((p) => !p.reversedAt));
-  const received = payments.reduce((sum, p) => sum + p.amount, 0);
-  const share = (method: op.PaymentMethod) => (received ? `${Math.round((payments.filter((p) => p.method === method).reduce((s, p) => s + p.amount, 0) / received) * 100)}%` : "—");
+  const f = op.financeSummary(session);
+  const share = (method: op.PaymentMethod) => (f.received ? `${Math.round(f.methodShare(method) * 100)}%` : "—");
 
   return (
     <>
       <section className={styles.financeHero}>
-        <MetricCard variant="hero" label="Omzet (sesi ini)" value={formatRupiah(orders.reduce((sum, o) => sum + o.total, 0))} hint={`${orders.length} pesanan · ${orders.flatMap((o) => o.items).reduce((s, i) => s + i.quantity, 0)} produk`} />
+        <MetricCard variant="hero" label="Omzet (pesanan selesai)" value={formatRupiah(f.revenue)} hint={`${f.revenueOrders} pesanan · ${f.revenueUnits} produk`} />
         <div className={styles.financeSide}>
-          <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(received)} />
-          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(orders.reduce((sum, o) => sum + op.receivable(o), 0))} />
+          <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(f.received)} />
+          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(f.receivable)} />
+          {f.heldPayments > 0 && <MetricCard variant="hero" compact label="Dibayar, belum selesai" value={formatRupiah(f.heldPayments)} />}
+          {f.refundDue > 0 && <MetricCard variant="hero" compact label="Perlu refund" value={formatRupiah(f.refundDue)} />}
           <MetricCard variant="hero" compact label="Transfer" value={share("TRANSFER")} />
           <MetricCard variant="hero" compact label={`QRIS · Tunai ${share("CASH")}`} value={share("QRIS")} />
         </div>
       </section>
+      {f.refundOrders.length > 0 && (
+        <section className={`${styles.panel} ${styles.receivables}`}>
+          <div className={styles.panelHeader}><div><h2>Perlu refund</h2><p>Pesanan dibatalkan yang sudah dibayar. Catat pengembalian di Pesanan.</p></div></div>
+          {f.refundOrders.map((o) => <ListRowCard key={o.id} href="/founder/orders?tab=CANCELLED" title={o.customer.name} subtitle={`${o.id} · ${refundMethods(o)}`} trailing={formatRupiah(op.amountPaid(o))} />)}
+        </section>
+      )}
       <section className={`${styles.panel} ${styles.receivables}`}>
         <div className={styles.panelHeader}><div><h2>Pesanan & piutang</h2><p>Pesanan selesai boleh belum dibayar; konfirmasi pembayaran dilakukan founder di Pesanan.</p></div></div>
         {[...orders].reverse().map((o) => (

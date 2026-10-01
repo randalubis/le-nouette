@@ -48,6 +48,28 @@ test("login, board, WhatsApp link, mark paid, export, logout", async ({ page }) 
   await card.getByRole("button", { name: "Transfer" }).click();
   await expect(card.getByText(/Lunas · Transfer/)).toBeVisible();
 
+  // Keuangan: paid but not completed is held, not income
+  const metric = (label: string) => page.getByText(label, { exact: true }).locator("xpath=..");
+  await page.goto("/founder/finance");
+  await expect(metric("Omzet (pesanan selesai)")).toContainText("Rp0");
+  const held = metric("Dibayar, belum selesai");
+  await expect(held).toBeVisible();
+  await expect(held).not.toContainText("Rp0");
+  const heldText = (await held.innerText()).match(/Rp[\d.]+/)![0];
+
+  // pack batch (dashboard) then complete -> revenue equals the paid total
+  page.once("dialog", (d) => d.accept());
+  await page.goto("/founder");
+  await page.getByRole("button", { name: /Selesaikan batch/ }).click();
+  await expect(page.getByText("Semua batch selesai.")).toBeVisible();
+  await page.goto("/founder/orders?tab=READY_FOR_HANDOVER");
+  const ready = page.locator("article").filter({ hasText: orderId });
+  await ready.getByRole("button", { name: "Tandai Selesai" }).click();
+  await expect(ready).toHaveCount(0);
+  await page.goto("/founder/finance");
+  await expect(metric("Omzet (pesanan selesai)")).toContainText(heldText);
+  await expect(metric("Sudah diterima")).toContainText(heldText);
+
   // export with a range: filtered rows + ranged filename
   const today = new Date(Date.now() + 7 * 3_600_000).toISOString().slice(0, 10);
   const inRange = await page.request.get(`/founder/export/csv?dataset=orders&from=${today}&to=${today}`);

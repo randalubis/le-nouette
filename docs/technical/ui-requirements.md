@@ -55,10 +55,14 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 
 ### 12.5 Keuangan
 
-- unpaid orders and total receivables;
+- Omzet (revenue from COMPLETED orders only);
+- Sudah diterima (payments on COMPLETED orders);
+- Dibayar, belum selesai (payments on in-progress orders, held, not counted as revenue);
+- Perlu refund (unreversed payments on CANCELLED orders);
+- Belum dibayar (receivables on non-cancelled orders);
+- payment method share (computed from received payments on COMPLETED orders);
+- unpaid orders and receivables detail;
 - payment capture;
-- recent payments;
-- revenue, received cash, estimated COGS, and estimated gross profit;
 - filters by date, method, fulfillment state, and payment state.
 
 ### 12.6 Availability

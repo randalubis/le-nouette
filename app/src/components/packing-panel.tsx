@@ -5,7 +5,7 @@ import { ArrowRight, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
-import { formatDate, jakartaNow } from "@/lib/domain/schedule";
+import { formatDate } from "@/lib/domain/schedule";
 import { completeBatchAction } from "@/lib/domain/actions";
 import { MetricCard } from "@/components/ui/metric-card";
 import styles from "./founder.module.css";
@@ -13,10 +13,9 @@ import styles from "./founder.module.css";
 const shortMoney = (value: number) => (value >= 1_000_000 ? `Rp${(value / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} jt` : value >= 1000 ? `Rp${Math.round(value / 1000)} rb` : formatRupiah(value));
 
 export function DashboardSummary({ session }: { session: op.State }) {
-  const month = jakartaNow(new Date()).date.slice(0, 7);
   const active = session.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER");
   const unpaid = session.orders.filter((o) => o.status !== "CANCELLED" && !op.isPaid(o));
-  const revenue = session.orders.filter((o) => o.status !== "CANCELLED" && jakartaNow(new Date(o.createdAt)).date.startsWith(month)).reduce((sum, o) => sum + o.total, 0);
+  const revenue = op.financeSummary(session).monthRevenue;
   const lowStock = op.balances(session).filter((item) => item.available < item.threshold);
   const nextBatch = op.pendingBatchDates(session)[0];
   const unpaidReady = unpaid.filter((o) => o.status === "READY_FOR_HANDOVER");
@@ -27,7 +26,7 @@ export function DashboardSummary({ session }: { session: op.State }) {
       {session.storeStatus === "PAUSED" && <p className={`status status-danger ${styles.banner}`}><WarningCircle size={15} /> Pemesanan sedang dijeda. <Link href="/founder/availability">Buka kalender</Link></p>}
       {allClear ? <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua beres hari ini</p> : <section className={styles.metricGrid}>
         <MetricCard href="/founder/orders" label="Pesanan aktif" value={active.length} hint={`${active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan`} />
-        <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan tidak dibatalkan" />
+        <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan selesai" />
         <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`${unpaid.length} pesanan · lihat piutang`} alert={unpaid.length > 0} />
         {nextBatch && <MetricCard href="/founder/availability" label="Batch packing berikutnya" value={formatDate(nextBatch, "short")} hint="Cut-off harian 18.00 WIB" />}
       </section>}

@@ -92,9 +92,9 @@ Use explicit definitions so metrics cannot drift:
 | Metric | Definition |
 |---|---|
 | Ordered sales | Sum of non-cancelled order totals in period |
-| Completed sales | Sum of completed non-cancelled order totals |
-| Cash received | Sum of confirmed net payments in period |
-| Receivables | Sum of positive balances on non-cancelled orders |
+| Completed sales | Sum of completed order totals (COMPLETED status only) |
+| Cash received | Sum of confirmed net payments on COMPLETED orders in period |
+| Receivables | Sum of positive balances on non-cancelled orders (including in-progress and completed) |
 | Units sold | Sum of quantities on non-cancelled orders, filterable by status |
 | COGS | Captured inventory consumption cost plus modeled untracked unit costs |
 | Gross profit | Completed sales minus associated COGS |

@@ -113,7 +113,7 @@ Sticker calculation used a conservative no-promo delivery assumption: Rp97,000 p
 - referral source when captured;
 - supplier stock cost and rolling acquisition cost.
 
-**Implementation: ⏳ BACKLOG** — none of these metrics are instrumented yet; Founder OS's Keuangan screen shows only basic revenue/receivables/payment mix. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — Founder OS's Keuangan screen shows revenue (COMPLETED orders only), received cash (payments on COMPLETED orders), held payments (in-progress), refunds due (CANCELLED), and receivables, with payment method share. Advanced metrics (units by SKU, gross profit, margin by SKU, repeat-purchase rate, etc.) remain backlog. See [implementation-status.md](../implementation-status.md).
 
 ---
 

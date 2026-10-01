@@ -2,7 +2,7 @@
 
 [← Product spec hub](../product-spec.md)
 
-**Implementation: 🚧 PARTIAL** — record/reverse payment and receivable math are built and tested (`app/src/lib/domain/operations.ts`), but QRIS is a static placeholder and there is no real payment-confirmation path yet. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — record/reverse payment and receivable math are built and tested (`app/src/lib/domain/operations.ts`), but QRIS is a static placeholder and there is no real payment-confirmation path yet. Income is counted only from COMPLETED orders; payments on in-progress orders are held and not counted as revenue; payments on cancelled orders are recorded as refunds due. See [implementation-status.md](../implementation-status.md).
 
 ## 11. Payments, cash, and receivables
 

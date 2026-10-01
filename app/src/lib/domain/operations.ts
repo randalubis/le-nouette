@@ -47,6 +47,30 @@ export const amountPaid = (order: Order) => order.payments.filter((payment) => !
 export const receivable = (order: Order) => Math.max(order.total - amountPaid(order), 0);
 export const isPaid = (order: Order) => receivable(order) === 0;
 
+// Income = COMPLETED orders only. Money on active orders is "held"; money on cancelled orders is "refund due".
+export function financeSummary(state: State, now: Date = new Date()) {
+  const live = (o: Order) => o.payments.filter((p) => !p.reversedAt);
+  const sumPaid = (orders: Order[]) => orders.reduce((sum, o) => sum + amountPaid(o), 0);
+  const completed = state.orders.filter((o) => o.status === "COMPLETED");
+  const refundOrders = state.orders.filter((o) => o.status === "CANCELLED" && amountPaid(o) > 0);
+  const month = jakartaNow(now).date.slice(0, 7);
+  const receivedPayments = completed.flatMap(live);
+  const received = receivedPayments.reduce((sum, p) => sum + p.amount, 0);
+  const methodShare = (method: PaymentMethod) => (received ? receivedPayments.filter((p) => p.method === method).reduce((s, p) => s + p.amount, 0) / received : 0);
+  return {
+    revenue: completed.reduce((sum, o) => sum + o.total, 0),
+    revenueOrders: completed.length,
+    revenueUnits: completed.flatMap((o) => o.items).reduce((sum, i) => sum + i.quantity, 0),
+    received,
+    heldPayments: sumPaid(state.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER")),
+    refundOrders,
+    refundDue: sumPaid(refundOrders),
+    receivable: state.orders.filter((o) => o.status !== "CANCELLED").reduce((sum, o) => sum + receivable(o), 0),
+    methodShare,
+    monthRevenue: completed.filter((o) => o.completedAt && jakartaNow(new Date(o.completedAt)).date.startsWith(month)).reduce((sum, o) => sum + o.total, 0),
+  };
+}
+
 export function balances(state: State) {
   return inventoryItems.map((item) => {
     const onHand = state.movements.filter((movement) => movement.itemId === item.id).reduce((sum, movement) => sum + movement.delta, 0);

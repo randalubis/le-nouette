@@ -262,3 +262,38 @@ test("§19.6 (40) catalog price/recipe edits do not change an existing order's s
     assert.equal(s.orders[0].total, 50000);
   } finally { milieu.price = price; milieu.recipe = recipe; }
 });
+
+test("financeSummary: income counts COMPLETED orders only; held, refund-due and receivable are separate", () => {
+  const ready = () => op.completeBatch(op.createOrder(stocked(), order(), wib("2026-09-14")), "2026-09-16", wib("2026-09-16"));
+  const now = wib("2026-09-16");
+
+  // paid then cancelled: not revenue/received, refund due
+  let s = op.recordPayment(op.createOrder(stocked(), order(), wib("2026-09-14")), "LN-0001", "TRANSFER", wib("2026-09-14"));
+  s = op.cancelOrder(s, "LN-0001", wib("2026-09-15"));
+  let f = op.financeSummary(s, now);
+  assert.deepEqual([f.revenue, f.received, f.heldPayments, f.refundDue, f.receivable], [0, 0, 0, 170000, 0]);
+  assert.deepEqual(f.refundOrders.map((o) => o.id), ["LN-0001"]);
+
+  // paid active: held only; completing moves it to revenue/received
+  s = op.recordPayment(ready(), "LN-0001", "QRIS", wib("2026-09-16"));
+  f = op.financeSummary(s, now);
+  assert.deepEqual([f.revenue, f.received, f.heldPayments, f.refundDue], [0, 0, 170000, 0]);
+  s = op.completeOrder(s, "LN-0001", wib("2026-09-16"));
+  f = op.financeSummary(s, now);
+  assert.deepEqual([f.revenue, f.revenueOrders, f.revenueUnits, f.received, f.heldPayments, f.monthRevenue], [170000, 1, 3, 170000, 0, 170000]);
+  assert.equal(f.methodShare("QRIS"), 1);
+
+  // reversed payment excluded
+  s = op.recordPayment(ready(), "LN-0001", "CASH", wib("2026-09-16"));
+  s = op.reversePayment(s, "LN-0001", "LN-0001-P1", wib("2026-09-16"));
+  assert.equal(op.financeSummary(s, now).heldPayments, 0);
+
+  // completed unpaid: revenue + receivable, not received
+  f = op.financeSummary(op.completeOrder(ready(), "LN-0001", wib("2026-09-16")), now);
+  assert.deepEqual([f.revenue, f.received, f.receivable], [170000, 0, 170000]);
+
+  // month basis is completion date, not creation date
+  const done = op.completeOrder(ready(), "LN-0001", wib("2026-09-30", "20:00"));
+  assert.equal(op.financeSummary(done, wib("2026-09-30", "21:00")).monthRevenue, 170000);
+  assert.equal(op.financeSummary(done, wib("2026-10-01", "09:00")).monthRevenue, 0);
+});

@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.12.0 (1 October 2026)
+
+- **Keuangan finance dashboard: COMPLETED-order-only revenue:** Revenue (Omzet) is now counted only from COMPLETED orders, not all non-cancelled orders. Payments are categorized as: Sudah diterima (received, on COMPLETED orders only); Dibayar, belum selesai (held, on in-progress NEEDS_PREPARATION/READY_FOR_HANDOVER orders, not counted as revenue); Perlu refund (refund due, unreversed payments on CANCELLED orders); Belum dibayar (receivables, unchanged over non-cancelled orders). Payment method share computed from Sudah diterima only. Dashboard month filters by completedAt in Jakarta timezone, not createdAt. Implementation: `app/src/lib/domain/operations.ts` financeSummary (lines 50–70), `app/src/components/founder-boards.tsx` FinanceBoard (lines 147–186). Updates: docs/product/payments-and-receivables.md, docs/technical/ui-requirements.md (~l.56), docs/technical/notifications-and-reporting.md (Cash received definition), docs/product/products-and-economics.md (~l.116).
+
 ### 0.11.0 (1 October 2026)
 
 - **Inventory item split:** Square sticker item split into two SKU-specific inventory items: `sticker_square_milieu` (125 g / "Stiker kotak Milieu (125 g)") and `sticker_square_grande` (225 g / "Stiker kotak Grande (225 g)"), each with threshold 10 pieces (previously single item with threshold 20). Now 7 operationally tracked items total. Recipes updated: Milieu uses `sticker_square_milieu`, Grande uses `sticker_square_grande`. Data migration `app/drizzle/0004_split_sticker_square.sql` rewrites order_items.recipe per product, splits existing per-unit reservations by sku, and renames movements to the milieu variant (production had zero sticker movements). Founder counts each sticker with "Hasil opname"/"Terima stok" after deploy. Implementation: `app/src/lib/domain/catalog.ts` (ItemId type, inventoryItems, products recipes), `app/src/lib/db/schema.ts` (drizzle migration applied).
