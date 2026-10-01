@@ -3,13 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Package, Plus, ProhibitInset, QrCode, ShareNetwork, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { formatRupiah, products, type ProductId } from "@/lib/domain/catalog";
 import type { CustomerOrderView, Fulfillment, State } from "@/lib/domain/operations";
-import { createOrderAction, trackOrdersAction } from "@/lib/domain/actions";
+import { createOrderAction, saveReferralAction, trackOrdersAction } from "@/lib/domain/actions";
 import { formatDate, promisedReadyDate } from "@/lib/domain/schedule";
 import { useTranslation, type Key } from "@/lib/i18n";
 import { addOrder, readOrders, removeOrder, type MyOrder } from "@/lib/my-orders";
+import { markAsked, wasAsked } from "@/lib/referral";
 import { readRemembered, saveRemembered } from "@/lib/remembered";
 import styles from "./storefront.module.css";
 
@@ -52,6 +53,24 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
   const [pending, startTransition] = useTransition();
   const [attempted, setAttempted] = useState(false);
   useEffect(() => { window.scrollTo(0, 0); }, [step]); // braces: scrollTo may return a Promise, which React would treat as a cleanup fn
+
+  const referralRef = useRef<HTMLDialogElement>(null);
+  const [referralSource, setReferralSource] = useState<string>("");
+  const [referralName, setReferralName] = useState("");
+  // Opens once per device after an order is placed. Guarded by .open so a StrictMode re-run can't double-open.
+  useEffect(() => {
+    const dialog = referralRef.current;
+    if (step === "success" && placed && dialog && !dialog.open && !wasAsked()) dialog.showModal();
+  }, [step, placed]);
+  const successTitleRef = useRef<HTMLHeadingElement>(null);
+  const focusSuccess = () => successTitleRef.current?.focus();
+  useEffect(() => { if (step === "success" && !referralRef.current?.open) focusSuccess(); }, [step, placed]);
+  const resetReferral = () => { setReferralSource(""); setReferralName(""); };
+  const closeReferral = () => { markAsked(); referralRef.current?.close(); };
+  const sendReferral = () => {
+    if (placed && referralSource) void saveReferralAction({ id: placed.id, token: placed.publicToken, source: referralSource, name: referralName }).catch(() => {}); // never blocks the buyer
+    closeReferral();
+  };
 
   const total = products.reduce((sum, product) => sum + product.price * qty[product.id], 0);
   const count = qty.milieu + qty.grande;
@@ -106,6 +125,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
     setQty({ milieu: 0, grande: 0 });
     setForm((current) => ({ ...current, address: "", note: "" }));
     setPlaced(null);
+    resetReferral();
     setShowQris(false);
     setAttempted(false);
     setStep("shop");
@@ -207,7 +227,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
         <section className={`${styles.success} fade-up`}>
           <div className={styles.check}><Check size={42} weight="bold" /></div>
           <p>{t("successEyebrow")}</p>
-          <h1 className="display">{t("thanks", { name: placedName.split(" ")[0] })}</h1>
+          <h1 ref={successTitleRef} tabIndex={-1} className="display">{t("thanks", { name: placedName.split(" ")[0] })}</h1>
           <strong className={styles.orderNo}>{placed.id}</strong>
           <span>{t("readyOn", { date: formatDate(placed.promisedReadyDate, "long", locale) })}</span>
           <div className={styles.successCard}>
@@ -226,6 +246,21 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
           <div className={styles.whatsapp}><WhatsappLogo size={26} weight="fill" /><span>{t("whatsappUpdates")}<small>{t("successTrackHint")}</small></span></div>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={startOver}>{t("orderAgain")}</button>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={invite}><ShareNetwork size={18} /> {t("inviteFriends")}</button>
+          <dialog ref={referralRef} className={styles.referral} aria-labelledby="referral-title" onClose={() => { markAsked(); resetReferral(); focusSuccess(); }}>
+            <h2 id="referral-title" className="display">{t("referralTitle")}</h2>
+            <div className={styles.referralChips}>
+              {([["TEMAN_KELUARGA", "referralTeman"], ["INSTAGRAM", "referralInstagram"], ["WHATSAPP", "referralWhatsapp"], ["LAINNYA", "referralOther"]] as const).map(([value, label]) => (
+                <label key={value} className={referralSource === value ? styles.referralChipActive : ""}>
+                  <input type="radio" className="sr-only" name="referral" value={value} checked={referralSource === value} onChange={() => setReferralSource(value)} />{t(label)}
+                </label>
+              ))}
+            </div>
+            <input className={styles.referralInput} maxLength={60} aria-label={t("referralName")} placeholder={t("referralName")} value={referralName} onChange={(event) => setReferralName(event.target.value)} />
+            <div className={styles.referralActions}>
+              <button type="button" className="btn btn-quiet" onClick={closeReferral}>{t("referralSkip")}</button>
+              <button type="button" className="btn btn-primary" disabled={!referralSource} onClick={sendReferral}>{t("referralSend")}</button>
+            </div>
+          </dialog>
         </section>
       )}
 

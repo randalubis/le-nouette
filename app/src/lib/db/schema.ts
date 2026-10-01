@@ -5,6 +5,8 @@ export const orders = pgTable("orders", {
   idempotencyKey: text("idempotency_key").notNull().unique(),
   publicToken: text("public_token").notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
+  referralSource: text("referral_source"),
+  referralName: text("referral_name"),
   customerName: text("customer_name").notNull(),
   customerWhatsapp: text("customer_whatsapp").notNull(),
   fulfillment: text("fulfillment").notNull(),

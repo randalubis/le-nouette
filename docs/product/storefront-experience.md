@@ -95,7 +95,7 @@ Show:
 
 **ASSUMPTION:** An optional "Who introduced you to Le Nouette?" field or automatic referral link can be added if it remains genuinely low-friction. This is useful but should not compromise the core ordering flow.
 
-**Implementation: ⏳ BACKLOG** — not found anywhere in the storefront code. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — A one-time native HTML `<dialog>` appears on the order success screen (Screen 3) after the customer places an order, asking **"Siapa yang memperkenalkan Le Nouette ke kamu?"** (EN: "Who introduced you to Le Nouette?"). Dialog may be dismissed by (1) selecting one of five referral source chips (Teman, keluarga, Instagram, WhatsApp, Lainnya) + optional name/account field (max 60 characters, control chars stripped), (2) pressing Lewati (skip), or (3) pressing Escape. The dialog state is tracked client-side via localStorage key `le-nouette:referral-asked` keyed by phone number, so it displays only once per phone. Submitted referrals are recorded via public server action `saveReferralAction({id, token, source, name})` which verifies the order's public_token, validates the source enum, and stores the referral as a set-once operation (no overwrite). Returns `{error}` on validation failure; on success, resolves quietly. See [implementation-status.md](../implementation-status.md).
 
 ---
 

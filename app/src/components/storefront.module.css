@@ -119,3 +119,16 @@
 @media (prefers-color-scheme: dark) {
   .header, .sticky { background: rgba(33,23,25,.9); }
 }
+
+.referral { width: min(92vw, 400px); border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--paper); color: var(--ink); padding: 22px; margin: auto; }
+.referral::backdrop { background: rgba(33,23,25,.55); }
+.referral[open] { display: grid; gap: 14px; }
+.referral h2 { text-wrap: balance; margin: 0; color: var(--wine-text); font-size: 22px; }
+.referralChips { display: flex; flex-wrap: wrap; gap: 8px; }
+.referralChips label { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--cream); color: var(--ink); font-size: 14px; font-weight: 650; }
+.referralChips label:has(input:focus-visible) { outline: 2px solid var(--wine); outline-offset: 2px; }
+.referralChips .referralChipActive { border-color: var(--wine-text); background: var(--wine-soft); color: var(--wine-text); }
+.referralInput { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--cream); color: var(--ink); border-radius: var(--radius-control); padding: 11px 14px; outline: none; }
+.referralInput:focus { border-color: var(--wine-text); box-shadow: 0 0 0 3px rgba(118,18,28,.12); }
+.referralActions button.btn:disabled { border: 1px solid var(--line); }
+.referralActions { display: flex; gap: 10px; justify-content: flex-end; }

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import ExcelJS from "exceljs";
 import { getState } from "@/lib/db/get-state";
-import { datasetKeys, datasetTable, datasets, exportFilename, parseDateParam } from "@/lib/export";
+import { datasetKeys, datasetTable, datasets, exportFilename, parseDateParam, safeText } from "@/lib/export";
 import { jakartaNow } from "@/lib/domain/schedule";
 import { FOUNDER_SESSION_COOKIE, verifySessionCookieValue } from "@/lib/founder-auth";
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const [header, ...rows] = datasetTable(key, state, from, to);
     sheet.addRow(header).font = { bold: true };
     sheet.views = [{ state: "frozen", ySplit: 1 }];
-    rows.forEach((row) => sheet.addRow(row));
+    rows.forEach((row) => sheet.addRow(row.map((cell) => safeText(cell))));
   }
   const buffer = await workbook.xlsx.writeBuffer();
   return new Response(buffer as ArrayBuffer, {

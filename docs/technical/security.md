@@ -27,6 +27,9 @@
 - Escape output and use parameterized queries/ORM bindings.
 - Rate-limit order creation by reasonable request/IP heuristics.
 - Add lightweight spam protection only if abuse occurs; avoid CAPTCHA by default.
+- Prevent spreadsheet formula injection in exported CSV/XLSX files by prefixing user-supplied text cells that begin with `=`, `+`, `@`, tab, or CR with a single-quote apostrophe.
+- Validate referral source enum server-side (whitelisted values only: Teman, keluarga, Instagram, WhatsApp, Lainnya, null).
+- Verify the order's public_token for all referral-capture mutations (`saveReferralAction`); accept the referral only once per order (set-once, no overwrite).
 
 ### 15.3 Sensitive data
 

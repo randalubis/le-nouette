@@ -18,6 +18,7 @@ const tabs = [
 ] as const;
 
 export const placeLabel: Record<op.Fulfillment, string> = { PICKUP_MANDIRI: "Mandiri", PICKUP_BI: "BI", DELIVERY: "Delivery" };
+const referralLabel: Record<op.ReferralSource, string> = { TEMAN_KELUARGA: "Teman/keluarga", INSTAGRAM: "Instagram", WHATSAPP: "WhatsApp", LAINNYA: "Lainnya" };
 const methodLabel: Record<op.PaymentMethod, string> = { TRANSFER: "Transfer", QRIS: "QRIS", CASH: "Tunai" };
 export const itemsLabel = (order: op.Order) => order.items.map((item) => `${item.quantity} × ${item.name}${item.readyQuantity ? ` (${item.readyQuantity} dari stok siap)` : ""}`).join(", ");
 
@@ -117,6 +118,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                 <span><Clock size={13} /> {formatDate(order.currentReadyDate, "short")}</span>
                 {order.dispatchedAt && <span><Truck size={13} /> Dikirim</span>}
               </div>
+              {order.referral && <p className={styles.hint}>Referral: {referralLabel[order.referral.source]}{order.referral.name ? ` (${order.referral.name})` : ""}</p>}
               {delivery && order.address && <p className={styles.hint}>{order.address}</p>}
               <div className={styles.stockFooter}><span>Total</span><strong>{formatRupiah(order.total)}</strong></div>
 

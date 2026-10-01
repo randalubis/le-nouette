@@ -39,6 +39,7 @@ export async function loadState(executor: Db | Tx): Promise<op.State> {
     id: row.id,
     idempotencyKey: row.idempotencyKey, publicToken: row.publicToken,
     createdAt: row.createdAt,
+    referral: row.referralSource ? { source: row.referralSource as op.ReferralSource, name: row.referralName ?? undefined } : undefined,
     customer: { name: row.customerName, whatsapp: row.customerWhatsapp },
     fulfillment: row.fulfillment as op.Order["fulfillment"],
     address: row.address ?? undefined,

@@ -4,6 +4,11 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.9.0 — 1 October 2026
+
+- **Referral capture on order success:** One-time native HTML `<dialog>` on the order success screen (Screen 3), asking "Siapa yang memperkenalkan Le Nouette ke kamu?" with chips for Teman, keluarga, Instagram, WhatsApp, Lainnya, plus optional name/account field (max 60 chars, control chars stripped). Dialog dismissible by selection, Lewati (skip), or Escape; shown once per phone number via localStorage key `le-nouette:referral-asked`. Public server action `saveReferralAction({id, token, source, name})` verifies the order's public_token (same lookup as customer order tracking), validates the source enum, and records the referral as set-once (no overwrite); returns `{error}` on validation failure. New nullable columns: `orders.referral_source` (enum) and `orders.referral_name` (text). Founder order card displays referral when present. CSV/XLSX exports include referral columns. Migration: `app/drizzle/0003_referral.sql`. Implementation: `app/src/lib/referral.ts`, `app/src/components/storefront.tsx` (Screen 3 dialog), `app/src/components/order-board.tsx` (card display), `app/src/lib/db/schema.ts`.
+- **Export formula-injection prevention:** User-supplied text cells in CSV and XLSX exports are prefixed with a single-quote apostrophe (`'`) if they start with `=`, `+`, `@`, tab, or CR. Prevents formula injection when the file is opened in Excel or Google Sheets. Applied via `safeText()` utility in `app/src/lib/export.ts`. Phone columns, which were previously apostrophe-prefixed, now use the same utility for consistency.
+
 ### 0.8.0 — 1 October 2026
 
 - **Export menu mobile fit:** the export menu is height-capped and scrolls so it never hides behind the fixed mobile nav; the reversed-range alert uses the danger colour.

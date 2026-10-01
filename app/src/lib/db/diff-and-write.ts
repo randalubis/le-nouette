@@ -11,6 +11,7 @@ export async function diffAndWrite(tx: Tx, prev: op.State, next: op.State): Prom
     if (!before) {
       await tx.insert(schema.orders).values({
         id: order.id, idempotencyKey: order.idempotencyKey, publicToken: order.publicToken, createdAt: order.createdAt,
+        referralSource: order.referral?.source ?? null, referralName: order.referral?.name ?? null,
         customerName: order.customer.name, customerWhatsapp: order.customer.whatsapp,
         fulfillment: order.fulfillment, address: order.address ?? null, note: order.note ?? null,
         total: order.total, promisedReadyDate: order.promisedReadyDate, currentReadyDate: order.currentReadyDate,
@@ -29,9 +30,11 @@ export async function diffAndWrite(tx: Tx, prev: op.State, next: op.State): Prom
       before.readyAt !== order.readyAt ||
       before.dispatchedAt !== order.dispatchedAt ||
       before.completedAt !== order.completedAt ||
-      before.cancelledAt !== order.cancelledAt
+      before.cancelledAt !== order.cancelledAt ||
+      before.referral !== order.referral
     ) {
       await tx.update(schema.orders).set({
+        referralSource: order.referral?.source ?? null, referralName: order.referral?.name ?? null,
         status: order.status, currentReadyDate: order.currentReadyDate,
         readyAt: order.readyAt ?? null, dispatchedAt: order.dispatchedAt ?? null,
         completedAt: order.completedAt ?? null, cancelledAt: order.cancelledAt ?? null,

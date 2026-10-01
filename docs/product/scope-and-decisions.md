@@ -148,4 +148,4 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - The current COGS estimates are fit for planning but require validation against actual purchase batches and operating data.
 - Keep Grande at Rp70,000 for the initial always-on period, then consider Rp75,000 using measured demand and margin.
 - Implement the proposed entities and status transitions as the technical baseline.
-- Add optional referral capture only if it does not create meaningful checkout friction.
+- **Referral capture implemented** (§6.4): One-time dialog on order success with skip option (Lewati); stored in orders.referral_source and orders.referral_name; confirmed low-friction design per assumption.

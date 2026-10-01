@@ -134,6 +134,10 @@ Availability Calendar
 
 Each sheet includes stable internal IDs, required foreign-key IDs, business identifiers, statuses, quantities, rupiah amounts, and timestamps. It must not include authentication secrets, password data, session tokens, or environment values.
 
+**Formula injection protection:** User-supplied text cells in the Orders sheet (referral_name, customer_note) and Customers sheet (name) are prefixed with a single-quote apostrophe (`'`) if they begin with `=`, `+`, `@`, tab, or CR, preventing formula injection when opened in Excel or Google Sheets. Phone columns are similarly prefixed.
+
+**Referral capture columns:** The Orders sheet includes `referral_source` (enum: Teman, keluarga, Instagram, WhatsApp, Lainnya, or null) and `referral_name` (customer-supplied referrer name or account, max 60 chars) to track order referral source if captured on order success.
+
 Only an authenticated active founder may generate the workbook. Generate it as a private response download without writing it into the public static-assets directory. A comprehensive export is required immediately before applying a production database migration.
 
 **REQUIRED:** The free-plan V1 does not rely on Supabase automatic backups. XLSX exports provide portable business continuity, while version-controlled SQL migrations preserve the database structure. Paid managed backups may be adopted later without changing the domain model.

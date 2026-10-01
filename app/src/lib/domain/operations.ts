@@ -8,6 +8,8 @@ import { addMonth, formatDate, isOperational, jakartaNow, promisedReadyDate, typ
 export type Fulfillment = "PICKUP_MANDIRI" | "PICKUP_BI" | "DELIVERY";
 export type OrderStatus = "NEEDS_PREPARATION" | "READY_FOR_HANDOVER" | "COMPLETED" | "CANCELLED";
 export type PaymentMethod = "TRANSFER" | "QRIS" | "CASH";
+export const referralSources = ["TEMAN_KELUARGA", "INSTAGRAM", "WHATSAPP", "LAINNYA"] as const;
+export type ReferralSource = (typeof referralSources)[number];
 
 export type OrderItem = { productId: ProductId; name: string; unitPrice: number; quantity: number; recipe: Recipe; readyQuantity?: number };
 export type Payment = { id: string; amount: number; method: PaymentMethod; at: string; reversedAt?: string };
@@ -18,6 +20,7 @@ export type Order = {
   promisedReadyDate: string; currentReadyDate: string; status: OrderStatus;
   readyAt?: string; dispatchedAt?: string; completedAt?: string; cancelledAt?: string;
   payments: Payment[];
+  referral?: { source: ReferralSource; name?: string };
 };
 export type Movement = { id: string; itemId: ItemId; delta: number; reason: "RECEIPT" | "STOCK_OPNAME" | "PACKING_CONSUMPTION"; at: string; ref?: string };
 export type ReadyMovement = {
@@ -144,6 +147,16 @@ export function createOrder(state: State, input: CreateOrderInput, now: Date): S
   );
 
   return { ...state, seq, orders: [...state.orders, order], reservations: [...state.reservations, ...reservations], readyMovements, audit: [...state.audit, { at: now.toISOString(), action: "ORDER_CREATED", ref: id }] };
+}
+
+// Public, one-shot: the secret token proves the caller placed the order; a second answer never overwrites the first.
+export function setReferral(state: State, id: string, token: string, source: string, name: string): State {
+  const order = state.orders.find((o) => o.id === id);
+  if (!order || order.publicToken !== token) fail("Pesanan tidak ditemukan.");
+  if (!(referralSources as readonly string[]).includes(source)) fail("Pilihan tidak valid.");
+  if (order!.referral) fail("Sudah diisi.");
+  const trimmed = String(name ?? "").replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim().slice(0, 60);
+  return { ...state, orders: state.orders.map((o) => (o.id === id ? { ...o, referral: { source: source as ReferralSource, ...(trimmed ? { name: trimmed } : {}) } } : o)) };
 }
 
 export function cancelOrder(state: State, id: string, now: Date): State {

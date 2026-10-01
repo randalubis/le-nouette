@@ -210,3 +210,18 @@ test("toCustomerView never leaks whatsapp, address, note, or payments", () => {
   assert.equal(view.isPaid, true);
   assert.deepEqual(view.items.map((i) => i.quantity), [2, 1]);
 });
+
+test("setReferral: valid, trimmed, limited, guarded", () => {
+  const s = op.createOrder(op.emptyState(), { idempotencyKey: "r1", publicToken: "tok-r1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, wib("2026-09-14"));
+  const id = s.orders[0].id;
+  const ok = op.setReferral(s, id, "tok-r1", "TEMAN_KELUARGA", "  Budi  ");
+  assert.deepEqual(ok.orders[0].referral, { source: "TEMAN_KELUARGA", name: "Budi" });
+  assert.equal(s.orders[0].referral, undefined); // input untouched
+  assert.deepEqual(op.setReferral(s, id, "tok-r1", "LAINNYA", "   ").orders[0].referral, { source: "LAINNYA" });
+  assert.equal(op.setReferral(s, id, "tok-r1", "INSTAGRAM", "x".repeat(100)).orders[0].referral?.name?.length, 60);
+  assert.equal(op.setReferral(s, id, "tok-r1", "INSTAGRAM", "Bu\u0000di\t\n\u0007x").orders[0].referral?.name, "Budix");
+  assert.throws(() => op.setReferral(s, id, "wrong", "INSTAGRAM", ""), op.DomainError);
+  assert.throws(() => op.setReferral(s, "LN-NOPE", "tok-r1", "INSTAGRAM", ""), op.DomainError);
+  assert.throws(() => op.setReferral(s, id, "tok-r1", "TIKTOK", ""), op.DomainError);
+  assert.throws(() => op.setReferral(ok, id, "tok-r1", "INSTAGRAM", "z"), op.DomainError);
+});

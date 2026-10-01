@@ -41,6 +41,13 @@ export async function createOrderAction(input: Omit<op.CreateOrderInput, "public
   return { error, order: found ? { ...op.toCustomerView(found), publicToken: found.publicToken } : null };
 }
 
+// Public (no requireFounder): the secret token is the credential. Returns only {error}.
+export async function saveReferralAction(input: { id: string; token: string; source: string; name: string }) {
+  const { error } = await withDomainTransaction((state) => op.setReferral(state, String(input?.id), String(input?.token), String(input?.source), String(input?.name ?? "")));
+  if (!error) revalidatePath("/founder", "layout");
+  return { error };
+}
+
 export async function trackOrdersAction(pairs: { id: string; token: string }[]) {
   const { trackOrders } = await import("@/lib/db/track-orders");
   return trackOrders(Array.isArray(pairs) ? pairs : []);

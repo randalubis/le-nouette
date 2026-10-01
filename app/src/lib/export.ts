@@ -32,8 +32,8 @@ export const filterStateByRange = (state: State, from?: string, to?: string): St
 export const datasets = {
   orders: {
     sheet: "Orders",
-    columns: ["order_id", "created_at", "customer_name", "customer_whatsapp", "fulfillment", "address", "note", "status", "total", "amount_paid", "receivable", "promised_ready_date", "current_ready_date", "ready_at", "dispatched_at", "completed_at", "cancelled_at"],
-    rows: (s) => s.orders.map((o) => [o.id, o.createdAt, o.customer.name, o.customer.whatsapp, o.fulfillment, o.address ?? null, o.note ?? null, o.status, o.total, amountPaid(o), receivable(o), o.promisedReadyDate, o.currentReadyDate, dt(o.readyAt), dt(o.dispatchedAt), dt(o.completedAt), dt(o.cancelledAt)]),
+    columns: ["order_id", "created_at", "customer_name", "customer_whatsapp", "fulfillment", "address", "note", "referral_source", "referral_name", "status", "total", "amount_paid", "receivable", "promised_ready_date", "current_ready_date", "ready_at", "dispatched_at", "completed_at", "cancelled_at"],
+    rows: (s) => s.orders.map((o) => [o.id, o.createdAt, o.customer.name, o.customer.whatsapp, o.fulfillment, o.address ?? null, o.note ?? null, o.referral?.source ?? null, o.referral?.name ?? null, o.status, o.total, amountPaid(o), receivable(o), o.promisedReadyDate, o.currentReadyDate, dt(o.readyAt), dt(o.dispatchedAt), dt(o.completedAt), dt(o.cancelledAt)]),
   },
   "order-items": {
     sheet: "Order Items",
@@ -99,10 +99,12 @@ export const datasetTable = (key: DatasetKey, state: State, from?: string, to?: 
 
 // Text cells starting with a formula trigger get a leading ' (OWASP CSV injection); numbers are untouched.
 // Phone columns always get it so Excel keeps the leading 0 / +62 as text.
+export const safeText = (cell: Cell, forceText = false): Cell =>
+  typeof cell === "string" && (forceText || /^[=+\-@\t\r]/.test(cell)) ? `'${cell}` : cell;
+
 const csvCell = (cell: Cell, forceText = false) => {
   if (cell === null) return "";
-  let text = String(cell);
-  if (typeof cell === "string" && (forceText || /^[=+\-@\t\r]/.test(text))) text = `'${text}`;
+  const text = String(safeText(cell, forceText));
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 

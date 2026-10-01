@@ -16,9 +16,10 @@ calculate fulfillment promise
 create order
 get order confirmation by short-lived or unguessable token
 track order status (read-only lookup by id + public_token)
+save referral source and name (write-once, verified with public_token)
 ```
 
-No authentication required. `createOrderAction` and `trackOrdersAction` are Server Actions without `requireFounder()`.
+No authentication required. `createOrderAction`, `trackOrdersAction`, and `saveReferralAction` are Server Actions without `requireFounder()`. `saveReferralAction({id, token, source, name})` verifies the order's public_token, validates the source enum (Teman, keluarga, Instagram, WhatsApp, Lainnya), and records the referral as set-once (idempotent, no overwrite). Returns `{error}` on validation failure.
 
 ### 14.2 Founder reads
 

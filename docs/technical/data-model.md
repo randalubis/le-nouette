@@ -124,6 +124,8 @@ Recipe versions must be effective-dated so a later yield correction does not alt
 | `cancelled_at` | timestamp | nullable |
 | `cancellation_reason` | text | nullable |
 | `public_token` | text | 128-bit hex, unique, not null; unguessable read-only lookup token for customer status tracking |
+| `referral_source` | enum | nullable; source of referral (Teman, keluarga, Instagram, WhatsApp, Lainnya) |
+| `referral_name` | text | nullable; customer-supplied referrer name or account (max 60 characters) |
 | timestamps | timestamp | required |
 
 Fulfillment states:

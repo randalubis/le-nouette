@@ -1,12 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { datasetKeys, datasetTable, exportFilename, parseDateParam, toCsv } from "./export.ts";
+import { datasetKeys, datasetTable, exportFilename, parseDateParam, safeText, toCsv } from "./export.ts";
 import * as op from "./domain/operations.ts";
 
 const now = new Date("2026-09-14T10:00:00+07:00");
 let state = op.emptyState();
 state = op.createOrder(state, { idempotencyKey: "a", publicToken: "tok-"+"a", name: 'Sari "Mama", Jr', whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 } }, now);
 state = op.createOrder(state, { idempotencyKey: "b", publicToken: "tok-"+"b", name: "Sari", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, now);
+
+test("orders export includes referral columns", () => {
+  const s = op.setReferral(state, state.orders[0].id, "tok-a", "INSTAGRAM", "@sari");
+  const [h, ...rows] = datasetTable("orders", s);
+  const [src, nm] = [h.indexOf("referral_source"), h.indexOf("referral_name")];
+  assert.deepEqual([rows[0][src], rows[0][nm], rows[1][src], rows[1][nm]], ["INSTAGRAM", "@sari", null, null]);
+});
 
 test("CSV quotes, doubles quotes, uses CRLF and BOM", () => {
   const csv = toCsv([["a", "b"], ['x,"y"', "line\nbreak"], [null, 3]]);
@@ -29,6 +36,22 @@ test("row counts from state fixture", () => {
 test("CSV neutralises formula injection in text cells only", () => {
   const csv = toCsv([["a"], ["=1+1"], ["+62"], ["-x"], ["@SUM"], ["\tx"], ["\rx"], [-5], ["safe"]]);
   assert.equal(csv, "\ufeffa\r\n'=1+1\r\n'+62\r\n'-x\r\n'@SUM\r\n'\tx\r\n\"'\rx\"\r\n-5\r\nsafe\r\n");
+});
+
+test("formula-like names are quoted; negative numbers stay numeric", () => {
+  assert.equal(toCsv([["customer_name", "amount"], ['=HYPERLINK("x")', -5000]]), '\ufeffcustomer_name,amount\r\n"\'=HYPERLINK(""x"")",-5000\r\n');
+  assert.equal(safeText("=1+1"), "'=1+1"); // xlsx path
+  assert.equal(safeText(-5), -5);
+  assert.equal(safeText(null), null);
+});
+
+test("orders export carries referral_source/referral_name", () => {
+  let s = op.createOrder(op.emptyState(), { idempotencyKey: "x1", publicToken: "tok-x1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, new Date("2026-09-14T03:00:00Z"));
+  s = op.setReferral(s, s.orders[0].id, "tok-x1", "INSTAGRAM", "=Budi");
+  const [h, r] = datasetTable("orders", s);
+  assert.equal(r[h.indexOf("referral_source")], "INSTAGRAM");
+  assert.equal(r[h.indexOf("referral_name")], "=Budi");
+  assert.match(toCsv([h, r]), /,INSTAGRAM,'=Budi,/);
 });
 
 test("phone columns are forced to text; other columns and header untouched", () => {
