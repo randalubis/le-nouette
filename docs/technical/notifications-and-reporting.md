@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for 4 of 5 message kinds (confirmation, ready, rescheduled, cancelled); payment-reminder and customer-language selection remain backlog. Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is built in CSV and XLSX formats for all-history mode (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). Optional date-range filtering is deferred. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for 4 of 5 message kinds (confirmation, ready, rescheduled, cancelled); payment-reminder and customer-language selection remain backlog. Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is ✅ built in CSV and XLSX formats with optional date-range filtering (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). See [implementation-status.md](../implementation-status.md).
 
 ## 16. Notifications
 
@@ -61,7 +61,16 @@ Expiration labels and packing labor remain modeled per finished product until re
 
 ### 17.1 Portable business-data export
 
-**REQUIRED:** Founder OS provides an authenticated **Unduh Data Bisnis** action that creates an `.xlsx` workbook. It supports all history or an optional date range.
+**REQUIRED:** Founder OS provides an authenticated **Unduh Data Bisnis** action that creates a `.csv` or `.xlsx` workbook. It supports all history or an optional date range via query params `from` and `to` (YYYY-MM-DD, WIB, inclusive).
+
+**Built:** Founder export menu includes compact date range controls (Dari / Sampai date inputs with "Kosongkan" clear button, ~44px height) plus a helper line explaining which date each dataset uses. Query params on `/founder/export/csv?from=YYYY-MM-DD&to=YYYY-MM-DD` and `/founder/export/xlsx?from=...&to=...` filter data as follows:
+- Orders by `createdAt` (WIB); customers derived from filtered orders but stats (order_count, total_ordered, first_order_at) computed from full history.
+- Payments by `paid_at` (WIB); included only if within range.
+- Stock and ready movements by `at` (WIB).
+- Availability calendar by date.
+- Snapshot datasets (inventory balances, ready balances) remain unfiltered.
+- Invalid params ignored (all history on that side); reversed range (`from > to`) yields empty result and disables export links.
+- Filenames: `le-nouette-{key}-{date}.csv` (all-history) or `le-nouette-{key}_{from ?? "awal"}_sd_{to ?? "akhir"}.csv` (range); e.g., `le-nouette-orders_2026-09-01_sd_2026-10-01.csv`, `le-nouette-orders_awal_sd_2026-09-30.csv`, `le-nouette-all-2026-10-01.xlsx`.
 
 Workbook sheets:
 
@@ -69,11 +78,11 @@ Workbook sheets:
 Orders
 Order Items
 Customers
-Payments and Receivables
+Payments
 Inventory Movements
 Inventory Balances
-Ready Product Movements and Balances
-Packing Batches
+Ready Product Movements
+Ready Product Balances
 Availability Calendar
 ```
 

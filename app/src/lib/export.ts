@@ -1,12 +1,33 @@
 // Portable business-data export (docs/technical/notifications-and-reporting.md §17.1).
 // Pure: State in, rows out. Adding a dataset = one entry in `datasets`.
 // Never put auth/env data here; State contains none.
+import { jakartaNow } from "./domain/schedule.ts";
 import { amountPaid, balances, readyBalances, receivable, type State } from "./domain/operations.ts";
 
 export type Cell = string | number | null;
-type Dataset = { sheet: string; columns: string[]; rows: (state: State) => Cell[][] };
+type Dataset = { sheet: string; columns: string[]; rows: (state: State, from?: string, to?: string) => Cell[][] };
 
 const dt = (value?: string) => value ?? null;
+
+// Date-range filter: inclusive YYYY-MM-DD bounds, interpreted in WIB. Invalid/absent bound = open.
+export const parseDateParam = (value: string | null | undefined) =>
+  value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value ? value : undefined;
+const wibDate = (instant: string) => jakartaNow(new Date(instant)).date;
+const inRange = (date: string, from?: string, to?: string) => (!from || date >= from) && (!to || date <= to);
+
+// from > to yields an empty result (no swapping). Snapshot datasets and order payments are untouched;
+// the payments dataset filters by paid time itself because payments may belong to out-of-range orders.
+export const filterStateByRange = (state: State, from?: string, to?: string): State => {
+  from = parseDateParam(from); to = parseDateParam(to);
+  if (!from && !to) return state;
+  return {
+    ...state,
+    orders: state.orders.filter((o) => inRange(wibDate(o.createdAt), from, to)),
+    movements: state.movements.filter((m) => inRange(wibDate(m.at), from, to)),
+    readyMovements: state.readyMovements.filter((m) => inRange(wibDate(m.at), from, to)),
+    calendar: Object.fromEntries(Object.entries(state.calendar).filter(([d]) => inRange(d, from, to))),
+  };
+};
 
 export const datasets = {
   orders: {
@@ -23,19 +44,21 @@ export const datasets = {
     sheet: "Customers",
     columns: ["customer_whatsapp", "customer_name", "order_count", "total_ordered", "first_order_at", "last_order_at"],
     // Derived from orders, keyed by WhatsApp; name from the latest order.
-    rows: (s) => {
+    // With a range: only customers with an order in range, but stats come from full history.
+    rows: (s, from, to) => {
       const byPhone = new Map<string, { name: string; count: number; total: number; first: string; last: string }>();
       for (const o of [...s.orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
         const c = byPhone.get(o.customer.whatsapp);
         byPhone.set(o.customer.whatsapp, { name: o.customer.name, count: (c?.count ?? 0) + 1, total: (c?.total ?? 0) + (o.status === "CANCELLED" ? 0 : o.total), first: c?.first ?? o.createdAt, last: o.createdAt });
       }
-      return [...byPhone].map(([phone, c]) => [phone, c.name, c.count, c.total, c.first, c.last]);
+      const active = new Set(s.orders.filter((o) => inRange(wibDate(o.createdAt), from, to)).map((o) => o.customer.whatsapp));
+      return [...byPhone].filter(([phone]) => active.has(phone)).map(([phone, c]) => [phone, c.name, c.count, c.total, c.first, c.last]);
     },
   },
   payments: {
     sheet: "Payments",
     columns: ["payment_id", "order_id", "amount", "method", "paid_at", "reversed_at"],
-    rows: (s) => s.orders.flatMap((o) => o.payments.map((p) => [p.id, o.id, p.amount, p.method, p.at, dt(p.reversedAt)])),
+    rows: (s, from, to) => s.orders.flatMap((o) => o.payments.filter((p) => inRange(wibDate(p.at), from, to)).map((p) => [p.id, o.id, p.amount, p.method, p.at, dt(p.reversedAt)])),
   },
   "inventory-movements": {
     sheet: "Inventory Movements",
@@ -68,7 +91,11 @@ export type DatasetKey = keyof typeof datasets;
 export const datasetKeys = Object.keys(datasets) as DatasetKey[];
 export const isDatasetKey = (value: string | null): value is DatasetKey => value !== null && Object.hasOwn(datasets, value);
 
-export const datasetTable = (key: DatasetKey, state: State): Cell[][] => [datasets[key].columns, ...(datasets[key] as Dataset).rows(state)];
+export const datasetTable = (key: DatasetKey, state: State, from?: string, to?: string): Cell[][] => {
+  from = parseDateParam(from); to = parseDateParam(to);
+  const source = key === "payments" || key === "customers" ? state : filterStateByRange(state, from, to);
+  return [datasets[key].columns, ...(datasets[key] as Dataset).rows(source, from, to)];
+};
 
 // Text cells starting with a formula trigger get a leading ' (OWASP CSV injection); numbers are untouched.
 // Phone columns always get it so Excel keeps the leading 0 / +62 as text.
@@ -86,4 +113,6 @@ export const toCsv = (table: Cell[][]) => {
   return "﻿" + table.map((row, r) => row.map((cell, i) => csvCell(cell, r > 0 && phone.has(i))).join(",")).join("\r\n") + "\r\n";
 };
 
-export const exportFilename = (key: DatasetKey | "all", date: string, ext: "csv" | "xlsx") => `le-nouette-${key}-${date}.${ext}`;
+// With a range the export date is dropped: le-nouette-orders_2026-09-01_sd_akhir.csv
+export const exportFilename = (key: DatasetKey | "all", date: string, ext: "csv" | "xlsx", from?: string, to?: string) =>
+  from || to ? `le-nouette-${key}_${from ?? "awal"}_sd_${to ?? "akhir"}.${ext}` : `le-nouette-${key}-${date}.${ext}`;

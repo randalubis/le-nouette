@@ -19,8 +19,17 @@
 .deskActions { display: flex; align-items: center; gap: 12px; }
 .mobileMenu { display: none; }
 .exportMenu summary::-webkit-details-marker { display: none; }
-.exportList { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; min-width: 220px; padding: 6px; display: grid; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0,0,0,.14); }
+.exportList { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; min-width: 220px; padding: 6px; display: grid; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0,0,0,.14); max-height: calc(100dvh - 190px); overflow-y: auto; } /* keeps the menu above the fixed mobile nav */
 .exportList a { min-height: 44px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px; font-size: 14px; }
+.exportRange { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 12px 10px; font-size: 12px; color: var(--muted); }
+.exportRange label { display: grid; gap: 4px; }
+.exportRange input { min-height: 44px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: inherit; font: inherit; font-size: 14px; }
+.exportRange button { grid-column: 1 / -1; min-height: 44px; border: 0; background: none; color: var(--wine-text); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-align: left; }
+.exportRange button:disabled { color: var(--muted); background: var(--sunken); border: 1px dashed var(--muted); border-radius: 8px; padding: 0 8px; cursor: not-allowed; }
+.exportRange p { grid-column: 1 / -1; margin: 0; }
+.exportHint { font-size: 12px; color: var(--muted); }
+.exportError { font-size: 13px; font-weight: 700; color: var(--danger-fg); }
+.exportList a.exportDisabled { color: var(--muted); background: var(--sunken); border: 1px dashed var(--muted); cursor: not-allowed; }
 .exportList a:hover { background: rgba(0,0,0,.05); }
 .avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: var(--wine); color: #fff8f0; font-size: 12px; font-weight: 800; }
 .content { padding: 28px 32px 52px; max-width: 1480px; margin: 0 auto; }
