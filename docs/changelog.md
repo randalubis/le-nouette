@@ -4,6 +4,15 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.5.0 — 1 October 2026
+
+- **Checkout form validation and UX:** Form uses `noValidate` with custom inline field error messages for name (required), WhatsApp format (validated regex), and delivery address (shown only when Delivery selected). Errors appear only after submission attempt and clear as user types; submission focuses and scrolls to first invalid field. Reduces friction and makes error feedback precise.
+- **Sticky header fix:** Body `overflow-x: hidden` replaced with `overflow-x: clip`; the former creates a scroll container that breaks `position: sticky`. Header now remains fixed at top of viewport.
+- **Scroll-to-top on step change:** Every transition between shop/details/success/tracking steps scrolls viewport to top, ensuring primary content is visible.
+- **Order summary with product details:** Checkout and success pages now show order items with product thumbnail (52px), product name, size detail (e.g., "125g · Jar"), and line total; previous text-only summary replaced.
+- **Success page tracking hint:** Added inline note on success screen — "Atau kamu bisa cek status pesanan lewat tombol Lacak (ikon paket) di bagian atas layar." (EN: "Or check your order status anytime with the Track (parcel icon) button at the top of your screen.") — to make order tracking discoverability explicit.
+- **Catalog heading copy:** "Pilih yang ingin kamu pesan" (EN: "Pick what you want to order") replaces previous generic catalog title.
+
 ### 0.4.0 — 1 October 2026
 
 - **Customer order tracking:** **Lacak** button in storefront header opens read-only tracking view. Orders saved locally on customer's phone (`le-nouette:orders` localStorage, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand only (no polling) via read-only server action `trackOrdersAction` when tracking view opens or customer manually refreshes. Lookup requires both order `id` and 128-bit hex `public_token` (migration `drizzle/0002_public_token.sql` applied to production); bad tokens uniformly not-found. Response filtered through `toCustomerView` projection: id, status, fulfillment, promised/current ready dates, item name/qty, total, isPaid, timestamps — never WhatsApp, address, note, or payment details. `createOrderAction` generates `public_token` server-side; no more customer PII in client response. Storefront page.tsx no longer sends full State/orders (PII leak fix). Customer status label "Perlu Disiapkan" displayed as "Sedang disiapkan" in tracking view (Founder OS unchanged). Acceptance test §19.2 item 19a added.

@@ -31,11 +31,14 @@
 - Compact branded header using the Nouette Knot, LE NOUETTE, burgundy/cream identity, and accurate thin ribbon-style product photography.
 - Avoid an oversized marketing hero that pushes products below the fold.
 - Display the dynamic promise, for example: **"Pesan hari ini · Estimasi siap Rabu, 16 September."**
+- Catalog section heading: **"Pilih yang ingin kamu pesan"** (EN: "Pick what you want to order").
 - Product cards:
   - **Milieu · 125g · Jar — Rp50.000**
   - **Grande · 225g · Pouch — Rp70.000**
 - Each product uses inline quantity controls.
 - Sticky bottom summary: item count, total, and **Lanjutkan**.
+
+**Implementation: ✅ BUILT** — Sticky bottom remains fixed and responsive; header uses `position: sticky` with `overflow-x: clip` on the body to prevent scroll-container collapse. All step transitions (shop → details, details → success, tracking toggle) scroll the viewport to top to ensure primary content is visible.
 
 #### Screen 2 — Fulfillment and identity
 
@@ -47,13 +50,15 @@ Canonical fulfillment options:
 
 Fields:
 
-- Nama
-- Nomor WhatsApp
-- Alamat pengiriman, shown only for external delivery
+- Nama (required)
+- Nomor WhatsApp (required, validated for Indonesian phone format)
+- Alamat pengiriman, shown only for external delivery (required when Delivery chosen)
 - Catatan untuk pesanan, optional, maximum 180 characters
 - Ingat data saya di perangkat ini, optional and unchecked by default
 
 **LOCKED:** The order note is intended for short practical instructions such as "Titip di resepsionis." It is visible to founders but does not alter fulfillment scheduling, reservations, material calculations, or packing-batch quantities.
+
+**Implementation: ✅ BUILT** — Form uses `noValidate` (disables browser validation) with custom inline field error messages. Validation rules: name required, WhatsApp format validated via regex pattern, delivery address required only when Delivery fulfillment is selected. Errors appear only after submission attempt and clear as user types in the field. On submission with errors, the form focuses and scrolls to the first invalid field. Order item display shows thumbnail (52px), product name, size detail (e.g., "125g · Jar"), and line total.
 
 Show the calculated ready date before the customer submits the order. Display order items, total, and **Bayar saat pesanan diterima**. Primary action: **Buat Pesanan** (price shown in summary above, not in button label for mobile fit).
 
@@ -65,15 +70,16 @@ Show:
 - immutable human-readable order number such as `LN-0027`;
 - promised ready date;
 - selected fulfillment option;
-- item and total summary;
+- item and total summary (with product thumbnail, name, size detail, and line total);
 - payment state: **Bayar saat pesanan diterima**;
 - optional secondary action: **Bayar sekarang dengan QRIS**;
 - statement that order updates will be sent through WhatsApp;
+- optional hint that order status can be checked using the **Lacak** (Track) button at the top of the screen;
 - optional **Lacak Pesanan** (Track Order) button linking to the tracking view.
 
 **Implementation: 🚧 PARTIAL** — the QRIS action currently displays a static placeholder image (`storefront.tsx`); tapping it never changes payment status, matching the spec's own note that a static QRIS display does not automatically confirm payment (§11.1), but real image artwork and any confirmation UX are not finished. A share-invite button ('Ajak teman'/'Invite friends') is implemented below the QRIS section; it uses navigator.share with a wa.me fallback and sends a plain origin link. See [implementation-status.md](../implementation-status.md).
 
-**Implementation: ✅ BUILT** — Customer order tracking: **Lacak** button in storefront header opens a tracking view. Orders stored locally on customer's phone in localStorage (`le-nouette:orders`, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand via read-only server action `trackOrdersAction` only when tracking view opens or customer manually refreshes (no polling). Lookup matches both order id and secret 128-bit `public_token`; bad token returns not-found. Response is customer-safe projection only (`toCustomerView`): id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps — never WhatsApp, address, note, or payment details. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — Customer order tracking: **Lacak** button in storefront header opens a tracking view. Orders stored locally on customer's phone in localStorage (`le-nouette:orders`, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand via read-only server action `trackOrdersAction` only when tracking view opens or customer manually refreshes (no polling). Lookup matches both order id and secret 128-bit `public_token`; bad token returns not-found. Response is customer-safe projection only (`toCustomerView`): id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps — never WhatsApp, address, note, or payment details. Success page includes an inline tracking hint to make order status checking discoverable. See [implementation-status.md](../implementation-status.md).
 
 ### 6.3 Availability-facing behavior
 

@@ -20,6 +20,7 @@ type Placed = CustomerOrderView & { publicToken: string };
 const waNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/\D/g, "");
 type Option = { id: Fulfillment; title: Key; sub: Key; icon: Icon };
 
+const whatsappRe = /^(\+62|62|0)8[0-9 \-]{7,14}$/;
 const productImage: Record<ProductId, string> = { milieu: "/le-nouette/milieu.png", grande: "/le-nouette/grande.png" };
 
 const fulfillmentOptions: Option[] = [
@@ -49,6 +50,8 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
   const [error, setError] = useState<string | null>(null);
   const [showQris, setShowQris] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [attempted, setAttempted] = useState(false);
+  useEffect(() => { window.scrollTo(0, 0); }, [step]); // braces: scrollTo may return a Promise, which React would treat as a cleanup fn
 
   const total = products.reduce((sum, product) => sum + product.price * qty[product.id], 0);
   const count = qty.milieu + qty.grande;
@@ -58,6 +61,27 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
 
   const updateQty = (id: ProductId, delta: number) => !(paused && delta > 0) && setQty((current) => ({ ...current, [id]: Math.max(0, current[id] + delta) }));
   const field = (key: keyof typeof form) => ({ value: form[key], onChange: (event: { target: { value: string } }) => setForm((current) => ({ ...current, [key]: event.target.value })) });
+
+  const errors: { id: string; msg: Key }[] = [];
+  if (!form.name.trim()) errors.push({ id: "f-name", msg: "errNameRequired" });
+  if (!whatsappRe.test(form.whatsapp.trim())) errors.push({ id: "f-whatsapp", msg: "errWhatsappInvalid" });
+  if (fulfillment === "DELIVERY" && !form.address.trim()) errors.push({ id: "f-address", msg: "errAddressRequired" });
+  const fieldProps = (id: string) => {
+    const bad = attempted && errors.some((e) => e.id === id);
+    return { id, "aria-invalid": bad || undefined, "aria-describedby": bad ? `${id}-err` : undefined, className: bad ? styles.fieldInvalid : undefined };
+  };
+  const fieldError = (id: string) => { const e = attempted && errors.find((x) => x.id === id); return e ? <span id={`${id}-err`} role="alert" className={styles.fieldError}>{t(e.msg)}</span> : null; };
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setAttempted(true);
+    if (errors.length) {
+      const el = document.getElementById(errors[0].id);
+      el?.scrollIntoView({ block: "center" });
+      el?.focus({ preventScroll: true });
+      return;
+    }
+    submit();
+  };
 
   const toggleRemember = (checked: boolean) => {
     setRemember(checked);
@@ -83,6 +107,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
     setForm((current) => ({ ...current, address: "", note: "" }));
     setPlaced(null);
     setShowQris(false);
+    setAttempted(false);
     setStep("shop");
   };
 
@@ -150,7 +175,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
       )}
 
       {step === "details" && (
-        <form id="checkout" className={`${styles.formPage} fade-up`} onSubmit={(event) => { event.preventDefault(); submit(); }}>
+        <form id="checkout" noValidate className={`${styles.formPage} fade-up`} onSubmit={onSubmit}>
           <div className={styles.pageIntro}>
             <span>{t("yourOrder")}</span>
             <h1 className="display">{t("fulfillmentQuestion")}</h1>
@@ -167,9 +192,9 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
           </fieldset>
           <div className={styles.fields}>
             <h2>{t("customerSection")}</h2>
-            <label>{t("name")}<input required autoComplete="name" {...field("name")} /></label>
-            <label>{t("whatsapp")}<input required type="tel" autoComplete="tel" pattern="^(\+62|62|0)8[0-9 \-]{7,14}$" title={t("whatsappHint")} placeholder="0812 3456 7890" {...field("whatsapp")} /></label>
-            {fulfillment === "DELIVERY" && <label>{t("address")}<textarea required rows={3} autoComplete="street-address" placeholder={t("addressPlaceholder")} {...field("address")} /></label>}
+            <label>{t("name")}<input required autoComplete="name" {...fieldProps("f-name")} {...field("name")} />{fieldError("f-name")}</label>
+            <label>{t("whatsapp")}<input required type="tel" autoComplete="tel" pattern={whatsappRe.source} title={t("whatsappHint")} placeholder="0812 3456 7890" {...fieldProps("f-whatsapp")} {...field("whatsapp")} />{fieldError("f-whatsapp")}</label>
+            {fulfillment === "DELIVERY" && <label>{t("address")}<textarea required rows={3} autoComplete="street-address" placeholder={t("addressPlaceholder")} {...fieldProps("f-address")} {...field("address")} />{fieldError("f-address")}</label>}
             <label>{t("note")}<textarea rows={2} maxLength={180} placeholder={t("notePlaceholder")} {...field("note")} /></label>
             <label className={styles.remember}><input type="checkbox" checked={remember} onChange={(event) => toggleRemember(event.target.checked)} /> {t("remember")}</label>
           </div>
@@ -198,7 +223,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
           ) : (
             <button className={`${styles.previewLink} btn btn-secondary`} onClick={() => setShowQris(true)}><QrCode size={18} /> {t("payWithQris")}</button>
           )}
-          <div className={styles.whatsapp}><WhatsappLogo size={26} weight="fill" /><span>{t("whatsappUpdates")}</span></div>
+          <div className={styles.whatsapp}><WhatsappLogo size={26} weight="fill" /><span>{t("whatsappUpdates")}<small>{t("successTrackHint")}</small></span></div>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={startOver}>{t("orderAgain")}</button>
           <button className={`${styles.previewLink} btn btn-quiet`} onClick={invite}><ShareNetwork size={18} /> {t("inviteFriends")}</button>
         </section>
@@ -226,7 +251,7 @@ function OrderSummary({ t, qty, total, delivery, compact = false }: { t: (key: K
   return (
     <div className={`${styles.summary} ${compact ? styles.summaryCompact : ""}`}>
       <h2>{t("summaryTitle")}</h2>
-      {products.filter((product) => qty[product.id] > 0).map((product) => <div key={product.id}><span>{qty[product.id]} × {product.name}</span><strong>{formatRupiah(qty[product.id] * product.price)}</strong></div>)}
+      {products.filter((product) => qty[product.id] > 0).map((product) => <div key={product.id} className={styles.summaryItem}><div className={styles.summaryThumb}><Image src={productImage[product.id]} alt={product.name} fill quality={60} sizes="52px" /></div><span className={styles.summaryName}>{qty[product.id]} × {product.name}<small>{t(`${product.id}Detail`)}</small></span><strong>{formatRupiah(qty[product.id] * product.price)}</strong></div>)}
       <div className={styles.total}><span>{t("total")}</span><strong>{formatRupiah(total)}</strong></div>
       <p className={styles.payNote}>{delivery ? t("payOnDelivery") : t("payOnReceipt")}</p>
     </div>

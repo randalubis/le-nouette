@@ -59,6 +59,16 @@
 .remember input { accent-color: var(--wine-text); }
 .summary { margin-top: 24px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-card); display: grid; gap: 11px; }
 .summary > div { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+.summary .summaryItem { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.summaryThumb { position: relative; width: 52px; height: 52px; border-radius: 12px; background: var(--sunken); overflow: hidden; }
+.summaryThumb img { object-fit: contain; }
+.summaryName { display: grid; gap: 2px; min-width: 0; }
+.summaryName small { color: var(--muted); font-size: 12px; }
+.fields input, .fields textarea { scroll-margin-top: 96px; }
+.fields .fieldInvalid { border-color: var(--danger-fg) !important; }
+.fieldError { color: var(--danger-fg); font-size: 12.5px; }
+.whatsapp svg { flex-shrink: 0; }
+.whatsapp small { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
 .summary .total { border-top: 1px solid var(--line); padding-top: 13px; font-size: 18px; }
 .summary .total strong { color: var(--wine-text); }
 .payNote { margin: 0; color: var(--muted); font-size: 13px; }

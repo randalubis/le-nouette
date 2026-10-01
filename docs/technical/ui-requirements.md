@@ -89,6 +89,8 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - Show calculated date before submission.
 - Revalidate the date and store status server-side during submission.
 
+**Implementation: ✅ BUILT** — Form uses `noValidate` with custom inline field error messages (name required, WhatsApp format validated, address required when Delivery selected). Errors appear only after submission attempt and clear as user types. On submission with errors, form focuses and scrolls to the first invalid field. Order item summary displays product thumbnail (52px), name, size detail (e.g., "125g · Jar"), and line total.
+
 ### 13.3 Localization
 
 - Bahasa Indonesia default.
@@ -110,6 +112,14 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - Do not expose founder-only order data through predictable order numbers.
 - Customer order tracking: A **Lacak** (Track) button in the storefront header opens a tracking view. Customer phones store order records locally (localStorage, max 20 newest first) as `{id, token}` pairs. Status is fetched on-demand only when the tracking view opens or when the customer manually refreshes (no polling). Lookups use both order id and unguessable 128-bit `public_token`; bad tokens return not-found (uniform with missing orders). The tracking response is read-only and customer-safe only: `{id, status, fulfillment, readyDates, items, total, isPaid, timestamps}` — never WhatsApp, address, note, or payment details.
 
-### 13.5 Static assets
+### 13.5 Viewport and navigation
+
+**Sticky header:** Storefront header uses `position: sticky` to remain fixed at the top of the viewport during scroll. Root body element uses `overflow-x: clip` (not `overflow-x: hidden`) to avoid creating a scroll container that would collapse sticky positioning.
+
+**Scroll-to-top on step change:** Every transition between storefront steps (shop → details, details → success, tracking toggle) calls `window.scrollTo(0, 0)` to ensure primary content is visible at the top of the viewport, improving navigation clarity and reducing friction.
+
+**Implementation: ✅ BUILT** — Both behaviors implemented in `app/src/components/storefront.tsx`. The sticky header fix resolves an earlier issue where `overflow-x: hidden` on the body created an unintended scroll container; `overflow-x: clip` maintains the same overflow behavior without affecting sticky positioning (https://github.com/w3c/csswg-drafts/issues/5903).
+
+### 13.6 Static assets
 
 **REQUIRED:** Keep V1 logos, product photographs, packaging imagery, QRIS artwork, and interface assets in the Next.js repository and deploy them with the application through Vercel. Do not add Supabase Storage or Founder OS upload management in V1. Secrets and private customer documents must never be placed in the public static directory.
