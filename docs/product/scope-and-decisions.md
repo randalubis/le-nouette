@@ -30,7 +30,7 @@ For a build-status view of these items (what's actually shipped vs still backlog
 - Availability Calendar and affected-order rescheduling workflow.
 - Store pause/resume control.
 - Payment verification, method capture, paid/unpaid status, and receivables.
-- Inventory for raw cheese, jars, pouches, square stickers, round stickers, and seals.
+- Inventory for raw cheese, jars, pouches, square stickers (Milieu and Grande SKU variants), round stickers, and seals.
 - Reservations, available-to-promise, packing consumption, supplier receipts, shortage projection, and stock opname adjustments.
 - Basic sales, COGS, estimated gross profit, order/unit counts, and inventory health.
 - Authenticated on-demand comprehensive XLSX business-data export.
@@ -101,7 +101,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - One cheese-stick flavor; Milieu 125 g jar at Rp50,000 and Grande 225 g pouch at Rp70,000 currently.
 - Accessible-premium, family-made, indulgent brand built around connection and togetherness.
 - Nouette Knot master symbol; burgundy and warm cream core palette; flexible seasonal palettes.
-- Round sticker is brand-only; square/portrait sticker is product-specific; no separate back sticker.
+- Round sticker is brand-only; square/portrait sticker is product-specific (one variant per SKU: Milieu 125 g, Grande 225 g); no separate back sticker.
 - Bahasa Indonesia storefront by default with ID/EN switch.
 - Mobile web, no mandatory account or upfront payment.
 - Fulfillment options are Mandiri office pickup, BI office pickup, and customer-paid delivery.
@@ -126,7 +126,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Bahasa Indonesia is the canonical interface copy, with English maintained in repository TypeScript dictionaries and no translation service, CMS, or database editor.
 - Demand is aggregated into date-based packing summaries.
 - Packing completion is whole-batch only in V1; incomplete batches remain open.
-- Inventory tracks raw cheese in grams plus jars, pouches, square stickers, round stickers, and jar seals.
+- Inventory tracks raw cheese in grams plus jars, pouches, square stickers (Milieu and Grande), round stickers, and jar seals.
 - Raw-cheese reservations, movements, consumption, and balances use 0.01 g precision internally.
 - One supplier pack equals 225 g.
 - Available-to-promise equals on hand minus reserved.

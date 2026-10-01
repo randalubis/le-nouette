@@ -65,13 +65,14 @@ Both founders have the same authorization policy in V1.
 | `minimum_recommended_purchase` | decimal | nullable; applied after upward rounding |
 | timestamps | timestamp | required |
 
-Required V1 item codes:
+Required V1 item codes (7 items as of 0.11.0):
 
 ```text
 RAW_CHEESE_G
 JAR_125
 POUCH_225
-STICKER_SQUARE
+STICKER_SQUARE_MILIEU
+STICKER_SQUARE_GRANDE
 STICKER_ROUND
 JAR_SEAL
 ```
@@ -95,12 +96,12 @@ Initial active recipes:
 |---|---|---:|
 | Milieu | Raw cheese | 125 g |
 | Milieu | Jar | 1 |
-| Milieu | Square sticker | 1 |
+| Milieu | Square sticker (Milieu) | 1 |
 | Milieu | Round sticker | 1 |
 | Milieu | Jar seal | 1 |
 | Grande | Raw cheese | 225 g |
 | Grande | Pouch | 1 |
-| Grande | Square sticker | 1 |
+| Grande | Square sticker (Grande) | 1 |
 
 Recipe versions must be effective-dated so a later yield correction does not alter old reservations or consumption records.
 

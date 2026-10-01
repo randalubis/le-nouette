@@ -4,6 +4,11 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.11.0 — 1 October 2026
+
+- **Inventory item split:** Square sticker item split into two SKU-specific inventory items: `sticker_square_milieu` ("Stiker kotak Milieu (125 g)") and `sticker_square_grande` ("Stiker kotak Grande (225 g)"), each with threshold 10 pieces. Previously a single "Square sticker" item with threshold 20. Operationally tracked items now total 7 (was 6). Recipes updated: Milieu uses `sticker_square_milieu`, Grande uses `sticker_square_grande`. Data migration `app/drizzle/0004_split_sticker_square.sql` rewrites `order_items.recipe` per product, splits existing per-unit reservations by SKU, and renames any existing inventory movements to the Milieu variant (production had zero sticker movements at time of deploy). Founder counts each sticker variant separately with "Hasil opname"/"Terima stok" after deploy. Implementation: `app/src/lib/domain/catalog.ts` (ItemId type, inventoryItems list, product recipes), drizzle migration applied via `app/src/lib/db/schema.ts`.
+- **Movement history title fallback:** Inventory movement history title now falls back to the raw `inventory_item_id` for items not found in the current catalog, preserving readability of historical data when items are deleted or renamed.
+
 ### 0.10.0 — 1 October 2026
 
 - **Offline order submit:** a failed network call during "Buat Pesanan" now shows an inline "Koneksi bermasalah" message instead of Next.js's error page, and the order keeps the same idempotency key across retries, so a lost reply can never create a duplicate order (§19.7 items 45–46). Covered by the e2e offline test.

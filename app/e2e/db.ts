@@ -23,7 +23,7 @@ export async function resetDb() {
   try {
     await sql.unsafe(`truncate table orders, order_items, payments, movements, reservations, calendar_dates, store_status, audit_events, ready_product_movements restart identity cascade`);
     const db = drizzle(sql, { schema });
-    const stock = [["raw_cheese", 211500], ["jar", 34], ["pouch", 118], ["sticker_square", 46], ["sticker_round", 18], ["jar_seal", 42]] as const;
+    const stock = [["raw_cheese", 211500], ["jar", 34], ["pouch", 118], ["sticker_square_milieu", 23], ["sticker_square_grande", 23], ["sticker_round", 18], ["jar_seal", 42]] as const;
     const now = new Date();
     let s = stock.reduce((acc, [item, qty]) => op.receiveStock(acc, item, qty, new Date(now.getTime() - 7 * 86_400_000)), op.emptyState());
     s = op.setDateStatus(s, MARKER_DATE, "HOLIDAY", now);

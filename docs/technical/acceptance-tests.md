@@ -23,7 +23,7 @@
 
 ### 19.2 Ordering and reservations
 
-13. Two Milieu plus one Grande reserves 488.16 g raw cheese, two jars, one pouch, three square stickers, two round stickers, and two seals.
+13. Two Milieu plus one Grande reserves 250 g raw cheese, two jars, one pouch, two Milieu square stickers, one Grande square sticker, two round stickers, and two seals.
 14. Order creation does not reduce on-hand stock.
 15. Cancelling an unpacked order releases every active reservation.
 16. Editing quantities replaces reservations correctly and updates captured totals.

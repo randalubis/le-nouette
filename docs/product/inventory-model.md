@@ -25,7 +25,8 @@
 | Raw cheese sticks | gram | Supplier pack count × 225 g, or actual grams |
 | 125 g plastic jar | piece | Individually purchasable; normally at least 30 per order |
 | 225 g plastic pouch | piece | Bundles × 100 pouches |
-| Square sticker | piece | Sheets × 15 stickers |
+| Square sticker (Milieu 125 g) | piece | Sheets × 15 stickers |
+| Square sticker (Grande 225 g) | piece | Sheets × 15 stickers |
 | Round sticker | piece | Sheets × 18 stickers |
 | Jar seal | piece | Packages × 50 sheets; one sheet = one seal |
 
@@ -164,7 +165,8 @@ Initial V1 warning thresholds:
 | Raw cheese | 10 supplier packs = 2,250 g |
 | Jars | 10 pieces |
 | Pouches | 10 pieces |
-| Square stickers | 20 pieces |
+| Square stickers (Milieu) | 10 pieces |
+| Square stickers (Grande) | 10 pieces |
 | Round stickers | 10 pieces |
 | Jar seals | 10 pieces |
 

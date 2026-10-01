@@ -5,7 +5,7 @@ import * as op from "@/lib/domain/operations";
 
 function seed(now: Date): op.State {
   const hours = (h: number) => new Date(now.getTime() - h * 3_600_000);
-  const stock = [["raw_cheese", 211500], ["jar", 34], ["pouch", 118], ["sticker_square", 46], ["sticker_round", 18], ["jar_seal", 42]] as const;
+  const stock = [["raw_cheese", 211500], ["jar", 34], ["pouch", 118], ["sticker_square_milieu", 23], ["sticker_square_grande", 23], ["sticker_round", 18], ["jar_seal", 42]] as const;
   let s = stock.reduce((acc, [item, qty]) => op.receiveStock(acc, item, qty, hours(24 * 7)), op.emptyState());
   s = op.createOrder(s, { idempotencyKey: "seed-1", publicToken: "tok-"+"seed-1", name: "Rizky Mahendra", whatsapp: "081234560001", fulfillment: "PICKUP_BI", quantities: { milieu: 1 } }, hours(24 * 6));
   s = op.completeBatch(s, s.orders[0].currentReadyDate, hours(24 * 4));

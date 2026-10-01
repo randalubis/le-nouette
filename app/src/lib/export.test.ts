@@ -26,7 +26,7 @@ test("row counts from state fixture", () => {
   assert.equal(count("order-items"), 3);
   assert.equal(count("customers"), 1); // same WhatsApp
   assert.equal(count("payments"), 0);
-  assert.equal(count("inventory-balances"), 6);
+  assert.equal(count("inventory-balances"), 7);
   for (const key of datasetKeys) {
     const [header, ...rows] = datasetTable(key, state);
     assert.ok(rows.every((r) => r.length === header.length), key);
@@ -86,7 +86,7 @@ test("customers follow orders; payments by paid date; snapshots unfiltered", () 
   assert.equal(ids("customers", "2026-09-11", "2026-09-19").length, 1);
   assert.equal(ids("payments", "2026-09-25", "2026-09-25").length, 1); // order was created outside range
   assert.equal(ids("payments", "2026-09-01", "2026-09-24").length, 0);
-  assert.equal(ids("inventory-balances", "2027-01-01", "2027-01-02").length, 6);
+  assert.equal(ids("inventory-balances", "2027-01-01", "2027-01-02").length, 7);
   assert.equal(ids("ready-balances", "2027-01-01", "2027-01-02").length, datasetTable("ready-balances", r).length - 1);
 });
 test("customers in range keep full-history stats", () => {

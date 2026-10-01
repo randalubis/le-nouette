@@ -109,7 +109,7 @@ Post a positive `RECEIPT` movement for raw cheese with total and unit cost.
 
 Founder selects an inventory item and enters purchased piece count and total landed cost. Convenience conversions:
 
-- square stickers: sheets × 15;
+- square stickers (Milieu/Grande): sheets × 15;
 - round stickers: sheets × 18;
 - pouches: bundles × 100;
 - jar seals: packages × 50 sheets, with one sheet equal to one seal;
@@ -153,7 +153,7 @@ rounded_shortage = CEILING(shortage / purchase_increment) × purchase_increment
 suggested_quantity = MAX(rounded_shortage, minimum_recommended_purchase or 0)
 ```
 
-Initial purchase increments are 225 g for raw cheese, 15 pieces for square stickers, 18 pieces for round stickers, one piece for jars, 100 pieces for pouches, and 50 pieces for jar seals. Jars have `minimum_recommended_purchase = 30`; other items have no separate minimum. Never round a recommendation downward.
+Initial purchase increments are 225 g for raw cheese, 15 pieces for square stickers (each SKU), 18 pieces for round stickers, one piece for jars, 100 pieces for pouches, and 50 pieces for jar seals. Jars have `minimum_recommended_purchase = 30`; other items have no separate minimum. Never round a recommendation downward.
 
 Seed these editable `reorder_threshold` values:
 
@@ -162,7 +162,8 @@ Seed these editable `reorder_threshold` values:
 | Raw cheese | 2,250.00 g |
 | Jar | 10 pieces |
 | Pouch | 10 pieces |
-| Square sticker | 20 pieces |
+| Square sticker (Milieu) | 10 pieces |
+| Square sticker (Grande) | 10 pieces |
 | Round sticker | 10 pieces |
 | Jar seal | 10 pieces |
 

@@ -132,7 +132,7 @@ export function StockBoard({ session }: { session: op.State }) {
         {session.movements.slice(-10).reverse().map((m) => (
           <ListRowCard
             key={m.id}
-            title={items.find((i) => i.id === m.itemId)!.name}
+            title={items.find((i) => i.id === m.itemId)?.name ?? m.itemId}
             subtitle={new Date(m.at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
             middle={{ RECEIPT: "Penerimaan", STOCK_OPNAME: "Opname", PACKING_CONSUMPTION: "Konsumsi packing" }[m.reason]}
             trailing={`${m.delta > 0 ? "+" : ""}${formatQuantity(m.itemId, m.delta)}`}

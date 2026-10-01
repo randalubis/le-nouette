@@ -37,7 +37,7 @@ const order = (overrides: Partial<op.CreateOrderInput> = {}): op.CreateOrderInpu
 test("§19.2 order reserves exact recipe quantities without touching on-hand", () => {
   const state = op.createOrder(op.emptyState(), order(), wib("2026-09-14"));
   const reserved = Object.fromEntries(op.balances(state).map((b) => [b.id, b.reserved]));
-  assert.deepEqual(reserved, { raw_cheese: 47500, jar: 2, pouch: 1, sticker_square: 3, sticker_round: 2, jar_seal: 2 });
+  assert.deepEqual(reserved, { raw_cheese: 47500, jar: 2, pouch: 1, sticker_square_milieu: 2, sticker_square_grande: 1, sticker_round: 2, jar_seal: 2 });
   assert.ok(op.balances(state).every((b) => b.onHand === 0));
   assert.equal(state.orders[0].total, 170000);
 });
@@ -106,11 +106,26 @@ test("§10.6 stock opname posts an adjustment; blocking a date with orders is re
   assert.deepEqual([state.orders[0].promisedReadyDate, state.orders[0].currentReadyDate], ["2026-09-16", "2026-09-17"]);
 });
 
+test("square stickers are tracked per SKU: reserve, consume, low-stock", () => {
+  const sq = (s: op.State) => Object.fromEntries(op.balances(s).filter((b) => b.id.startsWith("sticker_square")).map((b) => [b.id, b]));
+  let state = op.receiveStock(op.emptyState(), "raw_cheese", 100000, wib("2026-09-14"));
+  state = op.receiveStock(state, "sticker_square_milieu", 11, wib("2026-09-14"));
+  state = op.receiveStock(state, "sticker_square_grande", 11, wib("2026-09-14"));
+  state = op.createOrder(state, order({ quantities: { grande: 2 } }), wib("2026-09-14"));
+  assert.deepEqual([sq(state).sticker_square_milieu.reserved, sq(state).sticker_square_grande.reserved], [0, 2]);
+  const low = (s: op.State) => op.balances(s).filter((b) => b.available < b.threshold).map((b) => b.id);
+  assert.ok(low(state).includes("sticker_square_grande") && !low(state).includes("sticker_square_milieu"));
+  state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
+  assert.deepEqual([sq(state).sticker_square_milieu.onHand, sq(state).sticker_square_grande.onHand], [11, 9]);
+  state = op.createOrder(state, order({ idempotencyKey: "k2", publicToken: "tok-k2", quantities: { milieu: 1 } }), wib("2026-09-16"));
+  assert.deepEqual([sq(state).sticker_square_milieu.reserved, sq(state).sticker_square_grande.reserved], [1, 0]);
+});
+
 // ---------- §19.8 Product Ready to Sell ----------
 
 const stocked = () => {
   let state = op.emptyState();
-  for (const [id, qty] of [["raw_cheese", 1_000_000], ["jar", 100], ["pouch", 100], ["sticker_square", 100], ["sticker_round", 100], ["jar_seal", 100]] as const) state = op.receiveStock(state, id, qty, wib("2026-09-14"));
+  for (const [id, qty] of [["raw_cheese", 1_000_000], ["jar", 100], ["pouch", 100], ["sticker_square_milieu", 100], ["sticker_square_grande", 100], ["sticker_round", 100], ["jar_seal", 100]] as const) state = op.receiveStock(state, id, qty, wib("2026-09-14"));
   return state;
 };
 const onHand = (state: op.State) => Object.fromEntries(op.balances(state).map((b) => [b.id, b.onHand]));
@@ -139,7 +154,7 @@ test("§19.8 (48) new order allocates oldest first; reserves only uncovered rema
   assert.deepEqual(allocs.map((m) => [m.sourceId, m.delta, m.orderId]), [[a.id, -1, "LN-0001"], [b.id, -1, "LN-0001"]]);
   assert.equal(state.orders[0].items.find((i) => i.productId === "milieu")!.readyQuantity, 2);
   assert.equal(state.orders[0].status, "NEEDS_PREPARATION"); // grande uncovered
-  assert.deepEqual(reservedOf(state), { raw_cheese: 22500, jar: 0, pouch: 1, sticker_square: 1, sticker_round: 0, jar_seal: 0 });
+  assert.deepEqual(reservedOf(state), { raw_cheese: 22500, jar: 0, pouch: 1, sticker_square_milieu: 0, sticker_square_grande: 1, sticker_round: 0, jar_seal: 0 });
 
   const full = op.createOrder(state, order({ idempotencyKey: "k2", publicToken: "tok-"+"k2", quantities: { milieu: 1 } }), wib("2026-09-16"));
   assert.equal(full.orders[1].status, "READY_FOR_HANDOVER");

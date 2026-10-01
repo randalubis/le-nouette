@@ -26,7 +26,8 @@
 | Raw cheese sticks | gram | **125 g** | **225 g** |
 | Plastic jar | piece | 1 | 0 |
 | Plastic pouch | piece | 0 | 1 |
-| Square sticker | piece | 1 | 1 |
+| Square sticker (Milieu) | piece | 1 | 0 |
+| Square sticker (Grande) | piece | 0 | 1 |
 | Round sticker | piece | 1 | 0 |
 | Jar seal | piece | 1 | 0 |
 | Expiration label | piece | 1 for costing | 1 for costing |
@@ -77,7 +78,7 @@ Sticker calculation used a conservative no-promo delivery assumption: Rp97,000 p
 | Cheese sticks | ~Rp20,555 | Rp37,000 |
 | Supplier delivery allocation | ~Rp152 | Rp260 |
 | Jar / pouch | Rp3,225 | Rp1,240 |
-| Brand sticker(s) | Rp1,000 | Rp550 |
+| Brand sticker (Milieu/Grande) | Rp1,000 | Rp550 |
 | Expiration label | Rp10 | Rp10 |
 | Jar seal | Rp150 | — |
 | Packing labor | Rp1,000 | Rp1,000 |
