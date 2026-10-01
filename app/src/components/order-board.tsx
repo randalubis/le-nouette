@@ -1,10 +1,11 @@
 "use client";
 
-import { Clock, MapPin, Truck } from "@phosphor-icons/react";
+import { Clock, MapPin, Truck, WhatsappLogo } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatRupiah } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate } from "@/lib/domain/schedule";
+import { waKindFor, waLink } from "@/lib/domain/whatsapp";
 import { recordPaymentAction, dispatchOrderAction, dispatchOrdersAction, completeOrderAction, reversePaymentAction, cancelOrderAction } from "@/lib/domain/actions";
 import { ActionCard } from "@/components/ui/action-card";
 import styles from "./founder.module.css";
@@ -97,6 +98,8 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
           const lastPayment = order.payments.filter((payment) => !payment.reversedAt).at(-1);
           const delivery = order.fulfillment === "DELIVERY";
           const active = order.status === "NEEDS_PREPARATION" || order.status === "READY_FOR_HANDOVER";
+          const waKind = waKindFor(order);
+          const wa = waKind && waLink(waKind, order);
           const bulkEligible = order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && paid;
           return (
             <article className={styles.orderCard} key={order.id}>
@@ -133,6 +136,9 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                   {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
                   {active && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}
+                  {waKind && (wa
+                    ? <a className={`btn btn-quiet ${styles.waRow}`} href={wa} target="_blank" rel="noopener noreferrer"><WhatsappLogo size={18} weight="fill" aria-hidden />Kirim WhatsApp</a>
+                    : <small className={`${styles.hint} ${styles.waRow}`}>Nomor WA tidak valid</small>)}
                   {error?.id === order.id && <small role="alert" className={styles.hint}>{error.message}</small>}
                 </div>
               )}

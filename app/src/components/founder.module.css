@@ -69,6 +69,8 @@
 .empty { color: var(--muted); padding: 24px 0; margin: 0; }
 .cardActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
 .cardActions :global(.btn) { flex: 1 1 auto; min-height: 44px; }
+.cardActions .waRow { flex: 1 1 100%; order: 99; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
+.cardActions small.waRow { color: var(--muted); }
 .hint { flex-basis: 100%; color: var(--muted); font-size: 13px; }
 .orderCard { margin-bottom: 0; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 10px; box-shadow: 0 8px 18px rgba(72,32,31,.045); }
 .orderHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }

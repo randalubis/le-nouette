@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.7.0 — 1 October 2026
+
+- **Founder-side WhatsApp deep-link generation (4 of 5 kinds):** Founder OS order board now includes a **Kirim WhatsApp** link for each order (unless COMPLETED or customer WhatsApp number is invalid); invalid numbers show muted "Nomor WA tidak valid" instead. Pure functions in `app/src/lib/domain/whatsapp.ts`: `toWaNumber()` normalizes phone numbers (0812…/+62…/62… to 62…), `waKindFor()` selects message kind (null for COMPLETED, "cancelled" for CANCELLED, "ready" for READY_FOR_HANDOVER, "rescheduled" if ready date changed, else "confirmation"), and `waMessage(kind, order)` + `waLink(kind, order)` generate prefilled Bahasa Indonesia messages and wa.me deep links. Message templates include order id, items as "qty × name" format, total, ready date, place (delivery with optional address or pickup location), payment status or methods, receivable (for ready), or refund info (for cancelled); greeting handles blank customer first name. Link rendered as full-width row with WhatsApp icon. No record of sent/delivered kept; opening WhatsApp is a convenience action only. Payment-reminder message and customer-language selection remain backlog. (`app/src/lib/domain/whatsapp.ts`, `app/src/components/order-board.tsx`, `app/src/lib/domain/whatsapp.test.ts`).
+
 ### 0.6.0 — 1 October 2026
 
 - **Tracking stale-response guard:** The tracking view ignores a slower, older response (cleanup flag in the `Tracking` effect), so pressing Refresh repeatedly cannot show stale statuses. Production still sends one request per load; the duplicate request only occurs in dev (React StrictMode).
