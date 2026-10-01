@@ -216,6 +216,26 @@ The current test setup (`app/src/lib/domain/domain.test.ts`) uses in-memory mock
 
 ---
 
+## 7. Test commands
+
+From the `app/` directory:
+
+```bash
+# Unit tests (in-memory domain + export logic; no database)
+npm test
+
+# Integration tests (loads/writes to DATABASE_URL; must use local Supabase)
+npm run test:integration
+
+# Linter and build check
+npm run lint
+npm run build
+```
+
+Integration tests run with Node's `--conditions=react-server` flag so that `server-only` imports resolve. The dev database is shared with production — do not run integration tests against it.
+
+---
+
 ## 7. Related docs
 
 - [architecture.md](./architecture.md) — system boundaries, components, domain model.

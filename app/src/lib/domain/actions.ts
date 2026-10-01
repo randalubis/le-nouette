@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import type { ItemId, ProductId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
+import { requireFounder } from "@/lib/founder-session";
 import * as op from "./operations";
 
 // Best-effort cache invalidation: the domain mutation has already committed by the
@@ -46,90 +47,105 @@ export async function trackOrdersAction(pairs: { id: string; token: string }[]) 
 }
 
 export async function cancelOrderAction(id: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.cancelOrder(state, id, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function rescheduleOrderAction(id: string, date: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.rescheduleOrder(state, id, date, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function completeBatchAction(readyDate: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.completeBatch(state, readyDate, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function dispatchOrderAction(id: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.dispatchOrder(state, id, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function dispatchOrdersAction(ids: string[]) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function completeOrderAction(id: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.completeOrder(state, id, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function recordPaymentAction(id: string, method: op.PaymentMethod) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.recordPayment(state, id, method, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function reversePaymentAction(id: string, paymentId: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.reversePayment(state, id, paymentId, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function receiveStockAction(itemId: ItemId, quantity: number) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.receiveStock(state, itemId, quantity, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function stockOpnameAction(itemId: ItemId, counted: number) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.stockOpname(state, itemId, counted, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function recordExtraPackedAction(productId: ProductId, quantity: number, note?: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.recordExtraPacked(state, productId, quantity, now, note));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function adjustReadyAction(sourceId: string, quantity: number, note?: string) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.adjustReady(state, sourceId, quantity, note, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function setDateStatusAction(date: string, status: DateStatus | null) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.setDateStatus(state, date, status, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function setStoreStatusAction(status: op.State["storeStatus"]) {
+  await requireFounder();
   const { error } = await withDomainTransaction((state, now) => op.setStoreStatus(state, status, now));
   if (!error) revalidateAll();
   return { error };
 }
 
 export async function resetSeedAction(key?: string) {
+  await requireFounder();
   const secret = process.env.RESET_TOOL_SECRET;
   const authorized = process.env.NODE_ENV !== "production" || (!!secret && key === secret);
   if (!authorized) return { error: "Reset tidak diizinkan." };

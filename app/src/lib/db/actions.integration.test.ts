@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { receiveStockAction, createOrderAction, cancelOrderAction } from "@/lib/domain/actions";
+import { createOrderAction } from "@/lib/domain/actions";
+import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
+import * as op from "@/lib/domain/operations";
 
+// Founder actions need a session cookie (unavailable outside a request), so call the
+// transaction + domain ops directly; createOrderAction is public and runs as-is.
 test("createOrderAction persists an order that a fresh load can see", async () => {
   const key = `it-${Date.now()}`;
   const { error, order } = await createOrderAction({
@@ -12,11 +16,11 @@ test("createOrderAction persists an order that a fresh load can see", async () =
   assert.ok(order);
   assert.ok(order!.publicToken);
 
-  const { error: cancelError } = await cancelOrderAction(order!.id);
+  const { error: cancelError } = await withDomainTransaction((s, now) => op.cancelOrder(s, order!.id, now));
   assert.equal(cancelError, null);
 });
 
-test("receiveStockAction rejects a non-positive quantity via DomainError", async () => {
-  const { error } = await receiveStockAction("jar", 0);
+test("receiveStock rejects a non-positive quantity via DomainError", async () => {
+  const { error } = await withDomainTransaction((s, now) => op.receiveStock(s, "jar", 0, now));
   assert.match(error ?? "", /lebih dari 0/);
 });

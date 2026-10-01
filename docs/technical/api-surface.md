@@ -18,6 +18,8 @@ get order confirmation by short-lived or unguessable token
 track order status (read-only lookup by id + public_token)
 ```
 
+No authentication required. `createOrderAction` and `trackOrdersAction` are Server Actions without `requireFounder()`.
+
 ### 14.2 Founder reads
 
 ```text
@@ -29,6 +31,8 @@ get inventory balances/history/projection
 get receivables/payments/financial summary
 get availability month
 ```
+
+Authenticated server-rendered components; no mutation required.
 
 ### 14.3 Founder commands
 
@@ -43,6 +47,8 @@ block/unblock availability dates
 pause/resume store
 enable/disable product ordering
 ```
+
+All 15 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`.
 
 Use command-specific server actions rather than a generic endpoint that permits arbitrary status or balance mutation.
 

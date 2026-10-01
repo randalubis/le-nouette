@@ -4,6 +4,14 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.6.0 — 1 October 2026
+
+- **Founder action in-process authentication:** All 15 founder-only server actions now call `requireFounder()` (`app/src/lib/founder-session.ts`) as their first line, verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. This centralizes authentication logic in the action entry point rather than relying solely on proxy/login screen gating. Actions affected: cancelOrderAction, rescheduleOrderAction, completeBatchAction, dispatchOrderAction, dispatchOrdersAction, completeOrderAction, recordPaymentAction, reversePaymentAction, receiveStockAction, stockOpnameAction, recordExtraPackedAction, adjustReadyAction, setDateStatusAction, setStoreStatusAction, resetSeedAction. Public actions (createOrderAction, trackOrdersAction) remain unauthenticated.
+- **`withDomainTransaction` server-only boundary:** `app/src/lib/db/with-domain-transaction.ts` changed from "use server" directive to `import "server-only"`, clarifying that the file must only run on the server and reducing the surface area of server actions. Caller actions retain their "use server" declarations.
+- **Founder session cookie verification tests:** New `app/src/lib/founder-auth.test.ts` tests `verifySessionCookieValue()` function for correct HMAC validation and signature failure detection. Tests included in `npm test`.
+- **Integration test server-side condition resolution:** `npm run test:integration` now runs with Node's `--conditions=react-server` flag, ensuring `server-only` imports resolve correctly when domain operations and transaction utilities are called directly in tests.
+- **New dependency: `server-only`:** Installed to enforce server-side-only execution boundaries in the codebase. Used in `withDomainTransaction` and `founder-session.ts`.
+
 ### 0.5.0 — 1 October 2026
 
 - **Checkout form validation and UX:** Form uses `noValidate` with custom inline field error messages for name (required), WhatsApp format (validated regex), and delivery address (shown only when Delivery selected). Errors appear only after submission attempt and clear as user types; submission focuses and scrolls to first invalid field. Reduces friction and makes error feedback precise.
