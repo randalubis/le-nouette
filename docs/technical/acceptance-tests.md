@@ -30,6 +30,7 @@
 17. Refreshing or double-submitting checkout with one idempotency key creates only one order.
 18. A note of 180 Unicode characters is accepted; 181 characters is rejected without creating an order.
 19. The remember-details control starts unchecked; opting in saves only name, WhatsApp number, and language, while opting out clears saved identity data.
+19a. Order tracking requires both id and public_token; bad tokens or mismatched pairs return not-found uniformly (no information leakage). The tracking response contains only customer-safe data: id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps.
 
 ### 19.3 Packing
 

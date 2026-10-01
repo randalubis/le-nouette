@@ -15,6 +15,7 @@ get storefront catalog
 calculate fulfillment promise
 create order
 get order confirmation by short-lived or unguessable token
+track order status (read-only lookup by id + public_token)
 ```
 
 ### 14.2 Founder reads

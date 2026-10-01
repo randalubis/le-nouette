@@ -10,7 +10,7 @@ export async function diffAndWrite(tx: Tx, prev: op.State, next: op.State): Prom
     const before = prevOrders.get(order.id);
     if (!before) {
       await tx.insert(schema.orders).values({
-        id: order.id, idempotencyKey: order.idempotencyKey, createdAt: order.createdAt,
+        id: order.id, idempotencyKey: order.idempotencyKey, publicToken: order.publicToken, createdAt: order.createdAt,
         customerName: order.customer.name, customerWhatsapp: order.customer.whatsapp,
         fulfillment: order.fulfillment, address: order.address ?? null, note: order.note ?? null,
         total: order.total, promisedReadyDate: order.promisedReadyDate, currentReadyDate: order.currentReadyDate,

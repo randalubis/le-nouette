@@ -108,7 +108,7 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - Treat local values as untrusted convenience input: prefill the form, but validate and normalize them again on submission.
 - Do not synchronize this preference between devices and do not represent it as a customer account or server-side consent record.
 - Do not expose founder-only order data through predictable order numbers.
-- If a public order-status page is later added, require an unguessable token.
+- Customer order tracking: A **Lacak** (Track) button in the storefront header opens a tracking view. Customer phones store order records locally (localStorage, max 20 newest first) as `{id, token}` pairs. Status is fetched on-demand only when the tracking view opens or when the customer manually refreshes (no polling). Lookups use both order id and unguessable 128-bit `public_token`; bad tokens return not-found (uniform with missing orders). The tracking response is read-only and customer-safe only: `{id, status, fulfillment, readyDates, items, total, isPaid, timestamps}` — never WhatsApp, address, note, or payment details.
 
 ### 13.5 Static assets
 

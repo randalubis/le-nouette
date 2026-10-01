@@ -31,7 +31,7 @@ test("§8.5 reschedule recommendation: forward ≤3 days, else nearest earlier, 
 });
 
 const order = (overrides: Partial<op.CreateOrderInput> = {}): op.CreateOrderInput => ({
-  idempotencyKey: "k1", name: "Dina", whatsapp: "0812 3456 7890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 }, ...overrides,
+  idempotencyKey: "k1", publicToken: "tok-"+"k1", name: "Dina", whatsapp: "0812 3456 7890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 }, ...overrides,
 });
 
 test("§19.2 order reserves exact recipe quantities without touching on-hand", () => {
@@ -79,9 +79,9 @@ test("§19.5 delivery needs payment and ready date before dispatch; pickup may c
 });
 
 test("bulk dispatch: succeeds atomically for valid selection, rejects and changes nothing on a mixed one", () => {
-  let state = op.createOrder(op.emptyState(), order({ idempotencyKey: "k1", fulfillment: "DELIVERY", address: "Jl. Sudirman 1" }), wib("2026-09-14"));
-  state = op.createOrder(state, order({ idempotencyKey: "k2", fulfillment: "DELIVERY", address: "Jl. Sudirman 2" }), wib("2026-09-14"));
-  state = op.createOrder(state, order({ idempotencyKey: "k3" }), wib("2026-09-14")); // pickup, not a valid bulk-dispatch target
+  let state = op.createOrder(op.emptyState(), order({ idempotencyKey: "k1", publicToken: "tok-"+"k1", fulfillment: "DELIVERY", address: "Jl. Sudirman 1" }), wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k2", publicToken: "tok-"+"k2", fulfillment: "DELIVERY", address: "Jl. Sudirman 2" }), wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k3", publicToken: "tok-"+"k3" }), wib("2026-09-14")); // pickup, not a valid bulk-dispatch target
   state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
   state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-16"));
   state = op.recordPayment(state, "LN-0002", "QRIS", wib("2026-09-16"));
@@ -141,7 +141,7 @@ test("§19.8 (48) new order allocates oldest first; reserves only uncovered rema
   assert.equal(state.orders[0].status, "NEEDS_PREPARATION"); // grande uncovered
   assert.deepEqual(reservedOf(state), { raw_cheese: 22500, jar: 0, pouch: 1, sticker_square: 1, sticker_round: 0, jar_seal: 0 });
 
-  const full = op.createOrder(state, order({ idempotencyKey: "k2", quantities: { milieu: 1 } }), wib("2026-09-16"));
+  const full = op.createOrder(state, order({ idempotencyKey: "k2", publicToken: "tok-"+"k2", quantities: { milieu: 1 } }), wib("2026-09-16"));
   assert.equal(full.orders[1].status, "READY_FOR_HANDOVER");
   assert.ok(full.orders[1].readyAt);
   assert.deepEqual(reservedOf(full), reservedOf(state));
@@ -199,4 +199,14 @@ test("raw cheese is one pooled stock: 5 supplier packs (1,125 g) cover exactly 9
   const cheese = op.balances(state).find((b) => b.id === "raw_cheese")!;
   assert.equal(cheese.reserved, 9 * 12500);
   assert.equal(cheese.available, 0);
+});
+
+test("toCustomerView never leaks whatsapp, address, note, or payments", () => {
+  let state = op.createOrder(op.emptyState(), order({ fulfillment: "DELIVERY", address: "Jl. Rahasia 9", note: "pagar hitam" }), wib("2026-09-14"));
+  state = op.recordPayment(state, state.orders[0].id, "CASH", wib("2026-09-14"));
+  const view = op.toCustomerView(state.orders[0]);
+  const json = JSON.stringify(view);
+  for (const secret of ["081234567890", "Rahasia", "pagar", "payments", "idempotency", "tok-k1", "Dina"]) assert.ok(!json.includes(secret), secret);
+  assert.equal(view.isPaid, true);
+  assert.deepEqual(view.items.map((i) => i.quantity), [2, 1]);
 });

@@ -12,7 +12,7 @@ export type PaymentMethod = "TRANSFER" | "QRIS" | "CASH";
 export type OrderItem = { productId: ProductId; name: string; unitPrice: number; quantity: number; recipe: Recipe; readyQuantity?: number };
 export type Payment = { id: string; amount: number; method: PaymentMethod; at: string; reversedAt?: string };
 export type Order = {
-  id: string; idempotencyKey: string; createdAt: string;
+  id: string; idempotencyKey: string; publicToken: string; createdAt: string;
   customer: { name: string; whatsapp: string }; fulfillment: Fulfillment; address?: string; note?: string;
   items: OrderItem[]; total: number;
   promisedReadyDate: string; currentReadyDate: string; status: OrderStatus;
@@ -86,7 +86,7 @@ const withOrder = (state: State, id: string, patch: (order: Order) => Partial<Or
 // ---------- ordering ----------
 
 export type CreateOrderInput = {
-  idempotencyKey: string; name: string; whatsapp: string; fulfillment: Fulfillment;
+  idempotencyKey: string; publicToken: string; name: string; whatsapp: string; fulfillment: Fulfillment;
   address?: string; note?: string; quantities: Partial<Record<ProductId, number>>;
 };
 
@@ -132,7 +132,7 @@ export function createOrder(state: State, input: CreateOrderInput, now: Date): S
   // Fully covered from ready stock: ready today, so the buyer sees it and dispatch's date guard doesn't block.
   const readyDate = fullyCovered ? jakartaNow(now).date : promisedReadyDate(now, state.calendar);
   const order: Order = {
-    id, idempotencyKey: input.idempotencyKey, createdAt: now.toISOString(),
+    id, idempotencyKey: input.idempotencyKey, publicToken: input.publicToken, createdAt: now.toISOString(),
     customer: { name, whatsapp }, fulfillment: input.fulfillment,
     address: input.fulfillment === "DELIVERY" ? address : undefined, note: note || undefined,
     items: covered, total: items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
@@ -302,3 +302,17 @@ export function setDateStatus(state: State, date: string, status: DateStatus | n
 export function setStoreStatus(state: State, status: State["storeStatus"], now: Date): State {
   return { ...state, storeStatus: status, audit: [...state.audit, { at: now.toISOString(), action: `STORE_${status}` }] };
 }
+
+// Customer-safe projection for public tracking: never whatsapp, address, note, or payment details.
+export type CustomerOrderView = {
+  id: string; status: OrderStatus; fulfillment: Fulfillment; promisedReadyDate: string; currentReadyDate: string;
+  items: { name: string; quantity: number }[]; total: number; isPaid: boolean;
+  readyAt?: string; dispatchedAt?: string; completedAt?: string; cancelledAt?: string;
+};
+export const toCustomerView = (order: Order): CustomerOrderView => ({
+  id: order.id, status: order.status, fulfillment: order.fulfillment,
+  promisedReadyDate: order.promisedReadyDate, currentReadyDate: order.currentReadyDate,
+  items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
+  total: order.total, isPaid: isPaid(order),
+  readyAt: order.readyAt, dispatchedAt: order.dispatchedAt, completedAt: order.completedAt, cancelledAt: order.cancelledAt,
+});

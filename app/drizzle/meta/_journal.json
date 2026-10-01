@@ -15,6 +15,13 @@
       "when": 1790251096692,
       "tag": "0001_smart_spiral",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790400000000,
+      "tag": "0002_public_token",
+      "breakpoints": true
     }
   ]
 }

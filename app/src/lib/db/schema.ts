@@ -3,6 +3,7 @@ import { pgTable, text, integer, timestamp, jsonb, serial, date, index } from "d
 export const orders = pgTable("orders", {
   id: text("id").primaryKey(),
   idempotencyKey: text("idempotency_key").notNull().unique(),
+  publicToken: text("public_token").notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
   customerName: text("customer_name").notNull(),
   customerWhatsapp: text("customer_whatsapp").notNull(),

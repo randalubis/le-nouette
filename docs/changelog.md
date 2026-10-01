@@ -4,6 +4,11 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.4.0 — 1 October 2026
+
+- **Customer order tracking:** **Lacak** button in storefront header opens read-only tracking view. Orders saved locally on customer's phone (`le-nouette:orders` localStorage, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand only (no polling) via read-only server action `trackOrdersAction` when tracking view opens or customer manually refreshes. Lookup requires both order `id` and 128-bit hex `public_token` (migration `drizzle/0002_public_token.sql` applied to production); bad tokens uniformly not-found. Response filtered through `toCustomerView` projection: id, status, fulfillment, promised/current ready dates, item name/qty, total, isPaid, timestamps — never WhatsApp, address, note, or payment details. `createOrderAction` generates `public_token` server-side; no more customer PII in client response. Storefront page.tsx no longer sends full State/orders (PII leak fix). Customer status label "Perlu Disiapkan" displayed as "Sedang disiapkan" in tracking view (Founder OS unchanged). Acceptance test §19.2 item 19a added.
+- **WhatsApp contact button:** Inline **Hubungi Kami** button across storefront (shop, success, tracking steps) links to `wa.me/<NEXT_PUBLIC_WHATSAPP_NUMBER>` with prefilled i18n message (`waMessage`; `waMessageOrder` includes order id). Env var required for production deployment (set in Vercel); button hidden if unset. Build-time inlined, no runtime calls.
+
 ### 0.3.2 — 25 September 2026
 
 - **UX audit fixes:** Empty-cart storefront state with placeholder messaging instead of forced purchase; sticky checkout CTA (responsive, fits 320px mobile, never covers primary content). Paused store disables increment buttons and hides hero subline, shows amber closed banner. Checkout CTA label 'Buat Pesanan' fits 320px. All disabled controls use solid `.btn:disabled` style; darker --muted color for better contrast. Tap targets >= 44px including ID/EN toggle buttons. Text size >= 12px throughout. Verified via Playwright audit kit.

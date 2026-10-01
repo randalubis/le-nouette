@@ -120,6 +120,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - External delivery requires full payment before dispatch; office pickup may remain pay-on-receipt.
 - External delivery is planned for `current_ready_date` after packing and payment verification, without a guaranteed dispatch hour.
 - Confirmed payments record the verifying founder and timestamp; references and notes are optional, and receipt images are not stored.
+- Customer order tracking via unguessable token: customers may track their order status on the storefront using a **Lacak** button in the header. Orders are stored locally on the customer's device (`le-nouette:orders` localStorage, max 20 newest first) as `{id, token}` pairs. Status fetches on-demand only (no polling) when the tracking view opens or customer manually refreshes, returning only customer-safe data (status, fulfillment, ready dates, items, total, payment state, timestamps) — never sensitive founder data like WhatsApp, address, note, or payment details. Bad tokens are uniformly not-found.
 - Remembering customer details is explicit opt-in and device-local; only name, WhatsApp number, and language are eligible for storage.
 - Founder OS requires an internet connection in V1; interrupted actions fail visibly and can be retried safely.
 - Bahasa Indonesia is the canonical interface copy, with English maintained in repository TypeScript dictionaries and no translation service, CMS, or database editor.

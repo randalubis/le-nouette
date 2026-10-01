@@ -5,8 +5,8 @@ import * as op from "./domain/operations.ts";
 
 const now = new Date("2026-09-14T10:00:00+07:00");
 let state = op.emptyState();
-state = op.createOrder(state, { idempotencyKey: "a", name: 'Sari "Mama", Jr', whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 } }, now);
-state = op.createOrder(state, { idempotencyKey: "b", name: "Sari", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, now);
+state = op.createOrder(state, { idempotencyKey: "a", publicToken: "tok-"+"a", name: 'Sari "Mama", Jr', whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 } }, now);
+state = op.createOrder(state, { idempotencyKey: "b", publicToken: "tok-"+"b", name: "Sari", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, now);
 
 test("CSV quotes, doubles quotes, uses CRLF and BOM", () => {
   const csv = toCsv([["a", "b"], ['x,"y"', "line\nbreak"], [null, 3]]);

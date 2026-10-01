@@ -37,7 +37,7 @@ export async function loadState(executor: Db | Tx): Promise<op.State> {
 
   const orders: op.Order[] = orderRows.map((row) => ({
     id: row.id,
-    idempotencyKey: row.idempotencyKey,
+    idempotencyKey: row.idempotencyKey, publicToken: row.publicToken,
     createdAt: row.createdAt,
     customer: { name: row.customerName, whatsapp: row.customerWhatsapp },
     fulfillment: row.fulfillment as op.Order["fulfillment"],

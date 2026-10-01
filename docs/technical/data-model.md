@@ -123,6 +123,7 @@ Recipe versions must be effective-dated so a later yield correction does not alt
 | `completed_at` | timestamp | nullable |
 | `cancelled_at` | timestamp | nullable |
 | `cancellation_reason` | text | nullable |
+| `public_token` | text | 128-bit hex, unique, not null; unguessable read-only lookup token for customer status tracking |
 | timestamps | timestamp | required |
 
 Fulfillment states:

@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import type { ItemId, ProductId } from "@/lib/domain/catalog";
@@ -28,10 +29,20 @@ const revalidateAll = () => {
   }
 };
 
-export async function createOrderAction(input: op.CreateOrderInput) {
-  const { error, state } = await withDomainTransaction((current, now) => op.createOrder(current, input, now));
+// Token is generated here (not in the domain) and never taken from the client; the browser stores it
+// from this response. Returns customer-safe fields only (no whatsapp/address/note/payments).
+export async function createOrderAction(input: Omit<op.CreateOrderInput, "publicToken">) {
+  const publicToken = randomBytes(16).toString("hex");
+  const { error, state } = await withDomainTransaction((current, now) => op.createOrder(current, { ...input, publicToken }, now));
   if (!error) revalidateAll();
-  return { error, order: state?.orders.find((order) => order.idempotencyKey === input.idempotencyKey) ?? null };
+  const found = state?.orders.find((order) => order.idempotencyKey === input.idempotencyKey);
+  // Duplicate submit returns the existing order, whose stored token differs from the one just generated.
+  return { error, order: found ? { ...op.toCustomerView(found), publicToken: found.publicToken } : null };
+}
+
+export async function trackOrdersAction(pairs: { id: string; token: string }[]) {
+  const { trackOrders } = await import("@/lib/db/track-orders");
+  return trackOrders(Array.isArray(pairs) ? pairs : []);
 }
 
 export async function cancelOrderAction(id: string) {

@@ -1,7 +1,7 @@
 "use client";
 
 // Device-local convenience record (spec §6.1, tech spec §13.4): name and WhatsApp number only.
-// Never address, note, cart, order number, or payment data. Not an account, never synced.
+// Never address, note, cart, or payment data. Order ids + secret tracking tokens live separately in my-orders.ts. Not an account, never synced.
 
 const KEY = "le-nouette:customer";
 

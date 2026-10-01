@@ -10,7 +10,7 @@ test("createOrderAction persists an order that a fresh load can see", async () =
   });
   assert.equal(error, null);
   assert.ok(order);
-  assert.equal(order!.customer.name, "Integration Test");
+  assert.ok(order!.publicToken);
 
   const { error: cancelError } = await cancelOrderAction(order!.id);
   assert.equal(cancelError, null);
