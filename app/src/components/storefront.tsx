@@ -269,7 +269,9 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
   const [nonce, setNonce] = useState(0); // bumped by the Refresh button only
   useEffect(() => {
     if (initial.length === 0) return;
-    trackOrdersAction(initial).then((result) => { setViews(result); setState("done"); }, () => setState("error"));
+    let stale = false; // ignore a slower, older response (Refresh pressed again, or dev StrictMode remount)
+    trackOrdersAction(initial).then((result) => { if (!stale) { setViews(result); setState("done"); } }, () => { if (!stale) setState("error"); });
+    return () => { stale = true; };
   }, [initial, nonce]);
   const refresh = () => { setState("loading"); setNonce((n) => n + 1); };
   const fulfillmentKey = { PICKUP_MANDIRI: "pickupMandiri", PICKUP_BI: "pickupBi", DELIVERY: "delivery" } as const;
