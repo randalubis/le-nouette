@@ -87,7 +87,7 @@
 .qris p { margin: 0; color: var(--muted); font-size: 13px; max-width: 360px; }
 .qrisCode { width: 100%; max-width: 280px; height: auto; border-radius: 14px; }
 .previewLink { margin-top: 12px; width: 100%; max-width: 360px; }
-.whatsapp { margin-top: auto; }
+.whatsapp { margin-top: auto; padding-top: 20px; align-items: flex-start; } /* auto collapses to 0 when content fills the screen, so padding keeps the gap under the QRIS button */
 .waChat { width: calc(100% - 40px); max-width: 360px; margin: 8px auto 24px; display: flex; gap: 8px; }
 .trackNote { color: var(--muted); margin: 0; }
 .trackError { color: var(--danger-fg); background: var(--danger-bg); border-radius: var(--radius-control); padding: 12px 14px; }

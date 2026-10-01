@@ -12,6 +12,7 @@ Merged, deduplicated history from the former `le-nouette-product-operating-speci
 - **Order summary with product details:** Checkout and success pages now show order items with product thumbnail (52px), product name, size detail (e.g., "125g · Jar"), and line total; previous text-only summary replaced.
 - **Success page tracking hint:** Added inline note on success screen — "Atau kamu bisa cek status pesanan lewat tombol Lacak (ikon paket) di bagian atas layar." (EN: "Or check your order status anytime with the Track (parcel icon) button at the top of your screen.") — to make order tracking discoverability explicit.
 - **Catalog heading copy:** "Pilih yang ingin kamu pesan" (EN: "Pick what you want to order") replaces previous generic catalog title.
+- **Success notice spacing:** The WhatsApp/tracker notice on the success screen keeps a 20px gap under the QRIS button (the `margin-top: auto` collapsed to 0 on full screens) and its icon is top-aligned.
 
 ### 0.4.0 — 1 October 2026
 
