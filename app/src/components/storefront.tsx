@@ -334,7 +334,6 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
       {state === "done" && stored.map((o) => {
         const v = views.find((view) => view.id === o.id);
         if (!v) return <div key={o.id} className={`${styles.summary} ${styles.trackCard}`}><div className={styles.trackHead}><h2>{o.id}</h2></div><p className={styles.payNote}>{t("trackNotFound")} {t("trackNotFoundHelp")}</p><div className={styles.trackActions}>{waNumber && <a className="btn btn-secondary" href={waLink(t("waMessageOrder", { id: o.id }))} target="_blank" rel="noopener noreferrer"><WhatsappLogo size={18} weight="fill" /> {t("whatsappChat")}</a>}<button className="btn btn-quiet" onClick={() => forget(o.id)}>{t("trackRemove")}</button></div></div>;
-        const closed = v.status === "CANCELLED" || v.status === "COMPLETED";
         return (
           <div key={o.id} className={`${styles.summary} ${styles.trackCard}`}>
             <div className={styles.trackHead}>
@@ -342,10 +341,11 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
               <span className={`${styles.chip} ${v.status === "CANCELLED" ? styles.chipDanger : v.status === "COMPLETED" ? styles.chipNeutral : v.dispatchedAt || v.status === "READY_FOR_HANDOVER" ? styles.chipSafe : styles.chipWarn}`}>{t(statusKey(v))}</span>
             </div>
             <p className={styles.payNote}>{t(fulfillmentKey[v.fulfillment])}</p>
-            {!closed && <p className={styles.payNote}>{t("readyDate", { date: formatDate(v.currentReadyDate, "long", locale) })}</p>}
+            {v.status === "NEEDS_PREPARATION" && <p className={styles.payNote}>{t("readyDate", { date: formatDate(v.currentReadyDate, "long", locale) })}</p>}
             {v.items.map((item) => <div key={item.name}><span>{item.quantity} × {item.name}</span></div>)}
             <div className={styles.total}><span>{t("total")}</span><strong>{formatRupiah(v.total)}</strong></div>
-            <p className={`${styles.payNote} ${v.isPaid ? styles.paid : ""}`}>{t(v.isPaid ? "paidYes" : "paidNo")}</p>
+            {v.status !== "CANCELLED" && <p className={`${styles.payNote} ${v.isPaid ? styles.paid : ""}`}>{t(v.isPaid ? "paidYes" : "paidNo")}</p>}
+            {v.status !== "CANCELLED" && !v.isPaid && <p className={styles.payNote}>{t(v.status === "COMPLETED" ? "payAfterComplete" : "payOnReceipt")}</p>}
           </div>
         );
       })}

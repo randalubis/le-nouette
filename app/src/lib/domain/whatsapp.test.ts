@@ -40,7 +40,8 @@ test("waKindFor picks kind from status and dates", () => {
   assert.equal(waKindFor({ ...order, currentReadyDate: "2026-10-06" }), "rescheduled");
   assert.equal(waKindFor({ ...order, status: "READY_FOR_HANDOVER", currentReadyDate: "2026-10-06" }), "ready");
   assert.equal(waKindFor({ ...order, status: "CANCELLED" }), "cancelled");
-  assert.equal(waKindFor({ ...order, status: "COMPLETED" }), null);
+  assert.equal(waKindFor({ ...order, status: "COMPLETED" }), "payment");
+  assert.match(waMessage("payment", order), /Sisa pembayaran Rp75\.000/);
 });
 
 test("payment-aware lines, place and blank name", () => {

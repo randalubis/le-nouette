@@ -158,7 +158,7 @@ export function FinanceBoard({ session }: { session: op.State }) {
         <MetricCard variant="hero" label="Omzet (pesanan selesai)" value={formatRupiah(f.revenue)} hint={`${f.revenueOrders} pesanan · ${f.revenueUnits} produk`} />
         <div className={styles.financeSide}>
           <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(f.received)} />
-          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(f.receivable)} />
+          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(f.receivable)} hint="Sisa tagihan semua pesanan aktif" />
           {f.heldPayments > 0 && <MetricCard variant="hero" compact label="Dibayar, belum selesai" value={formatRupiah(f.heldPayments)} />}
           {f.refundDue > 0 && <MetricCard variant="hero" compact label="Perlu refund" value={formatRupiah(f.refundDue)} />}
           <MetricCard variant="hero" compact label="Transfer" value={share("TRANSFER")} />
@@ -178,8 +178,7 @@ export function FinanceBoard({ session }: { session: op.State }) {
             key={o.id}
             title={o.customer.name}
             subtitle={`${o.id} · ${itemsLabel(o)}`}
-            middle={<span className={`status ${op.isPaid(o) ? "status-safe" : "status-danger"}`}>{op.isPaid(o) ? "Lunas" : `Piutang ${formatRupiah(op.receivable(o))}`}</span>}
-            trailing={formatRupiah(o.total)}
+            trailing={<span style={{ display: "grid", justifyItems: "end", gap: 4 }}>{formatRupiah(o.total)}<span className={`status ${op.isPaid(o) ? "status-safe" : "status-danger"}`}>{op.isPaid(o) ? "Lunas" : `Piutang ${formatRupiah(op.receivable(o))}`}</span></span>}
           />
         ))}
       </section>

@@ -117,7 +117,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Kanban states: Perlu Disiapkan → Siap Diserahkan → Selesai.
 - Payment status is independent; completed and unpaid is a valid receivable.
 - V1 accepts bank transfer, QRIS, and cash, with payment confirmation performed manually by a founder.
-- External delivery requires full payment before dispatch; office pickup may remain pay-on-receipt.
+- External delivery should be paid before dispatch; an unpaid dispatch needs explicit confirmation and leaves the remainder as a receivable. Office pickup may remain pay-on-receipt.
 - External delivery is planned for `current_ready_date` after packing and payment verification, without a guaranteed dispatch hour.
 - Confirmed payments record the verifying founder and timestamp; references and notes are optional, and receipt images are not stored.
 - Customer order tracking via unguessable token: customers may track their order status on the storefront using a **Lacak** button in the header. Orders are stored locally on the customer's device (`le-nouette:orders` localStorage, max 20 newest first) as `{id, token}` pairs. Status fetches on-demand only (no polling) when the tracking view opens or customer manually refreshes, returning only customer-safe data (status, fulfillment, ready dates, items, total, payment state, timestamps) — never sensitive founder data like WhatsApp, address, note, or payment details. Bad tokens are uniformly not-found.
@@ -125,7 +125,7 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Founder OS requires an internet connection in V1; interrupted actions fail visibly and can be retried safely.
 - Bahasa Indonesia is the canonical interface copy, with English maintained in repository TypeScript dictionaries and no translation service, CMS, or database editor.
 - Demand is aggregated into date-based packing summaries.
-- Packing completion is whole-batch only in V1; incomplete batches remain open.
+- Packing completes for the whole date batch or per order (Selesai Packing); an incomplete date batch remains open. Partial batch completion is excluded from V1.
 - Inventory tracks raw cheese in grams plus jars, pouches, square stickers (Milieu and Grande), round stickers, and jar seals.
 - Raw-cheese reservations, movements, consumption, and balances use 0.01 g precision internally.
 - One supplier pack equals 225 g.

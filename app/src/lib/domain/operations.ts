@@ -224,31 +224,53 @@ export function completeBatch(state: State, readyDate: string, now: Date): State
   };
 }
 
-export function dispatchOrder(state: State, id: string, now: Date): State {
+// Per-order slice of completeBatch: consumes only this order's ACTIVE reservations.
+export function markOrderReady(state: State, id: string, now: Date): State {
+  const order = findOrder(state, id);
+  if (order.status !== "NEEDS_PREPARATION") fail("Pesanan tidak dalam status Perlu Disiapkan.");
+  const at = now.toISOString();
+  const totals = new Map<ItemId, number>();
+  for (const r of state.reservations) if (r.orderId === id && r.state === "ACTIVE") totals.set(r.itemId, (totals.get(r.itemId) ?? 0) + r.quantity);
+  const movements: Movement[] = [...totals].map(([itemId, quantity], index) => ({ id: `M-${state.movements.length + index + 1}`, itemId, delta: -quantity, reason: "PACKING_CONSUMPTION", at, ref: id }));
+  return {
+    ...state,
+    orders: state.orders.map((o) => (o.id === id ? { ...o, status: "READY_FOR_HANDOVER", readyAt: at } : o)),
+    reservations: state.reservations.map((r) => (r.orderId === id && r.state === "ACTIVE" ? { ...r, state: "CONSUMED" } : r)),
+    movements: [...state.movements, ...movements],
+    audit: [...state.audit, { at, action: "ORDER_MARKED_READY", ref: id }],
+  };
+}
+
+// Unpaid delivery dispatch is allowed only with explicit allowUnpaid (the UI confirm); the server enforces it.
+export type DispatchOptions = { allowUnpaid?: boolean };
+
+export function dispatchOrder(state: State, id: string, now: Date, opts: DispatchOptions = {}): State {
   const order = findOrder(state, id);
   if (order.fulfillment !== "DELIVERY") fail("Hanya pesanan kirim yang perlu ditandai dikirim.");
   if (order.status !== "READY_FOR_HANDOVER") fail("Pesanan belum selesai dipacking.");
   if (order.dispatchedAt) fail("Pesanan sudah dikirim.");
-  if (!isPaid(order)) fail("Pengiriman perlu lunas terlebih dahulu.");
+  const unpaid = !isPaid(order);
+  if (unpaid && !opts.allowUnpaid) fail("Pengiriman perlu lunas terlebih dahulu.");
   if (jakartaNow(now).date < order.currentReadyDate) fail(`Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
-  return withOrder(state, id, () => ({ dispatchedAt: now.toISOString() }), "ORDER_DISPATCHED", now);
+  return withOrder(state, id, () => ({ dispatchedAt: now.toISOString() }), unpaid ? "ORDER_DISPATCHED:UNPAID" : "ORDER_DISPATCHED", now);
 }
 
-export function dispatchOrders(state: State, ids: Set<string>, now: Date): State {
+export function dispatchOrders(state: State, ids: Set<string>, now: Date, opts: DispatchOptions = {}): State {
   const orders = state.orders.filter((order) => ids.has(order.id));
   if (orders.length === 0) fail("Tidak ada pesanan dipilih.");
   for (const order of orders) {
     if (order.fulfillment !== "DELIVERY") fail(`${order.id}: hanya pesanan kirim yang perlu ditandai dikirim.`);
     if (order.status !== "READY_FOR_HANDOVER") fail(`${order.id}: belum selesai dipacking.`);
     if (order.dispatchedAt) fail(`${order.id}: sudah dikirim.`);
-    if (!isPaid(order)) fail(`${order.id}: pengiriman perlu lunas terlebih dahulu.`);
+    if (!isPaid(order) && !opts.allowUnpaid) fail(`${order.id}: pengiriman perlu lunas terlebih dahulu.`);
     if (jakartaNow(now).date < order.currentReadyDate) fail(`${order.id}: pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
   }
   const at = now.toISOString();
+  const unpaid = orders.filter((order) => !isPaid(order)).map((order) => order.id);
   return {
     ...state,
     orders: state.orders.map((order) => (ids.has(order.id) ? { ...order, dispatchedAt: at } : order)),
-    audit: [...state.audit, { at, action: "ORDERS_DISPATCHED", ref: [...ids].join(",") }],
+    audit: [...state.audit, { at, action: unpaid.length ? `ORDERS_DISPATCHED:UNPAID=${unpaid.join(",")}` : "ORDERS_DISPATCHED", ref: [...ids].join(",") }],
   };
 }
 
@@ -256,7 +278,8 @@ export function completeOrder(state: State, id: string, now: Date): State {
   const order = findOrder(state, id);
   if (order.status !== "READY_FOR_HANDOVER") fail("Pesanan belum siap diserahkan.");
   if (order.fulfillment === "DELIVERY" && !order.dispatchedAt) fail("Tandai pesanan dikirim terlebih dahulu.");
-  return withOrder(state, id, () => ({ status: "COMPLETED", completedAt: now.toISOString() }), "ORDER_COMPLETED", now);
+  // Unpaid completion is allowed; the remainder stays as receivable (Piutang).
+  return withOrder(state, id, () => ({ status: "COMPLETED", completedAt: now.toISOString() }), isPaid(order) ? "ORDER_COMPLETED" : "ORDER_COMPLETED:UNPAID", now);
 }
 
 // ---------- payments ----------

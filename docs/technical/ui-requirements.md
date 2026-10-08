@@ -29,6 +29,8 @@ Every count opens the corresponding filtered screen.
 - External-delivery cards show payment status and expose dispatch only after full payment.
 - Swipe may remain a nonessential shortcut but cannot be the only way to change status.
 
+**Implementation: ✅ BUILT** — the bulk-dispatch bar is `position: fixed` above the bottom nav at ≤900px (0.15.0). Browser pass at 390/1440 pending.
+
 ### 12.3 Packing
 
 - Date and order count.
@@ -64,6 +66,8 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - unpaid orders and receivables detail;
 - payment capture;
 - filters by date, method, fulfillment state, and payment state.
+
+**Implementation: ✅ BUILT** — Pesanan & piutang rows show Lunas/Piutang badges on mobile, and the hero hint reads "Sisa tagihan semua pesanan aktif" (0.15.0). Open issues (method-share stats, piutang row mix) are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150).
 
 ### 12.6 Availability
 
@@ -114,7 +118,7 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - Treat local values as untrusted convenience input: prefill the form, but validate and normalize them again on submission.
 - Do not synchronize this preference between devices and do not represent it as a customer account or server-side consent record.
 - Do not expose founder-only order data through predictable order numbers.
-- Customer order tracking: A **Lacak** (Track) button in the storefront header opens a tracking view. Customer phones store order records locally (localStorage, max 20 newest first) as `{id, token}` pairs. Status is fetched on-demand only when the tracking view opens or when the customer manually refreshes (no polling). Lookups use both order id and unguessable 128-bit `public_token`; bad tokens return not-found (uniform with missing orders). The tracking response is read-only and customer-safe only: `{id, status, fulfillment, readyDates, items, total, isPaid, timestamps}` — never WhatsApp, address, note, or payment details.
+- Customer order tracking: A **Lacak** (Track) button in the storefront header opens a tracking view. Customer phones store order records locally (localStorage, max 20 newest first) as `{id, token}` pairs. Status is fetched on-demand only when the tracking view opens or when the customer manually refreshes (no polling). Lookups use both order id and unguessable 128-bit `public_token`; bad tokens return not-found (uniform with missing orders). The tracking response is read-only and customer-safe only: `{id, status, fulfillment, readyDates, items, total, isPaid, timestamps}` — never WhatsApp, address, note, or payment details. Tracking messages by state (0.15.0): "Estimasi siap" only while Perlu Disiapkan; a COMPLETED unpaid order shows `payAfterComplete`; cancelled orders show no payment line.
 
 ### 13.5 Viewport and navigation
 

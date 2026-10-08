@@ -2,7 +2,7 @@ import { formatRupiah } from "./catalog.ts";
 import { amountPaid, isPaid, receivable, type Order } from "./operations.ts";
 import { formatDate } from "./schedule.ts";
 
-export type WaKind = "confirmation" | "ready" | "rescheduled" | "cancelled";
+export type WaKind = "confirmation" | "ready" | "rescheduled" | "cancelled" | "payment";
 
 /** Normalise an Indonesian mobile number to wa.me digits (62…), or null if invalid. Same rule as createOrder. */
 export function toWaNumber(raw: string): string | null {
@@ -13,7 +13,7 @@ export function toWaNumber(raw: string): string | null {
 
 /** Which message the founder should send for this order's current state; null when nothing to send. */
 export function waKindFor(order: Order): WaKind | null {
-  if (order.status === "COMPLETED") return null;
+  if (order.status === "COMPLETED") return receivable(order) > 0 ? "payment" : null;
   if (order.status === "CANCELLED") return "cancelled";
   if (order.status === "READY_FOR_HANDOVER") return "ready";
   return order.currentReadyDate !== order.promisedReadyDate ? "rescheduled" : "confirmation";
@@ -43,8 +43,11 @@ export function waMessage(kind: WaKind, order: Order): string {
       break;
     case "ready":
       paragraphs.push(`Pesanan *${order.id}* sudah siap${order.fulfillment === "DELIVERY" ? " dan segera kami antar" : " untuk diambil"}.`, details(undefined, false));
-      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}.`);
+      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}. Bisa lewat transfer, QRIS, atau tunai saat serah terima; kabari kami ya kalau sudah transfer.`);
       paragraphs.push("Terima kasih!");
+      break;
+    case "payment":
+      paragraphs.push(`Pesanan *${order.id}* sudah selesai. Sisa pembayaran ${formatRupiah(due)}.`, "Bisa lewat transfer atau QRIS; kabari kami ya kalau sudah dibayar. Terima kasih!");
       break;
     case "rescheduled":
       paragraphs.push(`Mohon maaf, jadwal pesanan *${order.id}* berubah.`, details("Kini siap", false), "Terima kasih atas pengertiannya!");

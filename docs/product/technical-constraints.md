@@ -96,7 +96,7 @@ Customer address belongs to the fulfillment/order record, not the customer profi
 - Order creation, payment updates, packing completion, and rescheduling never depend on a WhatsApp message being sent successfully.
 - V1 does not require WhatsApp Business API approval, automated delivery, webhooks, a chatbot, or delivery-status tracking.
 
-**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation is built for 4 of 5 message kinds (confirmation, ready, rescheduled, cancelled) in `app/src/lib/domain/whatsapp.ts`, called from the founder order board. Payment-reminder and customer-language selection remain backlog. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation is built for all 5 message kinds (confirmation, ready, rescheduled, cancelled, payment) in `app/src/lib/domain/whatsapp.ts`, called from the founder order board. The payment reminder is offered only for COMPLETED orders with a receivable. Customer-language selection remains backlog. See [implementation-status.md](../implementation-status.md).
 
 ### 12.6 Business data export and backup
 

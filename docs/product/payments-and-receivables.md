@@ -11,7 +11,7 @@
 **LOCKED**
 
 - Mandiri and BI office pickup may use **pay when the customer receives the order**.
-- External delivery must be paid in full before the order is handed to the courier or otherwise dispatched outside the office.
+- External delivery should be paid in full before the order is handed to the courier or otherwise dispatched outside the office. A founder may dispatch an unpaid external-delivery order after an explicit confirmation that shows the remaining amount; that remainder stays a receivable until settled. Completing an order (pickup or dispatched delivery) does not require payment.
 - The official V1 payment methods are **bank transfer, QRIS, and cash**.
 - Checkout does not require payment.
 - The confirmation page may offer optional immediate QRIS payment.

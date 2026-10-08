@@ -48,6 +48,7 @@ The same transaction must:
 - Release active reservations.
 - Reverse Product Ready to Sell allocations so the linked units become available again.
 - Remove active packing-batch membership.
+- If the order was already packed (§9.4, Selesai Packing), its consumed material is not restored; the cancel confirm warns about this.
 - Do not delete order, items, payments, or history.
 - If payment exists, flag for manual refund handling.
 
@@ -71,12 +72,24 @@ Set customer-facing expiry to one calendar month after the physical local packin
 
 **REQUIRED:** Any later yield revision creates a new effective-dated recipe and applies only to subsequent reservations and batches.
 
-**REQUIRED:** Packing completion is whole-batch only in V1. If any required quantity remains unpacked, the batch stays `OPEN`; no consumption movements are posted and none of its orders move automatically to `READY_FOR_HANDOVER`. Partial completion and partial material allocation are deferred.
+**REQUIRED:** Batch completion is whole-batch only in V1. If any required quantity remains unpacked, the batch stays `OPEN`; no consumption movements are posted and none of its orders move automatically to `READY_FOR_HANDOVER`. Partial completion and partial material allocation are deferred.
+
+**Per-order packing (Selesai Packing):** a founder may mark one `NEEDS_PREPARATION` order packed without completing its batch. Single transaction:
+
+1. reject unless the order's status is `NEEDS_PREPARATION`;
+2. sum that order's `ACTIVE` reservations by inventory item;
+3. create negative `PACKING_CONSUMPTION` movements with `ref` = order id;
+4. mark those reservations `CONSUMED`;
+5. set the order to `READY_FOR_HANDOVER` and `readyAt`;
+6. write audit event `ORDER_MARKED_READY`;
+7. commit.
+
+No date gate applies. Batch completion later consumes only the remaining `NEEDS_PREPARATION` orders, so no reservation is consumed twice. Ready-stock quantities are settled at order creation and are not touched here.
 
 ### 9.5 Handover and external dispatch
 
-- For Mandiri and BI pickup, a founder explicitly marks the handed-over order `COMPLETED`, sets `completed_at`, and does not automatically mark it paid. If unpaid, surface it in receivables immediately.
-- For external delivery, `current_ready_date` is the planned dispatch date. The dispatch command must verify that the order is `READY_FOR_HANDOVER`, the local date in `Asia/Jakarta` is on or after `current_ready_date`, and `payment_status = PAID` in the same transaction before setting `dispatched_at`.
+- For Mandiri and BI pickup, a founder explicitly marks the handed-over order `COMPLETED`, sets `completed_at`, and does not automatically mark it paid. If unpaid, surface it in receivables immediately. Completing an unpaid order (pickup or delivery) is allowed with no payment check; it audits `ORDER_COMPLETED:UNPAID`, and the remainder counts as receivable until `recordPayment` settles it.
+- For external delivery, `current_ready_date` is the planned dispatch date. The dispatch command must verify that the order is `READY_FOR_HANDOVER`, the local date in `Asia/Jakarta` is on or after `current_ready_date`, and (unless the caller sets `allowUnpaid`, see §11.4) `payment_status = PAID` in the same transaction before setting `dispatched_at`. An unpaid dispatch audits `ORDER_DISPATCHED:UNPAID`; bulk dispatch audits `ORDERS_DISPATCHED:UNPAID=<ids>` when any selected order is unpaid.
 - V1 promises the dispatch date, not a dispatch time. Courier booking and handoff remain manual founder operations.
 - Courier handoff does not itself change payment status. A founder marks the order `COMPLETED` after delivery is confirmed.
 - Do not add a fourth Kanban column for dispatch in V1; show a dispatched indicator on the existing ready-order card until completion.
@@ -221,8 +234,9 @@ Never edit or delete a confirmed payment. Add a reversal/refund record linked to
 ### 11.4 Payment gate for external delivery
 
 - External-delivery orders may be packed and become `READY_FOR_HANDOVER` while unpaid.
-- Disable the dispatch action and show the remaining amount until the order is fully paid.
-- Revalidate payment status on the server when dispatch is submitted; a client-side disabled button is not sufficient enforcement.
+- Dispatch of an unpaid order is confirm-based: the UI shows the remaining amount and that it becomes a receivable, and only then submits with `allowUnpaid = true`. The dispatch action stays enabled while unpaid.
+- The server enforces the gate through the flag: `dispatchOrder` and `dispatchOrders` reject an unpaid order unless `allowUnpaid` is `true`, with "Pengiriman perlu lunas terlebih dahulu.". The server cannot verify that the UI confirm happened; only the flag is checked. Only an explicit `true` counts.
+- Bulk dispatch is atomic: all selected orders are validated before any change. `allowUnpaid` bypasses only the payment check; pickup, not-ready, already-dispatched and date checks still apply to every order.
 - This gate does not apply to Mandiri or BI office pickup.
 - Satisfying the payment gate does not permit dispatch before `current_ready_date` or before packing completion.
 

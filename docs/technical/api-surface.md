@@ -42,6 +42,8 @@ Authenticated server-rendered components; no mutation required.
 edit/cancel/reschedule order
 change order fulfillment status
 complete packing batch
+mark one order packed (Selesai Packing, per order)
+dispatch order(s) (`allowUnpaid` only after the UI confirm); complete order (no payment check)
 receive inventory
 perform stock opname
 record/reverse payment
@@ -55,7 +57,7 @@ delete unpaid invoice
 save company settings and logo
 ```
 
-All 21 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `updateInvoiceAction`, `markInvoicePaidAction`, `undoInvoicePaidAction`, `deleteInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`). Mark/undo paid act on the order through the same `recordPayment`/`reversePayment` domain ops as the Pesanan board; see [payments-and-receivables §11.4](../product/payments-and-receivables.md#114-invoice-payment-founder-os).
+All 22 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `markOrderReadyAction`, `dispatchOrderAction(id, allowUnpaid?)`, `dispatchOrdersAction(ids, allowUnpaid?)`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `updateInvoiceAction`, `markInvoicePaidAction`, `undoInvoicePaidAction`, `deleteInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`). Mark/undo paid act on the order through the same `recordPayment`/`reversePayment` domain ops as the Pesanan board; see [payments-and-receivables §11.4](../product/payments-and-receivables.md#114-invoice-payment-founder-os).
 
 Use command-specific server actions rather than a generic endpoint that permits arbitrary status or balance mutation.
 

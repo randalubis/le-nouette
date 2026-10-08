@@ -125,7 +125,7 @@ A packing summary should show:
 - available inventory and any shortage;
 - affected order detail when needed.
 
-**LOCKED:** **Packing Selesai** confirms the entire date-based batch. If any required quantity remains unpacked, the batch stays open and none of its included orders move automatically to **Siap Diserahkan**. Partial batch completion and partial material allocation are excluded from V1.
+**LOCKED:** Packing completes either for the whole date-based batch (**Packing Selesai** on Beranda) or for one order at a time (**Selesai Packing** on that order's Pesanan card). **Packing Selesai** confirms the entire batch: if any required quantity remains unpacked, the batch stays open and none of its included orders move automatically to **Siap Diserahkan**. A batch completion skips orders already packed individually. A single-order **Selesai Packing** moves only that order to **Siap Diserahkan**. Partial batch completion and partial material allocation are excluded from V1.
 
 ### 9.3 Capacity context
 

@@ -68,6 +68,7 @@ test("§19.5 delivery needs payment and ready date before dispatch; pickup may c
   let state = op.createOrder(op.emptyState(), order({ fulfillment: "DELIVERY", address: "Jl. Sudirman 1" }), wib("2026-09-14"));
   state = op.completeBatch(state, "2026-09-16", wib("2026-09-15"));
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16")), /lunas/);
+  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: false }), /lunas/);
   state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-15"));
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-15")), /dijadwalkan/);
   state = op.completeOrder(op.dispatchOrder(state, "LN-0001", wib("2026-09-16")), "LN-0001", wib("2026-09-16"));
@@ -93,6 +94,85 @@ test("bulk dispatch: succeeds atomically for valid selection, rejects and change
   state = op.dispatchOrders(before, new Set(["LN-0001", "LN-0002"]), wib("2026-09-16"));
   assert.ok(state.orders.filter((o) => o.id === "LN-0001" || o.id === "LN-0002").every((o) => o.dispatchedAt));
   assert.equal(state.orders.find((o) => o.id === "LN-0003")!.dispatchedAt, undefined);
+});
+
+const deliveryOrder = (n: number) => order({ idempotencyKey: `k${n}`, publicToken: `tok-k${n}`, fulfillment: "DELIVERY", address: `Jl. Sudirman ${n}` });
+const cheeseOnHand = (s: op.State) => op.balances(s)[0].onHand;
+
+test("markOrderReady consumes only that order once; batch afterwards never double-consumes", () => {
+  let state = op.receiveStock(op.emptyState(), "raw_cheese", 200000, wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k1", publicToken: "tok-k1" }), wib("2026-09-14"));
+  state = op.createOrder(state, order({ idempotencyKey: "k2", publicToken: "tok-k2" }), wib("2026-09-14"));
+  state = op.markOrderReady(state, "LN-0001", wib("2026-09-15"));
+  const o1 = state.orders[0];
+  assert.deepEqual([o1.status, o1.readyAt], ["READY_FOR_HANDOVER", wib("2026-09-15").toISOString()]);
+  assert.equal(state.orders[1].status, "NEEDS_PREPARATION");
+  assert.equal(cheeseOnHand(state), 200000 - 47500);
+  assert.ok(state.reservations.filter((r) => r.orderId === "LN-0001").every((r) => r.state === "CONSUMED"));
+  assert.ok(state.reservations.filter((r) => r.orderId === "LN-0002").every((r) => r.state === "ACTIVE"));
+  assert.equal(state.audit.at(-1)!.action, "ORDER_MARKED_READY");
+  assert.throws(() => op.markOrderReady(state, "LN-0001", wib("2026-09-15")), /Perlu Disiapkan/);
+
+  state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
+  assert.equal(cheeseOnHand(state), 200000 - 2 * 47500); // LN-0002 only; LN-0001 not consumed twice
+  assert.ok(state.orders.every((o) => o.status === "READY_FOR_HANDOVER"));
+  assert.throws(() => op.completeBatch(state, "2026-09-16", wib("2026-09-16")), op.DomainError);
+});
+
+test("completeBatch throws when every order was already packed individually", () => {
+  let state = op.createOrder(op.emptyState(), order(), wib("2026-09-14"));
+  state = op.markOrderReady(state, "LN-0001", wib("2026-09-16"));
+  assert.throws(() => op.completeBatch(state, "2026-09-16", wib("2026-09-16")), /sudah selesai/);
+});
+
+test("markOrderReady rejects READY, COMPLETED, CANCELLED and unknown orders", () => {
+  const base = op.createOrder(op.emptyState(), order(), wib("2026-09-14"));
+  const ready = op.markOrderReady(base, "LN-0001", wib("2026-09-16"));
+  assert.throws(() => op.markOrderReady(ready, "LN-0001", wib("2026-09-16")), op.DomainError);
+  assert.throws(() => op.markOrderReady(op.completeOrder(ready, "LN-0001", wib("2026-09-16")), "LN-0001", wib("2026-09-16")), op.DomainError);
+  assert.throws(() => op.markOrderReady(op.cancelOrder(base, "LN-0001", wib("2026-09-14")), "LN-0001", wib("2026-09-16")), op.DomainError);
+  assert.throws(() => op.markOrderReady(base, "LN-9999", wib("2026-09-16")), /tidak ditemukan/);
+});
+
+test("unpaid delivery: dispatch needs allowUnpaid, audit marks UNPAID, complete keeps receivable; finance splits revenue/received/receivable", () => {
+  let state = op.createOrder(op.emptyState(), deliveryOrder(1), wib("2026-09-14"));
+  state = op.markOrderReady(state, "LN-0001", wib("2026-09-16"));
+  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16")), /lunas/);
+  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-15"), { allowUnpaid: true }), /dijadwalkan/); // date gate still applies
+  state = op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: true });
+  assert.equal(state.audit.at(-1)!.action, "ORDER_DISPATCHED:UNPAID");
+  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: true }), /sudah dikirim/);
+  state = op.completeOrder(state, "LN-0001", wib("2026-09-16"));
+  assert.equal(state.orders[0].status, "COMPLETED");
+  assert.equal(state.audit.at(-1)!.action, "ORDER_COMPLETED:UNPAID");
+  let f = op.financeSummary(state, wib("2026-09-16"));
+  assert.deepEqual([f.revenue, f.received, f.receivable, f.heldPayments], [170000, 0, 170000, 0]);
+  state = op.recordPayment(state, "LN-0001", "CASH", wib("2026-09-17")); // settle after completion
+  f = op.financeSummary(state, wib("2026-09-17"));
+  assert.deepEqual([f.revenue, f.received, f.receivable], [170000, 170000, 0]);
+  // paid complete keeps the plain audit action
+  let paid = op.markOrderReady(op.createOrder(op.emptyState(), order(), wib("2026-09-14")), "LN-0001", wib("2026-09-16"));
+  paid = op.completeOrder(op.recordPayment(paid, "LN-0001", "QRIS", wib("2026-09-16")), "LN-0001", wib("2026-09-16"));
+  assert.equal(paid.audit.at(-1)!.action, "ORDER_COMPLETED");
+});
+
+test("bulk dispatch with mixed paid/unpaid is atomic and gated by allowUnpaid", () => {
+  let state = op.createOrder(op.emptyState(), deliveryOrder(1), wib("2026-09-14"));
+  state = op.createOrder(state, deliveryOrder(2), wib("2026-09-14"));
+  state = op.completeBatch(state, "2026-09-16", wib("2026-09-16"));
+  state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-16"));
+  const ids = new Set(["LN-0001", "LN-0002"]);
+  assert.throws(() => op.dispatchOrders(state, ids, wib("2026-09-16")), /LN-0002/);
+  assert.ok(state.orders.every((o) => !o.dispatchedAt));
+  // allowUnpaid but one invalid order (pickup) still rejects everything
+  const withPickup = op.createOrder(state, order({ idempotencyKey: "k3", publicToken: "tok-k3" }), wib("2026-09-16"));
+  assert.throws(() => op.dispatchOrders(withPickup, new Set([...ids, "LN-0003"]), wib("2026-09-16"), { allowUnpaid: true }), /LN-0003/);
+  const done = op.dispatchOrders(state, ids, wib("2026-09-16"), { allowUnpaid: true });
+  assert.ok(done.orders.every((o) => o.dispatchedAt));
+  assert.equal(done.audit.at(-1)!.action, "ORDERS_DISPATCHED:UNPAID=LN-0002");
+  // all-paid selection keeps the plain audit action
+  const allPaid = op.dispatchOrders(op.recordPayment(state, "LN-0002", "QRIS", wib("2026-09-16")), ids, wib("2026-09-16"));
+  assert.equal(allPaid.audit.at(-1)!.action, "ORDERS_DISPATCHED");
 });
 
 test("§10.6 stock opname posts an adjustment; blocking a date with orders is rejected", () => {

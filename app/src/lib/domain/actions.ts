@@ -74,16 +74,23 @@ export async function completeBatchAction(readyDate: string) {
   return { error };
 }
 
-export async function dispatchOrderAction(id: string) {
+export async function markOrderReadyAction(id: string) {
   await requireFounder();
-  const { error } = await withDomainTransaction((state, now) => op.dispatchOrder(state, id, now));
+  const { error } = await withDomainTransaction((state, now) => op.markOrderReady(state, id, now));
   if (!error) revalidateAll();
   return { error };
 }
 
-export async function dispatchOrdersAction(ids: string[]) {
+export async function dispatchOrderAction(id: string, allowUnpaid?: boolean) {
   await requireFounder();
-  const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now));
+  const { error } = await withDomainTransaction((state, now) => op.dispatchOrder(state, id, now, { allowUnpaid: allowUnpaid === true }));
+  if (!error) revalidateAll();
+  return { error };
+}
+
+export async function dispatchOrdersAction(ids: string[], allowUnpaid?: boolean) {
+  await requireFounder();
+  const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now, { allowUnpaid: allowUnpaid === true }));
   if (!error) revalidateAll();
   return { error };
 }

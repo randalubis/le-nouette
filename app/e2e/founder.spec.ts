@@ -89,3 +89,27 @@ test("login, board, WhatsApp link, mark paid, export, logout", async ({ page }) 
   await page.goto("/founder");
   await expect(page).toHaveURL(/\/login$/);
 });
+
+test("per-order Selesai Packing then unpaid Tandai Selesai becomes receivable", async ({ page }) => {
+  const id = await placePickupOrder(page);
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(ADMIN.email);
+  await page.getByLabel("Kata sandi").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await expect(page).toHaveURL(/\/founder/);
+
+  page.on("dialog", (d) => d.accept());
+  await page.goto("/founder/orders");
+  await page.locator("article").filter({ hasText: id }).getByRole("button", { name: "Selesai Packing" }).click();
+  await expect(page.locator("article").filter({ hasText: id })).toHaveCount(0);
+
+  await page.goto("/founder/orders?tab=READY_FOR_HANDOVER");
+  const ready = page.locator("article").filter({ hasText: id });
+  await ready.getByRole("button", { name: "Tandai Selesai" }).click();
+  await expect(ready).toHaveCount(0);
+
+  await page.goto("/founder/orders?tab=COMPLETED");
+  const done = page.locator("article").filter({ hasText: id });
+  await expect(done.getByText("Belum dibayar")).toBeVisible();
+  await expect(done.getByRole("button", { name: "Tandai Lunas" })).toBeVisible();
+});

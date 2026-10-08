@@ -34,7 +34,9 @@
 
 ### 19.3 Packing
 
-20. Completing a batch reduces on-hand by its reservations and clears active reserved quantities atomically.
+20. Completing a batch, or marking a single order packed (Selesai Packing), reduces on-hand by the relevant active reservations and clears them atomically.
+20a. Marking one order packed consumes only that order's reservations, once; a second call, or a call on a READY, COMPLETED, CANCELLED or unknown order, is rejected.
+20b. A batch completed after some of its orders were packed individually consumes only the remaining orders' reservations; completing a batch when every order is already packed is rejected.
 21. The included orders become ready only after consumption commits.
 22. Completing the same batch twice creates no duplicate consumption.
 23. Grande consumes 225 g per unit.
@@ -51,11 +53,14 @@
 ### 19.5 Payments
 
 30. Completing an unpaid order leaves it in receivables.
+30a. After an unpaid completion, revenue includes the order, received excludes it, and receivable includes it; recording the full payment moves it to received and clears the receivable.
 31. Recording the full payment makes the order paid without changing fulfillment status.
 32. QRIS display alone does not mark an order paid.
 33. A payment reversal restores the correct receivable.
 34. A founder can record bank transfer, QRIS, or cash, and no catch-all payment method is offered.
-35. An unpaid or partially paid external-delivery order cannot be dispatched; a fully paid one can be dispatched without changing its payment status.
+35. An unpaid or partially paid external-delivery order is rejected ("Pengiriman perlu lunas terlebih dahulu.") unless dispatch is submitted with `allowUnpaid = true`; a fully paid one can be dispatched without changing its payment status.
+35a. A dispatch with `allowUnpaid = true` on an unpaid order succeeds, audits `ORDER_DISPATCHED:UNPAID`, and still fails before `current_ready_date`.
+35b. Bulk dispatch is atomic: if any selected order fails a check (pickup, not ready, already dispatched, date, or unpaid without `allowUnpaid`), no order is dispatched; with `allowUnpaid`, unpaid orders in the set dispatch and the audit lists their ids.
 36. Recording payment always captures the authenticated founder and payment time; transaction reference and note may be empty, and no receipt image is required or accepted.
 37. A paid external-delivery order still cannot be dispatched before packing completion or before `current_ready_date`; no dispatch-hour value is required.
 

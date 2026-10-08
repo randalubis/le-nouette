@@ -87,7 +87,7 @@ The following can start with these defaults and change later:
 - helper accounts;
 - granular founder permissions;
 - partial packing lines and warehouse picking;
-- partial packing-batch completion and partial material allocation;
+- partial packing-batch completion and partial material allocation (per-order packing is built; see [workflows §9.4](./workflows.md#94-complete-packing));
 - per-batch weighing and entry of Milieu quality-selection remainder;
 - push notifications;
 - offline-first synchronization;
@@ -98,3 +98,16 @@ The following can start with these defaults and change later:
 - planned finished-goods targets, forecasting, and warehouse allocation;
 - promotion, loyalty, referral-reward, and review engines.
 - translation services, CMS integration, database-managed translations, and runtime machine translation;
+
+---
+
+## 23. Open follow-ups from order-flow review (0.15.0)
+
+Found in review of the 0.15.0 per-order packing and unpaid dispatch/complete change. Not yet fixed. Each item is **OPEN**.
+
+- **OPEN — payment details missing from WhatsApp:** the payment, ready (with balance) and confirmation messages in `app/src/lib/domain/whatsapp.ts` do not include bank account or QRIS payment details.
+- **OPEN — delivery wording after dispatch:** tracking has no "Sedang diantar" wording for delivery, and the WhatsApp ready text still says "segera kami antar" after dispatch.
+- **OPEN — Keuangan method share:** the hero method-share stats look inconsistent (QRIS/Tunai 100% vs 0%).
+- **OPEN — Keuangan piutang rows:** the "Pesanan & piutang" rows mix not-yet-completed orders with real receivables.
+- **OPEN — orders toolbar at 390px:** the orders toolbar is cramped on mobile.
+- **OPEN — dark tracking total colour:** the tracking total is salmon in dark mode.

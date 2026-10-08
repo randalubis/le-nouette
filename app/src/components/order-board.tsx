@@ -6,9 +6,9 @@ import { Clock, MapPin, Truck, WhatsappLogo } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatRupiah } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
-import { formatDate } from "@/lib/domain/schedule";
+import { formatDate, jakartaNow } from "@/lib/domain/schedule";
 import { waKindFor, waLink } from "@/lib/domain/whatsapp";
-import { recordPaymentAction, dispatchOrderAction, dispatchOrdersAction, completeOrderAction, reversePaymentAction, cancelOrderAction } from "@/lib/domain/actions";
+import { recordPaymentAction, markOrderReadyAction, dispatchOrderAction, dispatchOrdersAction, completeOrderAction, reversePaymentAction, cancelOrderAction } from "@/lib/domain/actions";
 import { ActionCard } from "@/components/ui/action-card";
 import styles from "./founder.module.css";
 
@@ -47,10 +47,16 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
   });
+  const today = () => jakartaNow(new Date()).date;
   const bulkDispatch = () => {
+    const early = session.orders.find((o) => selected.has(o.id) && today() < o.currentReadyDate);
+    if (early) { setBulkError(`${early.id}: pengiriman dijadwalkan ${formatDate(early.currentReadyDate)}.`); return; }
+    const unpaid = session.orders.filter((o) => selected.has(o.id) && !op.isPaid(o));
+    const owed = unpaid.reduce((sum, o) => sum + op.receivable(o), 0);
+    if (unpaid.length && !window.confirm(`${unpaid.length} dari ${selected.size} pesanan belum lunas (sisa ${formatRupiah(owed)}). Tetap kirim? Sisa menjadi piutang.`)) return;
     setBulkError(null);
     startTransition(async () => {
-      const { error } = await dispatchOrdersAction([...selected]);
+      const { error } = await dispatchOrdersAction([...selected], true);
       if (error) setBulkError(error); else setSelected(new Set());
     });
   };
@@ -85,14 +91,15 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
       </div>
 
       {selected.size > 0 && (
-        <ActionCard
+        <div className={styles.bulkBar}><ActionCard
           title={`${selected.size} pesanan dipilih`}
           headerAction={<button className={styles.textLink} onClick={() => setSelected(new Set())}>Batal pilih</button>}
           note={bulkError}
         >
           <button className="btn btn-primary" onClick={bulkDispatch}>Tandai Dikirim ({selected.size})</button>
-        </ActionCard>
+        </ActionCard></div>
       )}
+      {tab === "NEEDS_PREPARATION" && visible.length > 0 && <p className={styles.hint}>Atau selesaikan seluruh batch dari Beranda.</p>}
 
       <section className={styles.orderList} aria-live="polite">
         {visible.length === 0 && <p className={styles.empty}>{needle ? "Tidak ada pesanan yang cocok." : "Tidak ada pesanan di sini."}</p>}
@@ -103,15 +110,15 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
           const active = order.status === "NEEDS_PREPARATION" || order.status === "READY_FOR_HANDOVER";
           const waKind = waKindFor(order);
           const wa = waKind && waLink(waKind, order);
-          const bulkEligible = order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && paid;
+          const bulkEligible = order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt;
           return (
             <article className={styles.orderCard} key={order.id}>
               <div className={styles.orderHead}>
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {bulkEligible && <input type="checkbox" aria-label={`Pilih ${order.id}`} checked={selected.has(order.id)} onChange={() => toggleSelected(order.id)} />}
+                  {bulkEligible && <label className={styles.pick}><input type="checkbox" aria-label={`Pilih ${order.id}`} checked={selected.has(order.id)} onChange={() => toggleSelected(order.id)} /></label>}
                   <strong>{order.id}</strong>
                 </span>
-                <span className={`status ${paid ? "status-safe" : "status-danger"}`}>{paid ? `Lunas${lastPayment ? ` · ${methodLabel[lastPayment.method]}` : ""}` : "Belum dibayar"}</span>
+                {(paid || order.status !== "CANCELLED") && <span className={`status ${paid ? "status-safe" : "status-danger"}`}>{paid ? `Lunas${lastPayment ? ` · ${methodLabel[lastPayment.method]}` : ""}` : "Belum dibayar"}</span>}
               </div>
               <h3>{order.customer.name}</h3>
               <p>{itemsLabel(order)}{order.note ? ` · “${order.note}”` : ""}</p>
@@ -133,18 +140,31 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                 </div>
               ) : (
                 <div className={styles.cardActions}>
-                  {order.status === "NEEDS_PREPARATION" && <small className={styles.hint}>Pindah otomatis saat batch packing {formatDate(order.currentReadyDate, "short")} diselesaikan.</small>}
-                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => act(order.id, dispatchOrderAction(order.id))}>Tandai Dikirim</button>}
-                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => act(order.id, completeOrderAction(order.id))}>Tandai Selesai</button>}
+                  {order.status === "NEEDS_PREPARATION" && <>
+                    <button className="btn btn-primary" onClick={() => window.confirm(`Pesanan ${order.id} sudah dipacking? Stok bahan pesanan ini akan dikurangi dan pesanan pindah ke Siap Diserahkan.`) && act(order.id, markOrderReadyAction(order.id))}>Selesai Packing</button>
+                  </>}
+                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => {
+                    if (today() < order.currentReadyDate) return setError({ id: order.id, message: `Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.` });
+                    if (!paid && !window.confirm(`Pesanan belum lunas (sisa ${formatRupiah(op.receivable(order))}). Tetap kirim? Sisa menjadi piutang.`)) return;
+                    act(order.id, dispatchOrderAction(order.id, true));
+                  }}>Tandai Dikirim</button>}
+                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => {
+                    if (!paid && !window.confirm(`Belum lunas (sisa ${formatRupiah(op.receivable(order))}). Pesanan tetap selesai dan sisa masuk Piutang.`)) return;
+                    act(order.id, completeOrderAction(order.id));
+                  }}>Tandai Selesai</button>}
                   {!paid && order.status !== "CANCELLED" && <button className="btn btn-quiet" onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
                   {order.status !== "CANCELLED" && <Link className="btn btn-quiet" href={`/founder/invoices/new?order=${order.id}`}>Buat Invoice</Link>}
-                  {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
-                  {active && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}
                   {waKind && (wa
                     ? <a className={`btn btn-quiet ${styles.waRow}`} href={wa} target="_blank" rel="noopener noreferrer"><WhatsappLogo size={18} weight="fill" aria-hidden />Kirim WhatsApp</a>
                     : <small className={`${styles.hint} ${styles.waRow}`}>Nomor WA tidak valid</small>)}
-                  {error?.id === order.id && <small role="alert" className={styles.hint}>{error.message}</small>}
+                  {error?.id === order.id && <small role="alert" className={`${styles.hint} ${styles.cardError}`}>{error.message}</small>}
+                  {((paid && lastPayment && !order.dispatchedAt) || (active && !order.dispatchedAt)) && (
+                    <div className={styles.cardFoot}>
+                      {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
+                      {active && !order.dispatchedAt && <button className={`${styles.textLink} ${styles.destructive}`} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?${session.reservations.some((r) => r.orderId === order.id && r.state === "CONSUMED") ? " Pesanan sudah dipacking: bahan yang terpakai TIDAK dikembalikan ke stok." : ""}`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
+                    </div>
+                  )}
                 </div>
               )}
             </article>
