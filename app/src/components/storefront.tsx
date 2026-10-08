@@ -322,7 +322,27 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
   const fulfillmentKey = { PICKUP_MANDIRI: "pickupMandiri", PICKUP_BI: "pickupBi", DELIVERY: "delivery" } as const;
   const waLink = (text: string) => `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
   const statusKey = (o: CustomerOrderView): Key =>
-    o.status === "CANCELLED" ? "statusCancelled" : o.status === "COMPLETED" ? "statusCompleted" : o.dispatchedAt ? "statusDispatched" : o.status === "READY_FOR_HANDOVER" ? "statusReady" : "statusNeedsPreparation";
+    o.status === "CANCELLED" ? "statusCancelled" : o.status === "COMPLETED" ? "statusCompleted" : o.dispatchedAt ? "statusDispatched" : o.status === "READY_FOR_HANDOVER" ? (o.fulfillment === "DELIVERY" ? "statusReadyDelivery" : "statusReady") : "statusNeedsPreparation";
+  const when = (iso?: string) => iso ? new Intl.DateTimeFormat(locale === "EN" ? "en-GB" : "id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(iso)) : "";
+  const timeline = (v: CustomerOrderView) => {
+    const steps = [
+      { key: "trackStepReceived", at: v.createdAt, done: true },
+      { key: "trackStepPacked", at: v.readyAt, done: v.status === "READY_FOR_HANDOVER" || v.status === "COMPLETED" || !!v.readyAt },
+      { key: "trackStepDispatched", at: v.dispatchedAt, done: !!v.dispatchedAt },
+      { key: "trackStepCompleted", at: v.completedAt, done: v.status === "COMPLETED" },
+    ] as const;
+    const current = steps.findLastIndex((step) => step.done); // last completed step; the next one stays a muted upcoming dot
+    return (
+      <ol className={styles.timeline} aria-label={v.id}>
+        {steps.map((step, i) => (
+          <li key={step.key} className={`${styles.step} ${step.done ? styles.stepDone : ""}`} aria-current={i === current ? "step" : undefined}>
+            <span className={styles.stepDot} aria-hidden="true">{step.done && <Check size={12} weight="bold" />}</span>
+            <span className={styles.stepText}>{t(step.key)}{step.done && step.at && <small>{when(step.at)}</small>}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  };
   const forget = (id: string) => { removeOrder(id); setStored((c) => c.filter((o) => o.id !== id)); };
   return (
     <section className={`${styles.formPage} fade-up`}>
@@ -341,6 +361,7 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
               <span className={`${styles.chip} ${v.status === "CANCELLED" ? styles.chipDanger : v.status === "COMPLETED" ? styles.chipNeutral : v.dispatchedAt || v.status === "READY_FOR_HANDOVER" ? styles.chipSafe : styles.chipWarn}`}>{t(statusKey(v))}</span>
             </div>
             <p className={styles.payNote}>{t(fulfillmentKey[v.fulfillment])}</p>
+            {v.fulfillment === "DELIVERY" && (v.status === "CANCELLED" ? <p className={styles.payNote}>{t("trackCancelledOn", { date: when(v.cancelledAt) })}</p> : timeline(v))}
             {v.status === "NEEDS_PREPARATION" && <p className={styles.payNote}>{t("readyDate", { date: formatDate(v.currentReadyDate, "long", locale) })}</p>}
             {v.items.map((item) => <div key={item.name}><span>{item.quantity} × {item.name}</span></div>)}
             <div className={styles.total}><span>{t("total")}</span><strong>{formatRupiah(v.total)}</strong></div>

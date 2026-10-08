@@ -69,22 +69,24 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
   return (
     <>
       <div className={styles.orderToolbar}>
-        <div className={`${styles.tabs} ${styles.chips}`} role="tablist">
+        <div className={`${styles.tabs} ${styles.chips} ${styles.statusTabs}`} role="tablist">
           {tabs.map(({ status, title }) => (
             <button key={status} role="tab" aria-selected={tab === status} className={tab === status ? styles.tabActive : ""} onClick={() => changeTab(status)}>
               {title} <span className={styles.tabCount}>{session.orders.filter((order) => order.status === status).length}</span>
             </button>
           ))}
         </div>
-        <input className={styles.search} type="search" aria-label="Cari pesanan" placeholder="Cari nama atau nomor pesanan" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
 
-      <div className={`${styles.tabs} ${styles.chips}`} role="group" aria-label="Filter tujuan">
+      <div className={styles.filterRow}>
+      <div className={`${styles.tabs} ${styles.chips} ${styles.fulfillChips}`} role="group" aria-label="Filter tujuan">
         <button aria-pressed={fulfillment === "ALL"} className={fulfillment === "ALL" ? styles.tabActive : ""} onClick={() => setFulfillment("ALL")}>Semua</button>
         {(Object.keys(placeLabel) as op.Fulfillment[]).map((id) => (
           <button key={id} aria-pressed={fulfillment === id} className={fulfillment === id ? styles.tabActive : ""} onClick={() => setFulfillment(id)}>{placeLabel[id]}</button>
         ))}
-        <select className={styles.search} style={{ minWidth: 0 }} aria-label="Urutkan" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+      </div>
+        <input className={`${styles.search} ${styles.orderSearch}`} type="search" aria-label="Cari pesanan" placeholder="Cari nama atau no. pesanan" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <select className={styles.sortSelect} aria-label="Urutkan" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
           <option value="ready">Tanggal siap terdekat</option>
           <option value="created">Terbaru dibuat</option>
         </select>

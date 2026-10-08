@@ -113,3 +113,47 @@ test("per-order Selesai Packing then unpaid Tandai Selesai becomes receivable", 
   await expect(done.getByText("Belum dibayar")).toBeVisible();
   await expect(done.getByRole("button", { name: "Tandai Lunas" })).toBeVisible();
 });
+
+test("delivery order: tracking timeline follows packing and dispatch", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Tambah Milieu" }).click();
+  await page.getByRole("button", { name: /Lanjutkan/ }).click();
+  await page.getByText("Kirim ke alamat saya").click();
+  await page.getByLabel("Nama lengkap").fill("Dewi Kirim");
+  await page.getByLabel("Nomor WhatsApp").fill("0812 3456 7890");
+  await page.getByLabel("Alamat pengiriman").fill("Jl. Mawar 1, Jakarta");
+  await page.getByRole("button", { name: /Buat Pesanan/ }).click();
+  const idEl = page.locator("strong").filter({ hasText: /^LN-\d+$/ });
+  await expect(idEl).toBeVisible();
+  const id = (await idEl.textContent())!;
+  const dialog = page.getByRole("dialog");
+  if (await dialog.isVisible()) await dialog.getByRole("button", { name: "Lewati" }).click();
+
+  const track = async () => {
+    await page.getByRole("button", { name: "Lacak pesanan" }).click();
+    await expect(page.getByRole("heading", { name: id })).toBeVisible();
+  };
+  await track();
+  const list = page.getByRole("list", { name: id });
+  await expect(list.getByRole("listitem")).toHaveCount(4);
+  await expect(list.locator('[aria-current="step"]')).toContainText("Pesanan diterima");
+  await expect(page.getByText("Bayar saat pesanan diterima")).toBeVisible();
+  await expect(page.getByText("Alamat", { exact: false }).filter({ hasText: "Mawar" })).toHaveCount(0);
+
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(ADMIN.email);
+  await page.getByLabel("Kata sandi").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await expect(page).toHaveURL(/\/founder/);
+  page.on("dialog", (d) => d.accept());
+  await page.goto("/founder/orders");
+  await page.locator("article").filter({ hasText: id }).getByRole("button", { name: "Selesai Packing" }).click();
+  await expect(page.locator("article").filter({ hasText: id })).toHaveCount(0);
+
+  await page.goto("/");
+  await track();
+  await expect(page.getByText("Siap dikirim", { exact: true })).toBeVisible();
+  await expect(list.locator('[aria-current="step"]')).toContainText("Dikemas");
+
+  // ponytail: dispatch is blocked until the ready date, so "Sedang diantar" is covered by domain tests, not e2e.
+});

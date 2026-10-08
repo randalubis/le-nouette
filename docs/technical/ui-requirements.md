@@ -12,7 +12,7 @@ Show actionable counts first:
 
 - Perlu Disiapkan;
 - Siap Diserahkan;
-- Belum Dibayar;
+- Belum Dibayar (total receivable, hint "Selesai … · berjalan …" splits it as in Keuangan, 0.16.0);
 - next packing summary;
 - material shortages/restock deadline;
 - affected rescheduling tasks;
@@ -59,15 +59,18 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 
 - Omzet (revenue from COMPLETED orders only);
 - Sudah diterima (payments on COMPLETED orders);
+- Piutang, "pesanan selesai" (unpaid balance on COMPLETED non-cancelled orders);
+- Menunggu pembayaran, "pesanan berjalan" (unpaid balance on NEEDS_PREPARATION and READY_FOR_HANDOVER orders);
 - Dibayar, belum selesai (payments on in-progress orders, held, not counted as revenue);
 - Perlu refund (unreversed payments on CANCELLED orders);
-- Belum dibayar (receivables on non-cancelled orders);
-- payment method share (computed from received payments on COMPLETED orders);
-- unpaid orders and receivables detail;
+- payment method share as three cards (Transfer, QRIS, Tunai), computed from received payments on COMPLETED orders; shows "—" when nothing is received; shares use largest-remainder rounding so they total 100;
+- unpaid orders and receivables detail, grouped as Piutang · pesanan selesai, Menunggu pembayaran · pesanan berjalan, then Lunas;
 - payment capture;
 - filters by date, method, fulfillment state, and payment state.
 
-**Implementation: ✅ BUILT** — Pesanan & piutang rows show Lunas/Piutang badges on mobile, and the hero hint reads "Sisa tagihan semua pesanan aktif" (0.15.0). Open issues (method-share stats, piutang row mix) are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150).
+The receivable total (Piutang + Menunggu pembayaran) is the figure on the Beranda "Belum dibayar" card, which carries a hint "Selesai … · berjalan …" so it reconciles with Keuangan.
+
+**Implementation: ✅ BUILT** (0.16.0) — hero cards "Sudah diterima", "Piutang" and "Menunggu bayar" are top-aligned with hints; method cards come from `percentShares`; list groups carry a badge per group and show "sisa" only for partly paid orders. Still open on the screen (designer review, see [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150)): hero layout at 1440, value overflow at 320px, bottom-nav label truncation at 320px.
 
 ### 12.6 Availability
 
@@ -119,6 +122,8 @@ Show a separate **Produk Siap Dijual** section with Milieu and Grande unit balan
 - Do not synchronize this preference between devices and do not represent it as a customer account or server-side consent record.
 - Do not expose founder-only order data through predictable order numbers.
 - Customer order tracking: A **Lacak** (Track) button in the storefront header opens a tracking view. Customer phones store order records locally (localStorage, max 20 newest first) as `{id, token}` pairs. Status is fetched on-demand only when the tracking view opens or when the customer manually refreshes (no polling). Lookups use both order id and unguessable 128-bit `public_token`; bad tokens return not-found (uniform with missing orders). The tracking response is read-only and customer-safe only: `{id, status, fulfillment, readyDates, items, total, isPaid, timestamps}` — never WhatsApp, address, note, or payment details. Tracking messages by state (0.15.0): "Estimasi siap" only while Perlu Disiapkan; a COMPLETED unpaid order shows `payAfterComplete`; cancelled orders show no payment line.
+
+Delivery tracking timeline (0.16.0): delivery orders show an ordered four-step list (Pesanan diterima → Dikemas → Sedang diantar → Selesai) instead of the pickup chips. Each list is labelled with the order id, done steps show their date and time in Asia/Jakarta, and the current step carries `aria-current="step"`. Ready delivery orders not yet dispatched show "Siap dikirim". Cancelled delivery orders show one "Dibatalkan {date}" line instead of the timeline. The timeline uses `createdAt` (new in the customer view, ISO) alongside the existing ready/dispatch/completed timestamps. Pickup tracking is unchanged. The timeline still shows no name, address, or payment detail.
 
 ### 13.5 Viewport and navigation
 

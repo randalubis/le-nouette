@@ -15,7 +15,7 @@ get storefront catalog
 calculate fulfillment promise
 create order
 get order confirmation by short-lived or unguessable token
-track order status (read-only lookup by id + public_token)
+track order status (read-only lookup by id + public_token; returns `CustomerOrderView`: id, status, fulfillment, ready dates, items, total, isPaid, `createdAt` (ISO, added 0.16.0), readyAt/dispatchedAt/completedAt/cancelledAt)
 save referral source and name (write-once, verified with public_token)
 ```
 
@@ -29,7 +29,7 @@ list/search/filter orders
 get order detail
 get packing batch/detail
 get inventory balances/history/projection
-get receivables/payments/financial summary
+get receivables/payments/financial summary (`financeSummary` also returns `receivableCompleted` = Piutang and `awaitingPayment` = Menunggu pembayaran, 0.16.0; `receivable` is their sum)
 get availability month
 get invoice list; invoice PDF via GET /founder/invoices/[id]/pdf (same cookie gate as export routes)
 ```

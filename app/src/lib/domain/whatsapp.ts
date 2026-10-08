@@ -2,7 +2,7 @@ import { formatRupiah } from "./catalog.ts";
 import { amountPaid, isPaid, receivable, type Order } from "./operations.ts";
 import { formatDate } from "./schedule.ts";
 
-export type WaKind = "confirmation" | "ready" | "rescheduled" | "cancelled" | "payment";
+export type WaKind = "confirmation" | "ready" | "dispatched" | "rescheduled" | "cancelled" | "payment";
 
 /** Normalise an Indonesian mobile number to wa.me digits (62…), or null if invalid. Same rule as createOrder. */
 export function toWaNumber(raw: string): string | null {
@@ -15,7 +15,7 @@ export function toWaNumber(raw: string): string | null {
 export function waKindFor(order: Order): WaKind | null {
   if (order.status === "COMPLETED") return receivable(order) > 0 ? "payment" : null;
   if (order.status === "CANCELLED") return "cancelled";
-  if (order.status === "READY_FOR_HANDOVER") return "ready";
+  if (order.status === "READY_FOR_HANDOVER") return order.dispatchedAt ? "dispatched" : "ready";
   return order.currentReadyDate !== order.promisedReadyDate ? "rescheduled" : "confirmation";
 }
 
@@ -39,11 +39,16 @@ export function waMessage(kind: WaKind, order: Order): string {
   switch (kind) {
     case "confirmation":
       paragraphs.push("Terima kasih sudah memesan!", `${details("Siap")}\n${place(order)}`);
-      paragraphs.push(isPaid(order) ? "Pembayaran sudah kami terima, terima kasih!" : "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer.");
+      paragraphs.push(isPaid(order) ? "Pembayaran sudah kami terima, terima kasih!" : `Pembayaran bisa lewat transfer, QRIS, atau tunai ${order.fulfillment === "DELIVERY" ? "saat pesanan diterima" : "saat serah terima"}. Kabari kami ya kalau sudah transfer.`);
       break;
     case "ready":
-      paragraphs.push(`Pesanan *${order.id}* sudah siap${order.fulfillment === "DELIVERY" ? " dan segera kami antar" : " untuk diambil"}.`, details(undefined, false));
-      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}. Bisa lewat transfer, QRIS, atau tunai saat serah terima; kabari kami ya kalau sudah transfer.`);
+      paragraphs.push(`Pesanan *${order.id}* sudah siap${order.fulfillment === "DELIVERY" ? " dan akan segera kami antar" : " untuk diambil"}.`, details(undefined, false));
+      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}. Bisa lewat transfer, QRIS, atau tunai ${order.fulfillment === "DELIVERY" ? "saat pesanan diterima" : "saat serah terima"}; kabari kami ya kalau sudah transfer.`);
+      paragraphs.push("Terima kasih!");
+      break;
+    case "dispatched":
+      paragraphs.push(`Pesanan *${order.id}* sedang kami antar${order.address ? ` ke ${order.address}` : ""}.`, details(undefined, false));
+      if (due > 0) paragraphs.push(`Sisa pembayaran ${formatRupiah(due)}. Bisa lewat transfer, QRIS, atau tunai saat pesanan diterima; kabari kami ya kalau sudah transfer.`);
       paragraphs.push("Terima kasih!");
       break;
     case "payment":

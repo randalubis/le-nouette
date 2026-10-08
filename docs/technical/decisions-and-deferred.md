@@ -103,11 +103,24 @@ The following can start with these defaults and change later:
 
 ## 23. Open follow-ups from order-flow review (0.15.0)
 
-Found in review of the 0.15.0 per-order packing and unpaid dispatch/complete change. Not yet fixed. Each item is **OPEN**.
+Found in review of the 0.15.0 per-order packing and unpaid dispatch/complete change. Items marked **CLOSED — BUILT** were fixed in 0.16.0 (delivery timeline, Keuangan split, toolbar). Items marked **OPEN** are not fixed.
 
-- **OPEN — payment details missing from WhatsApp:** the payment, ready (with balance) and confirmation messages in `app/src/lib/domain/whatsapp.ts` do not include bank account or QRIS payment details.
-- **OPEN — delivery wording after dispatch:** tracking has no "Sedang diantar" wording for delivery, and the WhatsApp ready text still says "segera kami antar" after dispatch.
-- **OPEN — Keuangan method share:** the hero method-share stats look inconsistent (QRIS/Tunai 100% vs 0%).
-- **OPEN — Keuangan piutang rows:** the "Pesanan & piutang" rows mix not-yet-completed orders with real receivables.
-- **OPEN — orders toolbar at 390px:** the orders toolbar is cramped on mobile.
-- **OPEN — dark tracking total colour:** the tracking total is salmon in dark mode.
+Closed in 0.16.0:
+
+- **CLOSED — BUILT — delivery wording after dispatch:** tracking shows "Sedang diantar" and the timeline; the WhatsApp `dispatched` kind replaces "ready" after dispatch ("sedang kami antar"). See [ui-requirements §13.4](./ui-requirements.md#134-customer-convenience-and-privacy).
+- **CLOSED — BUILT — Keuangan method share:** three method cards from `percentShares` (totals 100); "—" when nothing is received.
+- **CLOSED — BUILT — Keuangan piutang rows:** split into Piutang (completed) and Menunggu pembayaran (in progress), grouped in the list.
+- **CLOSED — BUILT — orders toolbar cramped on mobile:** 2x2 status grid and equal-column chips at ≤560px, search and sort on their own row. Reviewer pass 2 checked 320, 600 and 1440 by screenshot; see the OPEN status-grid item below.
+- **CLOSED — BUILT — dark tracking total colour:** the total uses the neutral text colour.
+- **CLOSED — BUILT — delivery WhatsApp confirmation wording:** unpaid delivery orders say "saat pesanan diterima" (matches ready message).
+
+Still open:
+
+- **OPEN — payment details missing from WhatsApp:** the payment, ready (with balance), dispatched and confirmation messages in `app/src/lib/domain/whatsapp.ts` do not include bank account or QRIS payment details.
+- **OPEN — payment policy wording vs LOCKED rule:** customer-facing tracking and WhatsApp for unpaid delivery orders say pay on receipt ("Bayar saat pesanan diterima", "tunai saat pesanan diterima"), but [payments-and-receivables §11.1](../product/payments-and-receivables.md#111-customer-payment-model) is LOCKED that external delivery is paid before dispatch (with a confirmed unpaid dispatch). The founder needs to confirm which rule the wording follows.
+- **OPEN — Keuangan hero at 1440px:** the `financeSide` grid has three columns, so the fourth card sits alone on the second row and the left column under Omzet is empty. Fix: four columns, or a 2x2 plus a method strip.
+- **OPEN — Keuangan hero values at 320px:** values such as "Rp440.000" overflow the card content box below 360px (not clipped). Fix: smaller hero value size under 360px.
+- **OPEN — bottom-nav label at 320px:** "Keuangan" truncates to "Keuang…".
+- **OPEN — orders status grid at ≤560px:** the 2x2 grid is uneven because labels differ in length. Cosmetic.
+- **OPEN — bulk-dispatch bar not verified:** the bar needs a selection state to be checked in the browser.
+- **OPEN — delivery dispatch flow not browser-checked:** "Sedang diantar" is covered by domain tests only, because dispatch is blocked until `current_ready_date`.

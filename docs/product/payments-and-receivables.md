@@ -2,7 +2,7 @@
 
 [← Product spec hub](../product-spec.md)
 
-**Implementation: 🚧 PARTIAL** — record/reverse payment and receivable math are built and tested (`app/src/lib/domain/operations.ts`), but QRIS is a static placeholder and there is no real payment-confirmation path yet. Income is counted only from COMPLETED orders; payments on in-progress orders are held and not counted as revenue; payments on cancelled orders are recorded as refunds due. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — record/reverse payment and receivable math are built and tested (`app/src/lib/domain/operations.ts`), but QRIS is a static placeholder and there is no real payment-confirmation path yet. Income is counted only from COMPLETED orders; payments on in-progress orders are held and not counted as revenue; payments on cancelled orders are recorded as refunds due. Receivables are shown as two measures (0.16.0): **Piutang** for completed orders with a balance, and **Menunggu pembayaran** for in-progress orders with a balance; their sum is the total receivable. Method shares (Transfer, QRIS, Tunai) come from received payments on completed orders and show "—" when nothing has been received. See [technical/notifications-and-reporting §17](../technical/notifications-and-reporting.md#17-reporting-definitions), [implementation-status.md](../implementation-status.md), and the policy question in [decisions-and-deferred §23](../technical/decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150).
 
 ## 11. Payments, cash, and receivables
 

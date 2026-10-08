@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products, SUPPLIER_PACK, type ItemId, type ProductId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate, jakartaNow, recommendReschedule, type DateStatus } from "@/lib/domain/schedule";
+import { percentShares } from "@/lib/domain/percent";
 import { itemsLabel } from "@/components/order-board";
 import { adjustReadyAction, recordExtraPackedAction, receiveStockAction, stockOpnameAction, setDateStatusAction, setStoreStatusAction, rescheduleOrderAction } from "@/lib/domain/actions";
 import { ListRowCard } from "@/components/ui/list-row-card";
@@ -150,19 +151,29 @@ const refundMethods = (o: op.Order) => [...new Set(o.payments.filter((p) => !p.r
 export function FinanceBoard({ session }: { session: op.State }) {
   const orders = session.orders.filter((o) => o.status !== "CANCELLED");
   const f = op.financeSummary(session);
-  const share = (method: op.PaymentMethod) => (f.received ? `${Math.round(f.methodShare(method) * 100)}%` : "—");
+  const methods: op.PaymentMethod[] = ["TRANSFER", "QRIS", "CASH"];
+  const pct = percentShares(methods.map((m) => f.methodShare(m)));
+  const share = (i: number) => (f.received ? `${pct[i]}%` : "—");
+  const active = (o: op.Order) => o.status !== "COMPLETED";
+  const rows = [
+    { key: "due", title: "Piutang · pesanan selesai", list: orders.filter((o) => o.status === "COMPLETED" && !op.isPaid(o)), badge: "Piutang" },
+    { key: "wait", title: "Menunggu pembayaran · pesanan berjalan", list: orders.filter((o) => active(o) && !op.isPaid(o)), badge: "Menunggu bayar" },
+    { key: "paid", title: "Lunas", list: orders.filter((o) => op.isPaid(o)), badge: "" },
+  ];
 
   return (
     <>
       <section className={styles.financeHero}>
         <MetricCard variant="hero" label="Omzet (pesanan selesai)" value={formatRupiah(f.revenue)} hint={`${f.revenueOrders} pesanan · ${f.revenueUnits} produk`} />
         <div className={styles.financeSide}>
-          <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(f.received)} />
-          <MetricCard variant="hero" compact label="Belum dibayar" value={formatRupiah(f.receivable)} hint="Sisa tagihan semua pesanan aktif" />
-          {f.heldPayments > 0 && <MetricCard variant="hero" compact label="Dibayar, belum selesai" value={formatRupiah(f.heldPayments)} />}
-          {f.refundDue > 0 && <MetricCard variant="hero" compact label="Perlu refund" value={formatRupiah(f.refundDue)} />}
-          <MetricCard variant="hero" compact label="Transfer" value={share("TRANSFER")} />
-          <MetricCard variant="hero" compact label={`QRIS · Tunai ${share("CASH")}`} value={share("QRIS")} />
+          <MetricCard variant="hero" compact label="Sudah diterima" value={formatRupiah(f.received)} hint="Pembayaran pesanan selesai" />
+          <MetricCard variant="hero" compact label="Piutang" value={formatRupiah(f.receivableCompleted)} hint="Pesanan selesai, belum lunas" />
+          <MetricCard variant="hero" compact label="Menunggu bayar" value={formatRupiah(f.awaitingPayment)} hint="Pesanan berjalan, belum lunas" />
+          {f.heldPayments > 0 && <MetricCard variant="hero" compact label="Dibayar, belum selesai" value={formatRupiah(f.heldPayments)} hint="Pesanan belum selesai" />}
+          {f.refundDue > 0 && <MetricCard variant="hero" compact label="Perlu refund" value={formatRupiah(f.refundDue)} hint="Pesanan dibatalkan" />}
+          <div className={styles.methodRow}>
+            {methods.map((m, i) => <MetricCard key={m} variant="hero" compact label={methodLabel[m]} value={share(i)} hint="Porsi diterima" />)}
+          </div>
         </div>
       </section>
       {f.refundOrders.length > 0 && (
@@ -172,14 +183,19 @@ export function FinanceBoard({ session }: { session: op.State }) {
         </section>
       )}
       <section className={`${styles.panel} ${styles.receivables}`}>
-        <div className={styles.panelHeader}><div><h2>Pesanan & piutang</h2><p>Pesanan selesai boleh belum dibayar; konfirmasi pembayaran dilakukan founder di Pesanan.</p></div></div>
-        {[...orders].reverse().map((o) => (
-          <ListRowCard
-            key={o.id}
-            title={o.customer.name}
-            subtitle={`${o.id} · ${itemsLabel(o)}`}
-            trailing={<span style={{ display: "grid", justifyItems: "end", gap: 4 }}>{formatRupiah(o.total)}<span className={`status ${op.isPaid(o) ? "status-safe" : "status-danger"}`}>{op.isPaid(o) ? "Lunas" : `Piutang ${formatRupiah(op.receivable(o))}`}</span></span>}
-          />
+        <div className={styles.panelHeader}><div><h2>Pesanan & pembayaran</h2><p>Pesanan selesai boleh belum dibayar; konfirmasi pembayaran dilakukan founder di Pesanan.</p></div></div>
+        {rows.filter((g) => g.list.length > 0).map((g) => (
+          <div key={g.key}>
+            <h3 className={styles.groupTitle}>{g.title} ({g.list.length})</h3>
+            {[...g.list].reverse().map((o) => (
+              <ListRowCard
+                key={o.id}
+                title={o.customer.name}
+                subtitle={`${o.id} · ${itemsLabel(o)}`}
+                trailing={<span style={{ display: "grid", justifyItems: "end", gap: 4 }}>{formatRupiah(o.total)}<span className={`status ${g.badge ? (g.key === "due" ? "status-danger" : "status-warning") : "status-safe"}`}>{g.badge ? (op.receivable(o) < o.total ? `${g.badge} · sisa ${formatRupiah(op.receivable(o))}` : g.badge) : "Lunas"}</span></span>}
+              />
+            ))}
+          </div>
         ))}
       </section>
     </>

@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for all 5 message kinds (confirmation, ready, rescheduled, cancelled, payment); customer-language selection remains backlog. Open WhatsApp follow-ups are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150). Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is ✅ built in CSV and XLSX formats with optional date-range filtering (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for all 6 message kinds (confirmation, ready, dispatched (0.16.0), rescheduled, cancelled, payment); customer-language selection remains backlog. Open WhatsApp follow-ups are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150). Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is ✅ built in CSV and XLSX formats with optional date-range filtering (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). See [implementation-status.md](../implementation-status.md).
 
 ## 16. Notifications
 
@@ -28,7 +28,7 @@ Potential messages:
 - Failure to open WhatsApp must never roll back or block the underlying order, payment, packing, or rescheduling transaction.
 - Do not integrate WhatsApp Business API, automated delivery, webhooks, chatbot behavior, retries, or delivery-status tracking in V1.
 
-**Implementation: 🚧 PARTIAL (5 of 5 kinds built; customer-language selection backlog)** — `app/src/lib/domain/whatsapp.ts` provides `toWaNumber()` (normalizes 0812…/+62…/62… to 62…), `waMessage(kind, order)`, and `waLink(kind, order)` pure functions. Kind selection via `waKindFor(order)`: COMPLETED with receivable → "payment" (added 0.15.0), COMPLETED paid → null (no message), CANCELLED → "cancelled", READY_FOR_HANDOVER → "ready", currentReadyDate !== promisedReadyDate → "rescheduled", else "confirmation". Bahasa Indonesia only (no customer-language field in V1). Founder OS order board renders **Kirim WhatsApp** link (full-width row with icon) when the order has a kind and number valid; invalid number shows muted "Nomor WA tidak valid" instead. Message templates use multi-line format (paragraphs separated by blank lines) with order details as a block:
+**Implementation: 🚧 PARTIAL (6 of 6 kinds built; customer-language selection backlog)** — `app/src/lib/domain/whatsapp.ts` provides `toWaNumber()` (normalizes 0812…/+62…/62… to 62…), `waMessage(kind, order)`, and `waLink(kind, order)` pure functions. Kind selection via `waKindFor(order)`: COMPLETED with receivable → "payment" (added 0.15.0), COMPLETED paid → null (no message), CANCELLED → "cancelled", READY_FOR_HANDOVER with `dispatchedAt` → "dispatched" (0.16.0), READY_FOR_HANDOVER → "ready", currentReadyDate !== promisedReadyDate → "rescheduled", else "confirmation". The "ready" delivery text reads "akan segera kami antar" and the unpaid payment line for delivery reads "saat pesanan diterima" (0.16.0; pickup keeps "saat serah terima"). Bahasa Indonesia only (no customer-language field in V1). Founder OS order board renders **Kirim WhatsApp** link (full-width row with icon) when the order has a kind and number valid; invalid number shows muted "Nomor WA tidak valid" instead. Message templates use multi-line format (paragraphs separated by blank lines) with order details as a block:
 
 - **confirmation:**
   ```
@@ -43,21 +43,33 @@ Potential messages:
   
   Pembayaran sudah kami terima, terima kasih!
   ```
-  — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan di Kantor [BI/Mandiri]." — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima. Kabari kami ya kalau sudah transfer."
+  — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan di Kantor [BI/Mandiri]." — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima (delivery: saat pesanan diterima). Kabari kami ya kalau sudah transfer."
 
 - **ready:**
   ```
-  Pesanan *LN-0001* sudah siap dan segera kami antar.
+  Pesanan *LN-0001* sudah siap dan akan segera kami antar.
   
   • 1 × Milieu 125g
   • 2 × Grande 250g
   Total: Rp 45.000
   
-  Sisa pembayaran Rp 5.000. Bisa lewat transfer, QRIS, atau tunai saat serah terima; kabari kami ya kalau sudah transfer.
+  Sisa pembayaran Rp 5.000. Bisa lewat transfer, QRIS, atau tunai saat pesanan diterima; kabari kami ya kalau sudah transfer.
   
   Terima kasih!
   ```
-  — fulfillment in intro: " dan segera kami antar" for DELIVERY, " untuk diambil" for pickup — receivable paragraph included only if > 0
+  — fulfillment in intro: " dan akan segera kami antar" for DELIVERY, " untuk diambil" for pickup — receivable paragraph included only if > 0
+
+- **dispatched** (0.16.0; READY_FOR_HANDOVER with `dispatchedAt`, delivery only):
+  ```
+  Pesanan *LN-0001* sedang kami antar ke Jl. Gatot Subroto 123.
+
+  • 1 × Milieu 125g
+  • 2 × Grande 250g
+  Total: Rp 45.000
+
+  Sisa pembayaran Rp 5.000. Bisa lewat transfer, QRIS, atau tunai saat pesanan diterima; kabari kami ya kalau sudah transfer.
+  ```
+  — the address clause is omitted when no address is set; the remaining-payment paragraph is included only if receivable > 0
 
 - **payment** (0.15.0; only for COMPLETED orders with a receivable):
   ```
@@ -103,7 +115,9 @@ Use explicit definitions so metrics cannot drift:
 | Ordered sales | Sum of non-cancelled order totals in period |
 | Completed sales | Sum of completed order totals (COMPLETED status only) |
 | Cash received | Sum of confirmed net payments on COMPLETED orders in period |
-| Receivables | Sum of positive balances on non-cancelled orders (including in-progress and completed) |
+| Receivables | Sum of positive balances on non-cancelled orders (including in-progress and completed); equals Piutang + Menunggu pembayaran |
+| Piutang (pesanan selesai) | Positive balances on COMPLETED non-cancelled orders |
+| Menunggu pembayaran (pesanan berjalan) | Positive balances on NEEDS_PREPARATION and READY_FOR_HANDOVER orders |
 | Units sold | Sum of quantities on non-cancelled orders, filterable by status |
 | COGS | Captured inventory consumption cost plus modeled untracked unit costs |
 | Gross profit | Completed sales minus associated COGS |

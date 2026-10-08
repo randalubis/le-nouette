@@ -57,3 +57,15 @@ test("payment-aware lines, place and blank name", () => {
   assert.doesNotMatch(waMessage("cancelled", order), /kembalikan/);
   assert.match(waMessage("ready", { ...order, customer: { name: " ", whatsapp: "x" } }), /^Halo, ini/);
 });
+
+test("dispatched kind for delivery after dispatch", () => {
+  const ready = { ...order, status: "READY_FOR_HANDOVER" } as Order;
+  assert.equal(waKindFor(ready), "ready");
+  assert.match(waMessage("ready", ready), /akan segera kami antar/);
+  const sent = { ...ready, dispatchedAt: "2026-10-05T03:00:00Z" } as Order;
+  assert.equal(waKindFor(sent), "dispatched");
+  const m = waMessage("dispatched", sent);
+  assert.match(m, /sedang kami antar ke Jl\. Mawar 1/);
+  assert.match(m, /Sisa pembayaran Rp75\.000/);
+  assert.doesNotMatch(waMessage("dispatched", { ...sent, payments: [{ id: "p", amount: 75000, method: "CASH", at: "x" }] } as unknown as Order), /Sisa pembayaran/);
+});

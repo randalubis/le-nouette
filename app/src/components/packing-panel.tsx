@@ -27,7 +27,7 @@ export function DashboardSummary({ session }: { session: op.State }) {
       {allClear ? <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua beres hari ini</p> : <section className={styles.metricGrid}>
         <MetricCard href="/founder/orders" label="Pesanan aktif" value={active.length} hint={`${active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan`} />
         <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan selesai" />
-        <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`${unpaid.length} pesanan · lihat piutang`} alert={unpaid.length > 0} />
+        <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`Selesai ${shortMoney(unpaid.filter((o) => o.status === "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))} · berjalan ${shortMoney(unpaid.filter((o) => o.status !== "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))}`} alert={unpaid.length > 0} />
         {nextBatch && <MetricCard href="/founder/availability" label="Batch packing berikutnya" value={formatDate(nextBatch, "short")} hint="Cut-off harian 18.00 WIB" />}
       </section>}
 

@@ -71,6 +71,21 @@
 .whatsapp small { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
 .summary .total { border-top: 1px solid var(--line); padding-top: 13px; font-size: 18px; }
 .summary .total strong { color: var(--wine-text); }
+.trackCard .total strong { color: var(--ink); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline { margin-top: 4px; }
+.step { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 14px; align-items: start; padding-bottom: 18px; position: relative; color: var(--muted); font-size: 14px; line-height: 1.3; }
+.step:last-child { padding-bottom: 0; }
+.step:not(:last-child)::before { content: ""; position: absolute; left: 11px; top: 26px; bottom: 2px; width: 2px; border-radius: 2px; background: var(--line); }
+.stepDone:not(:last-child)::before { background: var(--wine-text); }
+.stepDot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--cream); display: grid; place-items: center; color: #fffaf2; box-sizing: border-box; }
+.stepDone .stepDot { background: var(--wine); border-color: var(--wine-text); }
+.stepDone { color: var(--ink); }
+.step[aria-current="step"] { color: var(--wine-text); font-weight: 750; }
+.step[aria-current="step"] .stepDot { box-shadow: 0 0 0 4px var(--wine-soft); }
+.stepText { display: grid; gap: 3px; padding-top: 3px; }
+.stepText small { color: var(--muted); font-size: 12.5px; font-weight: 450; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) { .stepDot { transition: box-shadow .2s ease, background .2s ease; } }
 .payNote { margin: 0; color: var(--muted); font-size: 13px; }
 .summaryCompact { margin-top: 10px; padding: 14px 0 0; background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
 .success { min-height: calc(100dvh - 68px); padding: 46px 20px 34px; display: flex; flex-direction: column; align-items: center; text-align: center; }

@@ -79,7 +79,9 @@ Show:
 
 **Implementation: 🚧 PARTIAL** — the QRIS action currently displays a static placeholder image (`storefront.tsx`); tapping it never changes payment status, matching the spec's own note that a static QRIS display does not automatically confirm payment (§11.1), but real image artwork and any confirmation UX are not finished. A share-invite button ('Ajak teman'/'Invite friends') is implemented below the QRIS section; it uses navigator.share with a wa.me fallback and sends a plain origin link. See [implementation-status.md](../implementation-status.md).
 
-**Implementation: ✅ BUILT** — Customer order tracking: **Lacak** button in storefront header opens a tracking view. Orders stored locally on customer's phone in localStorage (`le-nouette:orders`, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand via read-only server action `trackOrdersAction` only when tracking view opens or customer manually refreshes (no polling). Lookup matches both order id and secret 128-bit `public_token`; bad token returns not-found. Response is customer-safe projection only (`toCustomerView`): id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps — never WhatsApp, address, note, or payment details. Success page includes an inline tracking hint to make order status checking discoverable. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — Customer order tracking: **Lacak** button in storefront header opens a tracking view. Orders stored locally on customer's phone in localStorage (`le-nouette:orders`, max 20 newest first) as `{id, token}` pairs. Status fetched on-demand via read-only server action `trackOrdersAction` only when tracking view opens or customer manually refreshes (no polling). Lookup matches both order id and secret 128-bit `public_token`; bad token returns not-found. Response is customer-safe projection only (`toCustomerView`): id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps (including `createdAt`) — never WhatsApp, address, note, or payment details. Success page includes an inline tracking hint to make order status checking discoverable.
+
+**Implementation: ✅ BUILT** (0.16.0) — Delivery tracking shows a four-step timeline (Pesanan diterima → Dikemas → Sedang diantar → Selesai) with the date and time of each completed step, the current step marked `aria-current="step"`, and a single "Dibatalkan {date}" line for cancelled orders. The status chip reads "Siap dikirim" for a ready delivery order not yet dispatched. Unpaid delivery orders show "Bayar saat pesanan diterima" until completion (the earlier pay-before-delivery note was removed; see [decisions-and-deferred §23](../technical/decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150)). Pickup tracking is unchanged. The tracking total uses the neutral text colour in dark mode. See [implementation-status.md](../implementation-status.md).
 
 ### 6.3 Availability-facing behavior
 
@@ -118,6 +120,11 @@ Show:
 | Pay now with QRIS | Bayar sekarang dengan QRIS |
 | Needs preparation | Perlu Disiapkan |
 | Ready for handover | Siap Diserahkan |
+| Ready for handover (delivery) | Siap dikirim |
+| Order received (delivery timeline) | Pesanan diterima |
+| Packed (delivery timeline) | Dikemas |
+| Out for delivery | Sedang diantar |
+| Cancelled on {date} | Dibatalkan {date} |
 | Completed | Selesai |
 | Unpaid | Belum Dibayar |
 | Paid | Sudah Dibayar |

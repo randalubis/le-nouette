@@ -57,6 +57,9 @@ export function financeSummary(state: State, now: Date = new Date()) {
   const receivedPayments = completed.flatMap(live);
   const received = receivedPayments.reduce((sum, p) => sum + p.amount, 0);
   const methodShare = (method: PaymentMethod) => (received ? receivedPayments.filter((p) => p.method === method).reduce((s, p) => s + p.amount, 0) / received : 0);
+  const sumDue = (orders: Order[]) => orders.reduce((sum, o) => sum + receivable(o), 0);
+  const receivableCompleted = sumDue(completed);
+  const awaitingPayment = sumDue(state.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER"));
   return {
     revenue: completed.reduce((sum, o) => sum + o.total, 0),
     revenueOrders: completed.length,
@@ -65,7 +68,9 @@ export function financeSummary(state: State, now: Date = new Date()) {
     heldPayments: sumPaid(state.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER")),
     refundOrders,
     refundDue: sumPaid(refundOrders),
-    receivable: state.orders.filter((o) => o.status !== "CANCELLED").reduce((sum, o) => sum + receivable(o), 0),
+    receivable: receivableCompleted + awaitingPayment,
+    receivableCompleted, // Piutang: unpaid remainder on COMPLETED orders
+    awaitingPayment, // unpaid remainder on in-progress orders (NEEDS_PREPARATION / READY_FOR_HANDOVER)
     methodShare,
     monthRevenue: completed.filter((o) => o.completedAt && jakartaNow(new Date(o.completedAt)).date.startsWith(month)).reduce((sum, o) => sum + o.total, 0),
   };
@@ -365,12 +370,12 @@ export function setStoreStatus(state: State, status: State["storeStatus"], now: 
 
 // Customer-safe projection for public tracking: never whatsapp, address, note, or payment details.
 export type CustomerOrderView = {
-  id: string; status: OrderStatus; fulfillment: Fulfillment; promisedReadyDate: string; currentReadyDate: string;
+  id: string; status: OrderStatus; fulfillment: Fulfillment; createdAt: string; promisedReadyDate: string; currentReadyDate: string;
   items: { name: string; quantity: number }[]; total: number; isPaid: boolean;
   readyAt?: string; dispatchedAt?: string; completedAt?: string; cancelledAt?: string;
 };
 export const toCustomerView = (order: Order): CustomerOrderView => ({
-  id: order.id, status: order.status, fulfillment: order.fulfillment,
+  id: order.id, status: order.status, fulfillment: order.fulfillment, createdAt: order.createdAt,
   promisedReadyDate: order.promisedReadyDate, currentReadyDate: order.currentReadyDate,
   items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
   total: order.total, isPaid: isPaid(order),

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as op from "./operations.ts";
+import { percentShares } from "./percent.ts";
 import { promisedReadyDate, recommendReschedule } from "./schedule.ts";
 
 // Monday 14 Sep 2026. `wib(day, time)` builds an instant in Asia/Jakarta.
@@ -303,6 +304,7 @@ test("toCustomerView never leaks whatsapp, address, note, or payments", () => {
   const json = JSON.stringify(view);
   for (const secret of ["081234567890", "Rahasia", "pagar", "payments", "idempotency", "tok-k1", "Dina"]) assert.ok(!json.includes(secret), secret);
   assert.equal(view.isPaid, true);
+  assert.equal(view.createdAt, state.orders[0].createdAt);
   assert.deepEqual(view.items.map((i) => i.quantity), [2, 1]);
 });
 
@@ -376,4 +378,40 @@ test("financeSummary: income counts COMPLETED orders only; held, refund-due and 
   const done = op.completeOrder(ready(), "LN-0001", wib("2026-09-30", "20:00"));
   assert.equal(op.financeSummary(done, wib("2026-09-30", "21:00")).monthRevenue, 170000);
   assert.equal(op.financeSummary(done, wib("2026-10-01", "09:00")).monthRevenue, 0);
+});
+
+test("financeSummary: Piutang (completed) vs awaitingPayment (in progress), receivable = sum", () => {
+  const now = wib("2026-09-16");
+  const placed = op.createOrder(stocked(), order(), wib("2026-09-14"));
+  const check = (s: op.State, completed: number, awaiting: number) => {
+    const f = op.financeSummary(s, now);
+    assert.deepEqual([f.receivableCompleted, f.awaitingPayment, f.receivable], [completed, awaiting, completed + awaiting]);
+  };
+  check(placed, 0, 170000);
+  const packed = op.completeBatch(placed, "2026-09-16", wib("2026-09-16"));
+  check(packed, 0, 170000);
+  check(op.completeOrder(packed, "LN-0001", now), 170000, 0);
+  // partial payment: remainder only
+  const part = op.recordPayment(packed, "LN-0001", "CASH", now);
+  check(part, 0, 0);
+  // refund / cancel: excluded
+  check(op.cancelOrder(placed, "LN-0001", now), 0, 0);
+});
+
+test("methodShare: 0 when nothing received; mixed methods split by amount", () => {
+  const now = wib("2026-09-16");
+  const empty = op.financeSummary(op.emptyState(), now);
+  assert.equal(empty.methodShare("QRIS"), 0);
+  let s = op.completeBatch(op.createOrder(stocked(), order(), wib("2026-09-14")), "2026-09-16", now);
+  s = op.completeOrder(op.recordPayment(s, "LN-0001", "TRANSFER", now), "LN-0001", now);
+  const f = op.financeSummary(s, now);
+  assert.equal(f.methodShare("TRANSFER"), 1);
+  assert.equal(f.methodShare("CASH"), 0);
+});
+
+test("percentShares sums to 100 (largest remainder)", () => {
+  assert.deepEqual(percentShares([1, 1, 1]), [34, 33, 33]);
+  assert.deepEqual(percentShares([0, 0, 0]), [0, 0, 0]);
+  assert.deepEqual(percentShares([50, 50, 0]), [50, 50, 0]);
+  for (const parts of [[1, 2, 3], [7, 13, 29], [1, 1000, 1]]) assert.equal(percentShares(parts).reduce((a, b) => a + b, 0), 100);
 });

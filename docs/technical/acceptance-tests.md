@@ -31,6 +31,8 @@
 18. A note of 180 Unicode characters is accepted; 181 characters is rejected without creating an order.
 19. The remember-details control starts unchecked; opting in saves only name, WhatsApp number, and language, while opting out clears saved identity data.
 19a. Order tracking requires both id and public_token; bad tokens or mismatched pairs return not-found uniformly (no information leakage). The tracking response contains only customer-safe data: id, status, fulfillment, ready dates, items (name/qty), total, isPaid, timestamps.
+19b. A delivery order's tracking shows four ordered steps (Pesanan diterima, Dikemas, Sedang diantar, Selesai); each completed step shows its date and time in Asia/Jakarta, and exactly one step carries `aria-current="step"`.
+19c. A cancelled delivery order shows a single "Dibatalkan {date}" line instead of the timeline; a pickup order shows no timeline.
 
 ### 19.3 Packing
 
@@ -54,6 +56,8 @@
 
 30. Completing an unpaid order leaves it in receivables.
 30a. After an unpaid completion, revenue includes the order, received excludes it, and receivable includes it; recording the full payment moves it to received and clears the receivable.
+30b. An unpaid order in NEEDS_PREPARATION or READY_FOR_HANDOVER counts under `awaitingPayment` (Menunggu pembayaran), not `receivableCompleted`; after completion it moves to `receivableCompleted` (Piutang); a cancelled order counts in neither. `receivable` equals the sum of the two at every step.
+30c. Method shares show "—" when nothing has been received; with received payments, the three shares (Transfer, QRIS, Tunai) total 100 under largest-remainder rounding.
 31. Recording the full payment makes the order paid without changing fulfillment status.
 32. QRIS display alone does not mark an order paid.
 33. A payment reversal restores the correct receivable.
@@ -96,3 +100,9 @@
 48. A matching new order allocates the oldest ready unit first and reserves components only for the uncovered quantity.
 49. Cancelling or reducing the order restores its ready-unit allocation through an append-only reversal.
 50. Expiry is one calendar month from local packing date; allocation selects the oldest unexpired matching unit and never selects an expired source.
+
+### 19.9 Layout (0.16.0)
+
+51. The orders toolbar (status tabs, fulfilment chips, search, sort) stays inside the container with no horizontal overflow at 320, 390, 600, 900 and 1440 px; search and sort are never clipped.
+52. Keuangan hero cards in one row share a baseline for their values at 390 and 1440 px (label, value, hint top-aligned).
+53. Customer timeline and tracking total stay readable in dark mode (no salmon total; step state shown by shape as well as colour). Checked by Playwright at 390 and 1440, light and dark; no automated test.
