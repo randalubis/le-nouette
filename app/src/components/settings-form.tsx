@@ -1,0 +1,45 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { saveSettingsAction } from "@/lib/domain/invoice-actions";
+import styles from "./founder.module.css";
+import s from "./invoice.module.css";
+
+type Text = { name: string; phone: string; email: string; address: string; instagram: string; paymentInfo: string; footerNote: string; signatureName: string };
+
+export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: string | null }) {
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, start] = useTransition();
+  const submit = (form: FormData) => start(async () => {
+    const res = await saveSettingsAction(form);
+    setMsg(res.error ? { ok: false, text: res.error } : { ok: true, text: "Pengaturan tersimpan." });
+  });
+  const f = (key: keyof Text, label: string, multi = false, hint?: string) => (
+    <label className={s.field}>{label}
+      {multi ? <textarea name={key} defaultValue={initial[key]} /> : <input name={key} defaultValue={initial[key]} />}
+      {hint && <small>{hint}</small>}
+    </label>
+  );
+  return (
+    <section className={styles.panel}>
+      <form action={submit} className={s.form}>
+        {f("name", "Nama perusahaan")}
+        <div className={s.row}>{f("phone", "Telepon")}{f("email", "Email")}{f("instagram", "Instagram")}</div>
+        {f("address", "Alamat", true)}
+        {f("paymentInfo", "Informasi pembayaran", true, "Contoh: nama bank, nomor rekening, atas nama.")}
+        {f("footerNote", "Catatan / promo default", true)}
+        {f("signatureName", "Nama penanda tangan")}
+        <label className={s.field}>Logo (PNG atau JPG, maks. 500 KB)
+          <span className={s.logoRow}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logoSrc && <img className={s.logo} src={logoSrc} alt="Logo saat ini" width={72} height={72} />}
+            <input type="file" name="logo" accept="image/png,image/jpeg" />
+          </span>
+        </label>
+        {logoSrc && <label className={`${s.field} ${s.check}`}><input type="checkbox" name="removeLogo" />Hapus logo</label>}
+        {msg && <p role="alert" className={msg.ok ? s.ok : s.error}>{msg.text}</p>}
+        <button className="btn btn-primary" disabled={pending}>{pending ? "Menyimpan..." : "Simpan"}</button>
+      </form>
+    </section>
+  );
+}

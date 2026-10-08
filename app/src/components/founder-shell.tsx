@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarBlank, ChartLineUp, House, Package, ShoppingBagOpen, SquaresFour } from "@phosphor-icons/react/dist/ssr";
+import { CalendarBlank, ChartLineUp, FileText, GearSix, House, Package, ShoppingBagOpen, SquaresFour } from "@phosphor-icons/react/dist/ssr";
 import { ExportMenu } from "./export-menu";
 import { LogoutButton } from "./logout-button";
 import styles from "./founder.module.css";
@@ -10,6 +10,8 @@ const nav = [
   { href: "/founder/stock", label: "Stok", icon: Package },
   { href: "/founder/finance", label: "Keuangan", icon: ChartLineUp },
   { href: "/founder/availability", label: "Kalender", icon: CalendarBlank },
+  { href: "/founder/invoices", label: "Invoice", icon: FileText },
+  { href: "/founder/settings", label: "Pengaturan", icon: GearSix },
 ] as const;
 
 const exportLinks = [
@@ -40,14 +42,14 @@ export function FounderShell({ active, title, subtitle, children }: { active: st
             </div>
             <div className={styles.mobileMenu}>
               <ExportMenu links={exportItems} summary={<summary className={styles.avatar} aria-label="Menu akun dan unduh data">HS</summary>}>
-                <div className={styles.menuLogout}><LogoutButton /></div>
+                <div className={styles.menuLogout}><Link href="/founder/settings" className="btn btn-quiet">Pengaturan</Link><LogoutButton /></div>
               </ExportMenu>
             </div>
           </div>
         </header>
         <main className={styles.content}>{children}</main>
       </div>
-      <nav className={styles.mobileNav}>{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={active === label ? styles.active : ""}><Icon size={21} weight={active === label ? "fill" : "regular"} /><span>{label}</span></Link>)}</nav>
+      <nav className={styles.mobileNav}>{nav.filter((n) => n.label !== "Pengaturan").map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={active === label ? styles.active : ""}><Icon size={21} weight={active === label ? "fill" : "regular"} /><span>{label}</span></Link>)}</nav>
     </div>
   );
 }

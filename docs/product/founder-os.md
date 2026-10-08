@@ -29,6 +29,8 @@ Primary navigation:
 
 **Mobile header:** On narrow screens, the header displays page title and founder avatar only. Secondary actions (export, logout) are accessed via the avatar menu dropdown, not always-visible in the top bar, to preserve screen space for primary content.
 
+**Built beyond the four-tab nav (partial):** Invoice (`/founder/invoices`: list plus a four-step `/new` wizard, with PDF download) and Pengaturan (`/founder/settings`: company details and logo). Pengaturan is not in the mobile bottom bar (no room at 390px); it is in the avatar menu. Status and open checks: [implementation-status.md](../implementation-status.md); PDF rules: [notifications-and-reporting.md §17.2](../technical/notifications-and-reporting.md#172-invoice-pdf-founder-os).
+
 **ASSUMPTION:** Availability Calendar and Pause Orders may live within Beranda and/or Pengaturan, but must remain easy to reach.
 
 ### 8.3 Beranda

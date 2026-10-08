@@ -31,6 +31,7 @@ get packing batch/detail
 get inventory balances/history/projection
 get receivables/payments/financial summary
 get availability month
+get invoice list; invoice PDF via GET /founder/invoices/[id]/pdf (same cookie gate as export routes)
 ```
 
 Authenticated server-rendered components; no mutation required.
@@ -47,9 +48,11 @@ record/reverse payment
 block/unblock availability dates
 pause/resume store
 enable/disable product ordering
+create invoice (full draft, or prefilled from an order id)
+save company settings and logo
 ```
 
-All 15 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`.
+All 17 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`).
 
 Use command-specific server actions rather than a generic endpoint that permits arbitrary status or balance mutation.
 

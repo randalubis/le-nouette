@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.13.0 — 8 October 2026
+
+- **Founder OS invoice PDF (partial):** Numbered invoices (`INV/YYYY/NNNN`) created from a Pesanan card ("Buat Invoice") or the Invoice nav item, downloaded as PDF via a founder-gated route. Per-line discount and VAT %, delivery fee and amount paid are entered in a four-step wizard; totals are recomputed on the server; each invoice is a stored snapshot. Company details and logo are set on the new Pengaturan page. Migration `app/drizzle/0005_invoices.sql`. Browser checks and the production migration are still pending. See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2 and [technical/data-model.md](./technical/data-model.md) §6.19–6.20.
+
 ### 0.12.0 — 1 October 2026
 
 - **Founder OS Keuangan: COMPLETED-order-only revenue model:** Omzet (revenue) is now counted only from COMPLETED orders. Payments are categorized as: Sudah diterima (received, non-reversed payments on COMPLETED orders); Dibayar, belum selesai (held, payments on in-progress orders, not counted as revenue, hidden when zero); Perlu refund (unreversed payments on CANCELLED orders, with link to cancelled-orders tab and payment-reversal UI); Belum dibayar (receivables on non-cancelled orders, unchanged). Payment method share (Transfer, QRIS, Tunai) computed from Sudah diterima only. Dashboard month filters by completedAt in Jakarta timezone. Implementation: `app/src/lib/domain/operations.ts` financeSummary (lines 50–70), `app/src/components/founder-boards.tsx` FinanceBoard (lines 147–186). See [product/payments-and-receivables.md](./product/payments-and-receivables.md), [technical/ui-requirements.md](./technical/ui-requirements.md) §12.5, [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.

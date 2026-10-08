@@ -1,3 +1,4 @@
+import type { InvoiceCompany, InvoiceLine } from "@/lib/domain/invoice";
 import { pgTable, text, integer, timestamp, jsonb, serial, date, index } from "drizzle-orm/pg-core";
 
 export const orders = pgTable("orders", {
@@ -88,3 +89,39 @@ export const readyProductMovements = pgTable("ready_product_movements", {
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
 }, (table) => [index("ready_product_movements_order_id_idx").on(table.orderId)]);
+
+// Invoice tables sit outside the loadState/diffAndWrite domain model: direct queries in lib/db/{settings,invoices}.ts.
+export const companySettings = pgTable("company_settings", {
+  id: integer("id").primaryKey().default(1),
+  name: text("name").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  email: text("email").notNull().default(""),
+  address: text("address").notNull().default(""),
+  instagram: text("instagram").notNull().default(""),
+  paymentInfo: text("payment_info").notNull().default(""),
+  footerNote: text("footer_note").notNull().default(""),
+  signatureName: text("signature_name").notNull().default(""),
+  logoBase64: text("logo_base64"),
+  logoMime: text("logo_mime"),
+});
+
+// orderId is deliberately not an FK: invoices are immutable snapshots and must survive order reset/deletion.
+export const invoices = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  number: text("number").notNull().unique(),
+  orderId: text("order_id"),
+  issuedAt: date("issued_at", { mode: "string" }).notNull(),
+  dueDate: date("due_date", { mode: "string" }).notNull(),
+  buyerName: text("buyer_name").notNull(),
+  buyerPhone: text("buyer_phone").notNull().default(""),
+  buyerAddress: text("buyer_address").notNull().default(""),
+  lines: jsonb("lines").notNull().$type<InvoiceLine[]>(),
+  deliveryFee: integer("delivery_fee").notNull().default(0),
+  paid: integer("paid").notNull().default(0),
+  notes: text("notes").notNull().default(""),
+  company: jsonb("company").notNull().$type<InvoiceCompany>(),
+  subtotal: integer("subtotal").notNull(),
+  tax: integer("tax").notNull(),
+  total: integer("total").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+}, (table) => [index("invoices_order_id_idx").on(table.orderId)]);

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Clock, MapPin, Truck, WhatsappLogo } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatRupiah } from "@/lib/domain/catalog";
@@ -135,6 +137,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                   {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => act(order.id, dispatchOrderAction(order.id))}>Tandai Dikirim</button>}
                   {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => act(order.id, completeOrderAction(order.id))}>Tandai Selesai</button>}
                   {!paid && order.status !== "CANCELLED" && <button className="btn btn-quiet" onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
+                  {order.status !== "CANCELLED" && <Link className="btn btn-quiet" href={`/founder/invoices/new?order=${order.id}`}>Buat Invoice</Link>}
                   {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
                   {active && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}

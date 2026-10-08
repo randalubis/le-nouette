@@ -141,3 +141,15 @@ Each sheet includes stable internal IDs, required foreign-key IDs, business iden
 Only an authenticated active founder may generate the workbook. Generate it as a private response download without writing it into the public static-assets directory. A comprehensive export is required immediately before applying a production database migration.
 
 **REQUIRED:** The free-plan V1 does not rely on Supabase automatic backups. XLSX exports provide portable business continuity, while version-controlled SQL migrations preserve the database structure. Paid managed backups may be adopted later without changing the domain model.
+
+### 17.2 Invoice PDF (Founder OS)
+
+**Implementation: 🚧 PARTIAL** — built; browser checks at 390/1440 and the reviewer pass are pending, and migration 0005 is not yet on production. See [implementation-status.md](../implementation-status.md).
+
+- Number: `INV/YYYY/NNNN`, per-year sequence allocated under advisory lock key 2.
+- Per line: amount (Jumlah) = max(quantity × unit price − discount, 0), before tax; tax = round(amount × taxPercent / 100). The wizard applies one VAT % to every line.
+- Subtotal = Σ amount; Pajak = Σ tax; Total = Subtotal + Pajak + Ongkir; Jumlah Tertagih = max(Total − Lunas, 0).
+- Whole rupiah, displayed `Rp 500.000`. Totals are recomputed on the server from submitted lines.
+- Invoices are stored snapshots ([data-model §6.20](./data-model.md#620-invoices)); re-download never recalculates from the order.
+- PDF: pdfkit with built-in Helvetica. Table header repeats and a footer "INV/… · hal x/y" appears on every page; the summary may move to a new page.
+- Route `GET /founder/invoices/[id]/pdf` uses the same cookie gate as the export routes.

@@ -388,6 +388,38 @@ STORE_RESUMED
 
 Store actor, timestamp, entity type/ID, and compact before/after metadata. Do not duplicate whole database rows.
 
+### 6.19 `company_settings`
+
+**Implementation: 🚧 PARTIAL** (invoice feature, migration `0005_invoices.sql`; see [implementation-status.md](../implementation-status.md)). Single row (`id` = 1). Read and written by `app/src/lib/db/settings.ts` (`getSettings`, `saveSettings`); outside the `loadState`/`diffAndWrite` model.
+
+| Field | Type | Notes |
+|---|---|---|
+| `name`, `phone`, `email`, `address`, `instagram` | text | default empty; "Info Perusahaan" block on invoice |
+| `payment_info` | text | multiline payment lines; "Keterangan" block |
+| `footer_note` | text | default note text for new invoices |
+| `signature_name` | text | printed under the signature line |
+| `logo_base64`, `logo_mime` | text | nullable; PNG or JPG checked by magic bytes, max 500 KB; base64 text, not a file or bytea (Vercel filesystem is read-only) |
+
+### 6.20 `invoices`
+
+**Implementation: 🚧 PARTIAL** (as 6.19). Immutable snapshot per invoice. Read and written by `app/src/lib/db/invoices.ts` (`createInvoice`, `getInvoice`, `listInvoices`); outside the `loadState`/`diffAndWrite` model.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | serial | primary key |
+| `number` | text | unique, `INV/YYYY/NNNN`; allocated in its own transaction under advisory lock key 2 (domain commands use key 1) |
+| `order_id` | text | nullable; plain text, no foreign key, so invoices survive order reset and e2e truncation |
+| `issued_at`, `due_date` | date | |
+| `buyer_name`, `buyer_phone`, `buyer_address` | text | buyer snapshot |
+| `lines` | jsonb | `InvoiceLine[]`: name, description, quantity, unitPrice, discount (Rp per line), taxPercent |
+| `delivery_fee`, `paid` | integer | Rp |
+| `notes` | text | |
+| `company` | jsonb | `InvoiceCompany` snapshot at issue time |
+| `subtotal`, `tax`, `total` | integer | recomputed server-side by `computeTotals`; client values are not trusted |
+| `created_at` | timestamptz | |
+
+Amount due ("Jumlah Tertagih") is derived as `total − paid`, not stored.
+
 ---
 
 ## 7. Derived values and invariants
