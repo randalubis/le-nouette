@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildInvoiceFromOrder, computeTotals, formatInvoiceDate, invoiceSeq, nextInvoiceNumber, rupiah } from "./invoice.ts";
+import { buildInvoiceFromOrder, computeTotals, formatInvoiceDate, invoiceSeq, nextInvoiceNumber, normalizeNewlines, rupiah } from "./invoice.ts";
 import type * as op from "./operations.ts";
 
 const line = (o: Partial<Parameters<typeof computeTotals>[0]["lines"][number]> = {}) => ({ name: "Milieu", description: "", quantity: 2, unitPrice: 50000, discount: 0, taxPercent: 0, ...o });
@@ -40,4 +40,8 @@ test("buildInvoiceFromOrder prefills lines, paid and notes", () => {
   assert.equal(d.paid, 30000);
   assert.equal(d.buyerAddress, "Jl. Mawar 1");
   assert.equal(d.notes, "Terima kasih");
+});
+
+test("normalizeNewlines: CRLF and lone CR become LF", () => {
+  assert.equal(normalizeNewlines("a\r\nb\rc\nd"), "a\nb\nc\nd");
 });

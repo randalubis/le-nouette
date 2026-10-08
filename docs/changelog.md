@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.13.1 — 8 October 2026
+
+- **Invoice PDF line-break fix:** Multiline fields (company address, buyer address, Keterangan, invoice notes) printed a stray "Ð" at each line break. Browser textareas submit CRLF, and pdfkit's Helvetica draws a lone `\r` as "Ð". New `normalizeNewlines()` in `app/src/lib/domain/invoice.ts` converts CRLF/CR to LF; applied in `invoice-pdf.ts` text and height helpers (also repairs already-saved settings and existing invoices) and in `invoice-actions.ts` `str()` so new saves store LF only. Unit test added in `invoice.test.ts`.
+
 ### 0.13.0 — 8 October 2026
 
 - **Founder OS invoice PDF (partial):** Numbered invoices (`INV/YYYY/NNNN`) created from a Pesanan card ("Buat Invoice") or the Invoice nav item, downloaded as PDF via a founder-gated route. Per-line discount and VAT %, delivery fee and amount paid are entered in a four-step wizard; totals are recomputed on the server; each invoice is a stored snapshot. Company details and logo are set on the new Pengaturan page. Migration `app/drizzle/0005_invoices.sql`. Browser checks and the production migration are still pending. See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2 and [technical/data-model.md](./technical/data-model.md) §6.19–6.20.

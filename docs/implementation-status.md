@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.13.1 (8 October 2026)
+
+- **Invoice PDF line-break fix:** Stray "Ð" at each line break in multiline invoice fields (CRLF from textareas, drawn by pdfkit Helvetica). `normalizeNewlines()` in `app/src/lib/domain/invoice.ts` is applied in `invoice-pdf.ts` (repairs saved settings and existing invoices) and `invoice-actions.ts` (new saves store LF). Unit test in `invoice.test.ts`. See [changelog 0.13.1](./changelog.md).
+
 ### 0.13.0 (8 October 2026)
 
 - **Invoice PDF (Founder OS, partial):** Founder can issue numbered invoices (`INV/YYYY/NNNN`, per-year sequence) from a Pesanan card's "Buat Invoice" link or the new Invoice nav item, and download a PDF. Per-line discount and VAT %, delivery fee and amount paid are entered in a four-step wizard; totals are recomputed on the server; invoices are stored as snapshots. Company details and logo (PNG/JPG, max 500 KB) are set on the new Pengaturan page. Migration `app/drizzle/0005_invoices.sql` (hand-written, with journal entry). Founder command server actions now 17 (adds `createInvoiceAction`, `saveSettingsAction`). Pending: browser check at 390/1440 light and dark, reviewer pass, and migration 0005 on production (currently applied to local `le_nouette_e2e` only). Details: [§17.2](./technical/notifications-and-reporting.md#172-invoice-pdf-founder-os), [§6.19–6.20](./technical/data-model.md#619-company_settings), Partial table below.

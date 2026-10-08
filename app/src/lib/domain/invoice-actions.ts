@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createInvoice } from "@/lib/db/invoices";
 import { getSettings, saveSettings } from "@/lib/db/settings";
 import { getState } from "@/lib/db/get-state";
-import { buildInvoiceFromOrder, type InvoiceDraft, type InvoiceLine } from "@/lib/domain/invoice";
+import { buildInvoiceFromOrder, normalizeNewlines, type InvoiceDraft, type InvoiceLine } from "@/lib/domain/invoice";
 import { jakartaNow } from "@/lib/domain/schedule";
 import { requireFounder } from "@/lib/founder-session";
 
 const MAX_LOGO = 500 * 1024;
-const str = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").slice(0, max);
+const str = (v: unknown, max: number) => normalizeNewlines(String(v ?? "")).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").slice(0, max);
 const num = (v: unknown, max = 1_000_000_000) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(Math.max(n, 0), max) : 0; };
 const isDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 

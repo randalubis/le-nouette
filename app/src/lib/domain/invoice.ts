@@ -43,7 +43,10 @@ export function computeTotals(input: { lines: InvoiceLine[]; deliveryFee: number
   return { subtotal, tax, deliveryFee, total, paid, amountDue: Math.max(total - paid, 0) };
 }
 
-export const invoicePrefix = (year: number) => `INV/${year}/`;
+// Browser textareas submit CRLF; pdfkit only breaks on \n and draws a lone \r as "Ð".
+export const normalizeNewlines = (s: string) => s.replace(/\r\n?/g, "\n");
+
+export const invoicePrefix =(year: number) => `INV/${year}/`;
 export const nextInvoiceNumber = (year: number, lastSeq: number) => `${invoicePrefix(year)}${String(lastSeq + 1).padStart(4, "0")}`;
 export const invoiceSeq = (number: string) => Number(number.split("/")[2]) || 0;
 

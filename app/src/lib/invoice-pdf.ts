@@ -1,5 +1,5 @@
 import PDFDocument from "pdfkit";
-import { computeTotals, formatInvoiceDate, lineNet, lineTax, rupiah, type InvoiceCompany, type InvoiceLine } from "@/lib/domain/invoice";
+import { computeTotals, formatInvoiceDate, lineNet, lineTax, normalizeNewlines, rupiah, type InvoiceCompany, type InvoiceLine } from "@/lib/domain/invoice";
 
 export type InvoicePdfInput = {
   number: string; issuedAt: string; dueDate: string;
@@ -26,9 +26,9 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
   const co = inv.company;
   const text = (s: string, x: number, y: number, o: PDFKit.Mixins.TextOptions & { font?: string; size?: number; color?: string } = {}) => {
     const { font = "Helvetica", size = 9, color = INK, ...rest } = o;
-    doc.font(font).fontSize(size).fillColor(color).text(s, x, y, rest);
+    doc.font(font).fontSize(size).fillColor(color).text(normalizeNewlines(s), x, y, rest);
   };
-  const h = (s: string, w: number, size = 9, font = "Helvetica") => (s ? doc.font(font).fontSize(size).heightOfString(s, { width: w }) : 0);
+  const h = (s: string, w: number, size = 9, font = "Helvetica") => (s ? doc.font(font).fontSize(size).heightOfString(normalizeNewlines(s), { width: w }) : 0);
 
   // Header: circular logo top-left, title block top-right.
   let logoDrawn = false;
