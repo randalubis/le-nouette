@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.14.0 — 8 October 2026
+
+- **Invoice edit, mark paid, delete (Founder OS, partial):** Unpaid invoices can be edited (number kept, totals recomputed, optional company refresh). Tandai Lunas records the linked order's remaining payment and flags the invoice; Batalkan Lunas reverses only that payment and is blocked once the order is dispatched. Delete is unpaid-only and never touches the order. Invoice numbers now come from `invoice_counters`, so deleted numbers are never reused. Migration `app/drizzle/0006_invoice_payment.sql` (hand-written, journal idx 6, RLS on the new table; seeded from existing invoices). Founder command server actions now 21. Pending: browser check at 390/1440 light and dark, reviewer pass 2, `npm run e2e`, and migration 0006 on production. See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2, [product/payments-and-receivables.md](./product/payments-and-receivables.md) §11.4, [technical/data-model.md](./technical/data-model.md) §6.20–6.21.
+
 ### 0.13.1 — 8 October 2026
 
 - **Invoice PDF line-break fix:** Multiline fields (company address, buyer address, Keterangan, invoice notes) printed a stray "Ð" at each line break. Browser textareas submit CRLF, and pdfkit's Helvetica draws a lone `\r` as "Ð". New `normalizeNewlines()` in `app/src/lib/domain/invoice.ts` converts CRLF/CR to LF; applied in `invoice-pdf.ts` text and height helpers (also repairs already-saved settings and existing invoices) and in `invoice-actions.ts` `str()` so new saves store LF only. Unit test added in `invoice.test.ts`.

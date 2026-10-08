@@ -144,9 +144,13 @@ Only an authenticated active founder may generate the workbook. Generate it as a
 
 ### 17.2 Invoice PDF (Founder OS)
 
-**Implementation: 🚧 PARTIAL** — built; browser checks at 390/1440 and the reviewer pass are pending, and migration 0005 is not yet on production. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — built, including edit, mark/undo paid and delete; browser checks at 390/1440 and the reviewer pass are pending, and migrations 0005 and 0006 are not yet on production. See [implementation-status.md](../implementation-status.md).
 
-- Number: `INV/YYYY/NNNN`, per-year sequence allocated under advisory lock key 2.
+- Number: `INV/YYYY/NNNN`, per-year sequence allocated from `invoice_counters` under advisory lock key 2. Numbers are never reused: deleting an invoice leaves a gap.
+- Edit: only while unpaid. Number, order link and created time stay; dates and lines are editable; totals are recomputed; company info is re-copied from Pengaturan only if the founder ticks the checkbox.
+- Paid state: mark paid sets `paid = total` and stores `paid_at`, `paid_method`. Undo clears them and sets `paid` back to 0. Edit and delete are blocked while paid (undo first).
+- Delete: only unpaid invoices; never touches the order.
+- Audit: `INVOICE_CREATED`, `INVOICE_EDITED`, `INVOICE_DELETED`, `INVOICE_PAID:<method>`, `INVOICE_UNPAID` rows in `audit_events` with the invoice number as `ref`, written in the same transaction as the invoice write. Order payments write their own `PAYMENT_RECORDED` / `PAYMENT_REVERSED` rows.
 - Per line: amount (Jumlah) = max(quantity × unit price − discount, 0), before tax; tax = round(amount × taxPercent / 100). The wizard applies one VAT % to every line.
 - Subtotal = Σ amount; Pajak = Σ tax; Total = Subtotal + Pajak + Ongkir; Jumlah Tertagih = max(Total − Lunas, 0).
 - Whole rupiah, displayed `Rp 500.000`. Totals are recomputed on the server from submitted lines.

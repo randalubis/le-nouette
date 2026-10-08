@@ -49,10 +49,13 @@ block/unblock availability dates
 pause/resume store
 enable/disable product ordering
 create invoice (full draft, or prefilled from an order id)
+edit unpaid invoice (number kept)
+mark invoice paid (may record the linked order payment) / undo paid (may reverse it)
+delete unpaid invoice
 save company settings and logo
 ```
 
-All 17 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`).
+All 21 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `dispatchOrderAction`, `dispatchOrdersAction`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `updateInvoiceAction`, `markInvoicePaidAction`, `undoInvoicePaidAction`, `deleteInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`). Mark/undo paid act on the order through the same `recordPayment`/`reversePayment` domain ops as the Pesanan board; see [payments-and-receivables §11.4](../product/payments-and-receivables.md#114-invoice-payment-founder-os).
 
 Use command-specific server actions rather than a generic endpoint that permits arbitrary status or balance mutation.
 

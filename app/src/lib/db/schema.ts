@@ -123,5 +123,15 @@ export const invoices = pgTable("invoices", {
   subtotal: integer("subtotal").notNull(),
   tax: integer("tax").notNull(),
   total: integer("total").notNull(),
+  // paidAt null = unpaid. orderPaymentId = the order payment this invoice created (null if order was already paid / manual invoice).
+  paidAt: timestamp("paid_at", { withTimezone: true, mode: "string" }),
+  paidMethod: text("paid_method"),
+  orderPaymentId: text("order_payment_id"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
 }, (table) => [index("invoices_order_id_idx").on(table.orderId)]);
+
+// Highest number ever issued per year; survives invoice deletion so numbers are never reused.
+export const invoiceCounters = pgTable("invoice_counters", {
+  year: integer("year").primaryKey(),
+  lastSeq: integer("last_seq").notNull(),
+});

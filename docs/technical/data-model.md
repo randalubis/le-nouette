@@ -378,6 +378,11 @@ ORDER_STATUS_CHANGED
 PACKING_COMPLETED
 PAYMENT_RECORDED
 PAYMENT_REVERSED
+INVOICE_CREATED
+INVOICE_EDITED
+INVOICE_DELETED
+INVOICE_PAID:<method>
+INVOICE_UNPAID
 STOCK_RECEIVED
 STOCK_ADJUSTED
 DATE_BLOCKED
@@ -402,23 +407,35 @@ Store actor, timestamp, entity type/ID, and compact before/after metadata. Do no
 
 ### 6.20 `invoices`
 
-**Implementation: 🚧 PARTIAL** (as 6.19). Immutable snapshot per invoice. Read and written by `app/src/lib/db/invoices.ts` (`createInvoice`, `getInvoice`, `listInvoices`); outside the `loadState`/`diffAndWrite` model.
+**Implementation: 🚧 PARTIAL** (as 6.19; migrations `0005_invoices.sql` and `0006_invoice_payment.sql`). Snapshot per invoice, editable only while unpaid. Read and written by `app/src/lib/db/invoices.ts` (`createInvoice`, `updateInvoice`, `deleteInvoice`, `setInvoicePaid`, `getInvoice`, `listInvoices`); outside the `loadState`/`diffAndWrite` model.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | serial | primary key |
-| `number` | text | unique, `INV/YYYY/NNNN`; allocated in its own transaction under advisory lock key 2 (domain commands use key 1) |
+| `number` | text | unique, `INV/YYYY/NNNN`; allocated by upserting `invoice_counters` under advisory lock key 2 (domain commands use key 1). Never edited; deleted numbers are not reused |
 | `order_id` | text | nullable; plain text, no foreign key, so invoices survive order reset and e2e truncation |
 | `issued_at`, `due_date` | date | |
 | `buyer_name`, `buyer_phone`, `buyer_address` | text | buyer snapshot |
 | `lines` | jsonb | `InvoiceLine[]`: name, description, quantity, unitPrice, discount (Rp per line), taxPercent |
-| `delivery_fee`, `paid` | integer | Rp |
+| `delivery_fee`, `paid` | integer | Rp. `paid` is set to `total` on mark paid and reset to 0 on undo |
 | `notes` | text | |
-| `company` | jsonb | `InvoiceCompany` snapshot at issue time |
+| `company` | jsonb | `InvoiceCompany` snapshot at issue time; refreshed on edit only when the founder opts in |
 | `subtotal`, `tax`, `total` | integer | recomputed server-side by `computeTotals`; client values are not trusted |
 | `created_at` | timestamptz | |
+| `paid_at` | timestamptz | nullable; null = unpaid. This is the paid flag |
+| `paid_method` | text | nullable; `TRANSFER`, `QRIS` or `CASH`, set with `paid_at` |
+| `order_payment_id` | text | nullable; the order payment this invoice created on mark paid. Null when the order was already paid or the invoice is manual. Used by undo to reverse exactly that payment |
 
-Amount due ("Jumlah Tertagih") is derived as `total − paid`, not stored.
+Amount due ("Jumlah Tertagih") is derived as `total − paid`, not stored. Edit and delete are allowed only while `paid_at` is null; the SQL guards (`paid_at is null` / `is not null`) make double clicks and stale tabs safe.
+
+### 6.21 `invoice_counters`
+
+**Implementation: 🚧 PARTIAL** (migration `0006_invoice_payment.sql`; RLS enabled). One row per year. `last_seq` is the highest sequence ever issued for that year, so deleting the newest invoice does not free its number. Seeded from existing invoices (max sequence per year). Gaps are intentional.
+
+| Field | Type | Notes |
+|---|---|---|
+| `year` | integer | primary key |
+| `last_seq` | integer | not null; incremented under advisory lock key 2 in `createInvoice` |
 
 ---
 

@@ -35,3 +35,14 @@
 **LOCKED:** One founder currently verifies transfer/QRIS receipts, settles QRIS proceeds, and transfers sales proceeds to a separate Le Nouette business account managed by the other founder. The new system should provide shared order-level visibility even if bank reconciliation remains manual.
 
 **DEFERRED:** Automatic bank, QRIS-acquirer, or payment-gateway reconciliation.
+
+### 11.4 Invoice payment (Founder OS)
+
+**Implementation: 🚧 PARTIAL** — built and backend-tested on local `le_nouette_e2e`; browser pass and migration 0006 on production pending. See [implementation-status.md](../implementation-status.md).
+
+- Marking an invoice paid records the linked order's remaining payment (`recordPayment`) first, then flags the invoice. Amount is the order's receivable, not the invoice total; the confirm shows both and warns if they differ.
+- If the order is already paid, or the invoice is manual (no order), marking paid sets the flag only and creates no payment.
+- A cancelled order blocks mark paid.
+- Undo reverses only the payment that invoice created. It is blocked once the order is dispatched ("Pesanan sudah dikirim; koreksi pembayaran lewat Pesanan."), and the invoice stays paid.
+- Edit and delete are unpaid-only. Delete never touches the order.
+- Technical detail: [notifications-and-reporting §17.2](../technical/notifications-and-reporting.md#172-invoice-pdf-founder-os).

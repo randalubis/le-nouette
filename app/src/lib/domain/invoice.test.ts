@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildInvoiceFromOrder, computeTotals, formatInvoiceDate, invoiceSeq, nextInvoiceNumber, normalizeNewlines, rupiah } from "./invoice.ts";
+import { buildInvoiceFromOrder, canDeleteInvoice, canEditInvoice, isInvoicePaid, planMarkPaid, planUndoPaid, computeTotals, formatInvoiceDate, invoiceSeq, nextInvoiceNumber, normalizeNewlines, rupiah } from "./invoice.ts";
 import type * as op from "./operations.ts";
 
 const line = (o: Partial<Parameters<typeof computeTotals>[0]["lines"][number]> = {}) => ({ name: "Milieu", description: "", quantity: 2, unitPrice: 50000, discount: 0, taxPercent: 0, ...o });
@@ -44,4 +44,57 @@ test("buildInvoiceFromOrder prefills lines, paid and notes", () => {
 
 test("normalizeNewlines: CRLF and lone CR become LF", () => {
   assert.equal(normalizeNewlines("a\r\nb\rc\nd"), "a\nb\nc\nd");
+});
+
+// ---------- paid state ----------
+const ord = (o: Partial<op.Order> = {}) => ({ id: "LN-1", total: 100000, status: "CONFIRMED", payments: [], ...o }) as unknown as op.Order;
+const pay = (o: Partial<op.Payment> = {}): op.Payment => ({ id: "LN-1-P1", amount: 100000, method: "TRANSFER", at: "x", ...o });
+const unpaid = { paidAt: null, orderPaymentId: null };
+const paid = (orderPaymentId: string | null) => ({ paidAt: "2026-10-08T00:00:00Z", orderPaymentId });
+
+test("paid flag drives lock rules", () => {
+  assert.equal(isInvoicePaid(unpaid), false);
+  assert.equal(isInvoicePaid(paid(null)), true);
+  assert.deepEqual([canEditInvoice(unpaid), canDeleteInvoice(unpaid)], [true, true]);
+  assert.deepEqual([canEditInvoice(paid(null)), canDeleteInvoice(paid(null))], [false, false]);
+});
+
+test("planMarkPaid: manual invoice and missing order are flag-only", () => {
+  assert.deepEqual(planMarkPaid(null, unpaid), { kind: "flag-only" });
+});
+
+test("planMarkPaid: unpaid live order records payment; partially paid too", () => {
+  assert.deepEqual(planMarkPaid(ord(), unpaid), { kind: "record-order-payment" });
+  assert.deepEqual(planMarkPaid(ord({ payments: [pay({ amount: 30000 })] }), unpaid), { kind: "record-order-payment" });
+  assert.deepEqual(planMarkPaid(ord({ payments: [pay({ reversedAt: "y" })] }), unpaid), { kind: "record-order-payment" });
+});
+
+test("planMarkPaid: already paid order is flag-only (no second payment)", () => {
+  assert.deepEqual(planMarkPaid(ord({ payments: [pay()] }), unpaid), { kind: "flag-only" });
+});
+
+test("planMarkPaid: cancelled order and already paid invoice are errors", () => {
+  assert.deepEqual(planMarkPaid(ord({ status: "CANCELLED" }), unpaid), { error: "Pesanan dibatalkan." });
+  assert.ok("error" in planMarkPaid(ord(), paid(null)));
+});
+
+test("planUndoPaid: reverses the payment the invoice created", () => {
+  const o = ord({ payments: [pay()] });
+  assert.deepEqual(planUndoPaid(o, paid("LN-1-P1")), { kind: "reverse-order-payment", paymentId: "LN-1-P1" });
+});
+
+test("planUndoPaid: no created payment, missing order or already reversed is flag-only", () => {
+  assert.deepEqual(planUndoPaid(ord({ payments: [pay()] }), paid(null)), { kind: "flag-only" });
+  assert.deepEqual(planUndoPaid(null, paid("LN-1-P1")), { kind: "flag-only" });
+  assert.deepEqual(planUndoPaid(ord({ payments: [pay({ reversedAt: "y" })] }), paid("LN-1-P1")), { kind: "flag-only" });
+  assert.deepEqual(planUndoPaid(ord({ payments: [] }), paid("LN-1-P9")), { kind: "flag-only" });
+});
+
+test("planUndoPaid: dispatched order blocks reversal, flag-only still allowed when no payment to reverse", () => {
+  assert.deepEqual(planUndoPaid(ord({ dispatchedAt: "x", payments: [pay()] }), paid("LN-1-P1")), { error: "Pesanan sudah dikirim; koreksi pembayaran lewat Pesanan." });
+  assert.deepEqual(planUndoPaid(ord({ dispatchedAt: "x", payments: [pay()] }), paid(null)), { kind: "flag-only" });
+});
+
+test("planUndoPaid: unpaid invoice is an error", () => {
+  assert.ok("error" in planUndoPaid(ord(), unpaid));
 });

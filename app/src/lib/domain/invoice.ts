@@ -1,6 +1,6 @@
 // Pure invoice logic: prefill from an order, totals, numbering. No DB / framework imports.
 import { productById } from "./catalog.ts";
-import { amountPaid, type Order } from "./operations.ts";
+import { amountPaid, isPaid, type Order } from "./operations.ts";
 
 export type InvoiceLine = { name: string; description: string; quantity: number; unitPrice: number; discount: number; taxPercent: number };
 export type InvoiceCompany = { name: string; phone: string; email: string; address: string; instagram: string; paymentInfo: string; footerNote: string; signatureName: string; logoBase64: string | null; logoMime: string | null };
@@ -56,3 +56,29 @@ export const formatInvoiceDate = (date: string) =>
 
 // Indonesian separators: Rp 500.000
 export const rupiah = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
+
+// ---------- paid state ----------
+// paidAt != null is the paid flag. Marking paid also pays the linked order (order = source of truth); undo reverses only the payment this invoice created.
+export type InvoicePayState = { paidAt: string | null; orderPaymentId: string | null; orderId?: string | null };
+export type MarkPaidPlan = { kind: "flag-only" } | { kind: "record-order-payment" } | { error: string };
+export type UndoPaidPlan = { kind: "flag-only" } | { kind: "reverse-order-payment"; paymentId: string } | { error: string };
+
+export const isInvoicePaid = (inv: Pick<InvoicePayState, "paidAt">) => inv.paidAt != null;
+export const canEditInvoice = (inv: Pick<InvoicePayState, "paidAt">) => !isInvoicePaid(inv);
+export const canDeleteInvoice = canEditInvoice;
+
+// order = null: manual invoice or the order no longer exists (invoices survive order reset) - flag only.
+export function planMarkPaid(order: Order | null, inv: Pick<InvoicePayState, "paidAt">): MarkPaidPlan {
+  if (isInvoicePaid(inv)) return { error: "Invoice sudah lunas." };
+  if (!order) return { kind: "flag-only" };
+  if (order.status === "CANCELLED") return { error: "Pesanan dibatalkan." };
+  return isPaid(order) ? { kind: "flag-only" } : { kind: "record-order-payment" };
+}
+
+export function planUndoPaid(order: Order | null, inv: Pick<InvoicePayState, "paidAt" | "orderPaymentId">): UndoPaidPlan {
+  if (!isInvoicePaid(inv)) return { error: "Invoice belum lunas." };
+  const payment = inv.orderPaymentId ? order?.payments.find((p) => p.id === inv.orderPaymentId) : undefined;
+  if (!order || !payment || payment.reversedAt) return { kind: "flag-only" };
+  if (order.dispatchedAt) return { error: "Pesanan sudah dikirim; koreksi pembayaran lewat Pesanan." };
+  return { kind: "reverse-order-payment", paymentId: payment.id };
+}

@@ -3,28 +3,31 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { products } from "@/lib/domain/catalog";
-import { createInvoiceAction } from "@/lib/domain/invoice-actions";
+import { createInvoiceAction, updateInvoiceAction } from "@/lib/domain/invoice-actions";
 import { catalogLine, computeTotals, formatInvoiceDate, rupiah, type InvoiceDraft, type InvoiceLine } from "@/lib/domain/invoice";
 import styles from "./founder.module.css";
 import s from "./invoice.module.css";
 
 type OrderOpt = { id: string; label: string; draft: InvoiceDraft };
+export type EditInvoice = InvoiceDraft & { id: number; number: string; orderId: string | null; issuedAt: string; dueDate: string };
 const stepNames = ["Pembeli", "Produk", "Biaya", "Pratinjau"];
 const blank: InvoiceLine = { name: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxPercent: 0 };
 const n = (v: string) => (v === "" ? 0 : Number(v));
 
-export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: { orders: OrderOpt[]; initialOrderId: string | null; today: string; defaultNotes: string }) {
+export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes, invoice }: { orders: OrderOpt[]; initialOrderId: string | null; today: string; defaultNotes: string; invoice?: EditInvoice }) {
   const first = orders.find((o) => o.id === initialOrderId);
   const [step, setStep] = useState(0);
   const [orderId, setOrderId] = useState<string | null>(first?.id ?? null);
-  const [buyer, setBuyer] = useState({ name: first?.draft.buyerName ?? "", phone: first?.draft.buyerPhone ?? "", address: first?.draft.buyerAddress ?? "" });
-  const [lines, setLines] = useState<InvoiceLine[]>(first?.draft.lines ?? [{ ...blank }]);
-  const [deliveryFee, setDeliveryFee] = useState(first?.draft.deliveryFee ?? 0);
-  const [paid, setPaid] = useState(first?.draft.paid ?? 0);
-  const [vat, setVat] = useState(0);
-  const [issuedAt, setIssuedAt] = useState(today);
-  const [dueDate, setDueDate] = useState(today);
-  const [notes, setNotes] = useState(first?.draft.notes ?? defaultNotes);
+  const seed = invoice ?? first?.draft; // edit mode seeds from the saved invoice
+  const [buyer, setBuyer] = useState({ name: seed?.buyerName ?? "", phone: seed?.buyerPhone ?? "", address: seed?.buyerAddress ?? "" });
+  const [lines, setLines] = useState<InvoiceLine[]>(seed?.lines ?? [{ ...blank }]);
+  const [deliveryFee, setDeliveryFee] = useState(seed?.deliveryFee ?? 0);
+  const [paid, setPaid] = useState(seed?.paid ?? 0);
+  const [vat, setVat] = useState(invoice?.lines[0]?.taxPercent ?? 0);
+  const [issuedAt, setIssuedAt] = useState(invoice?.issuedAt ?? today);
+  const [dueDate, setDueDate] = useState(invoice?.dueDate ?? today);
+  const [notes, setNotes] = useState(seed?.notes ?? defaultNotes);
+  const [refreshCompany, setRefreshCompany] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<number | string | null>(null);
   const [pending, start] = useTransition();
@@ -47,6 +50,11 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: {
     setError(null); setStep(step + 1);
   };
   const submit = () => start(async () => {
+    if (invoice) {
+      const r = await updateInvoiceAction(invoice.id, { buyerName: buyer.name, buyerPhone: buyer.phone, buyerAddress: buyer.address, lines: taxed, deliveryFee, paid, notes, issuedAt, dueDate, refreshCompany });
+      if (r.error) return setError(r.error);
+      return setCreatedId(invoice.id);
+    }
     const res = await createInvoiceAction({ orderId, buyerName: buyer.name, buyerPhone: buyer.phone, buyerAddress: buyer.address, lines: taxed, deliveryFee, paid, notes, issuedAt, dueDate });
     if (res.error || !res.id) return setError(res.error ?? "Gagal membuat invoice.");
     setCreatedId(res.id);
@@ -57,7 +65,7 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: {
   if (createdId !== null) return (
     <section className={styles.panel}>
       <div className={s.form}>
-        <p className={s.ok} role="status">Invoice dibuat.</p>
+        <p className={s.ok} role="status">{invoice ? `Invoice ${invoice.number} diperbarui.` : "Invoice dibuat."}</p>
         <div className={s.nav}>
           <a className="btn btn-primary" href={`/founder/invoices/${createdId}/pdf`} target="_blank" rel="noopener noreferrer">Unduh PDF</a>
           <Link className="btn btn-quiet" href="/founder/invoices">Ke daftar invoice</Link>
@@ -71,12 +79,12 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: {
       <ol className={s.steps} aria-label="Langkah">{stepNames.map((name, i) => <li key={name} aria-current={i === step ? "step" : undefined}>{i + 1}<span className={s.stepName}>. {name}</span></li>)}</ol>
       <div className={s.form}>
         {step === 0 && <>
-          <label className={s.field}>Dari pesanan (opsional)
+          {invoice ? <p className={s.summary}>Invoice <strong>{invoice.number}</strong>{invoice.orderId ? ` · Pesanan ${invoice.orderId}` : ""}</p> : <label className={s.field}>Dari pesanan (opsional)
             <select value={orderId ?? ""} onChange={(e) => pick(e.target.value)}>
               <option value="">Invoice manual</option>
               {orders.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
-          </label>
+          </label>}
           <label className={s.field}>Nama pembeli<input value={buyer.name} onChange={(e) => setBuyer({ ...buyer, name: e.target.value })} autoComplete="off" /></label>
           <label className={s.field}>Nomor telepon<input value={buyer.phone} onChange={(e) => setBuyer({ ...buyer, phone: e.target.value })} inputMode="tel" /></label>
           <label className={s.field}>Alamat<textarea value={buyer.address} onChange={(e) => setBuyer({ ...buyer, address: e.target.value })} /></label>
@@ -110,10 +118,11 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: {
             <label className={s.field}>Sudah dibayar (Rp)<input type="number" min={0} inputMode="numeric" value={paid} onChange={(e) => setPaid(n(e.target.value))} /></label>
           </div>
           <div className={s.row}>
-            <label className={s.field}>Tanggal<input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value || today)} /></label>
-            <label className={s.field}>Tgl. jatuh tempo<input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value || issuedAt)} /></label>
+            <label className={s.field}>Tanggal<input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value || today)} style={{ minWidth: 0 }} /></label>
+            <label className={s.field}>Tgl. jatuh tempo<input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value || issuedAt)} style={{ minWidth: 0 }} /></label>
           </div>
           <label className={s.field}>Keterangan / promo<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /><small>Informasi pembayaran diambil dari halaman Pengaturan.</small></label>
+          {invoice && <label className={`${s.field} ${s.check}`}><input type="checkbox" checked={refreshCompany} onChange={(e) => setRefreshCompany(e.target.checked)} />Perbarui info perusahaan dari Pengaturan</label>}
         </>}
         {step === 3 && <>
           <p className={s.summary}><strong>{buyer.name}</strong>{buyer.phone ? ` · ${buyer.phone}` : ""}<br />{formatInvoiceDate(issuedAt)} · jatuh tempo {formatInvoiceDate(dueDate)}</p>
@@ -134,7 +143,7 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes }: {
         <div className={s.nav}>
           {step > 0 && <button type="button" className="btn btn-quiet" onClick={() => { setError(null); setStep(step - 1); }}>Kembali</button>}
           {step < 3 ? <button type="button" className="btn btn-primary" onClick={next}>Lanjut</button>
-            : <button type="button" className="btn btn-primary" disabled={pending} onClick={submit}>{pending ? "Membuat..." : "Buat & Unduh PDF"}</button>}
+            : <button type="button" className="btn btn-primary" disabled={pending} onClick={submit}>{pending ? (invoice ? "Menyimpan..." : "Membuat...") : invoice ? "Simpan Perubahan" : "Buat & Unduh PDF"}</button>}
         </div>
       </div>
     </section>
