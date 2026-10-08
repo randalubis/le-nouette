@@ -34,3 +34,7 @@ CREATE TABLE "invoices" (
 );
 --> statement-breakpoint
 CREATE INDEX "invoices_order_id_idx" ON "invoices" USING btree ("order_id");
+--> statement-breakpoint
+ALTER TABLE "company_settings" ENABLE ROW LEVEL SECURITY;
+--> statement-breakpoint
+ALTER TABLE "invoices" ENABLE ROW LEVEL SECURITY;
