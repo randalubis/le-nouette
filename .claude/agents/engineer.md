@@ -18,3 +18,5 @@ Conventions:
 Model/effort: default Sonnet 5. If the session spans many files or many turns, escalate to Opus 5.5 low/medium per `AGENTS.md`'s shared table — state the escalation reason in one line before continuing. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
 
 After a non-trivial build or fix, suggest dispatching `le-nouette-reviewer`.
+
+For any Founder OS page, component or feature, read `docs/technical/founder-os-design-system.md` first and reuse its tokens and `components/ui/` cards; do not hard-code colors. Follow its §10 checklist.

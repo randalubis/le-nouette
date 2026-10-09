@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.20.2 (9 October 2026)
+
+- **Founder OS Design System document and agent instructions:** See [changelog 0.20.2](./changelog.md) and [founder-os-design-system.md](./technical/founder-os-design-system.md). Docs and instruction files only.
+
 ### 0.20.1 (9 October 2026)
 
 - **Founder OS redesign reviewer pass fixes:** See [changelog 0.20.1](./changelog.md). `tsc`, lint and the Playwright audit are clean. `npm run e2e` has still not been re-run since the redesign.

@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.20.2 — 9 October 2026
+
+- **Founder OS Design System documented:** new `docs/technical/founder-os-design-system.md` captures the Cool Slate tokens (light and dark), typography, shape and spacing, responsive rules, every shared component and pattern, accessibility baseline, per-screen hierarchy and a new-page checklist. `CLAUDE.md`, `AGENTS.md` (new "Design system" section), the engineer, designer and reviewer agent files, `ui-requirements.md` and the technical spec hub now require developers to read it before building any Founder page or feature. Documentation only; no code change.
+
 ### 0.20.1 — 9 October 2026
 
 - **Founder OS redesign review pass: Beranda now leads with the packing batch panel (attention list second); on unpaid orders that are ready for handover the primary button is "Tandai Lunas" and dispatch/complete become secondary; tighter mobile order cards; "Ubah stok" is an outlined pill and text links have a 44px minimum width; slimmer desktop header (76px, 22px title); lighter dark-mode muted text and brighter borders; invoice list status chip height on mobile.** Files: `founder.module.css`, `invoice.module.css`, `order-board.tsx`, `packing-panel.tsx`. Verified: `tsc`, lint, Playwright audit at 390/1440 light and dark on all Founder pages (clean). Not changed: Pengaturan stays reachable via the mobile avatar menu; timestamps, native date and file inputs are pre-existing.

@@ -12,6 +12,8 @@ E2E (`npm run e2e`) uses a local Postgres `le_nouette_e2e` only, never the produ
 
 Run from `./app`: `npm run dev` · `npm test` · `npm run lint` · `npm run build`
 
+**Design system:** any new or changed Founder OS page, component or feature (`/founder`, `/login`, `app/src/components/ui/`, `founder.module.css`) must follow [`docs/technical/founder-os-design-system.md`](docs/technical/founder-os-design-system.md) — read it before writing UI, reuse its components and tokens (no hard-coded colors), and extend it in the same change if you introduce a new pattern.
+
 UI/UX changes must be checked in a browser at 390px mobile and 1440px desktop, light and dark, using the Playwright kit in `.claude/playwright/` (baseline in `AGENTS.md`). Founder pages need throwaway `ADMIN_*` env vars for local dev — never commit or use real credentials. After EVERY change or feature, run the docs persona (`le-nouette-docs`) before committing — see `AGENTS.md`; `.githooks/pre-commit` enforces it (`git config core.hooksPath .githooks` on a fresh clone).
 
 After a verified working change, commit and push to `main` — no confirmation needed for this repo. Verify first (test/lint/build as relevant); don't push broken or WIP state.

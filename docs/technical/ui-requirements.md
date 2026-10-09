@@ -139,4 +139,6 @@ Delivery tracking timeline (0.16.0): delivery orders show an ordered four-step l
 
 ## Founder OS theme (0.17.0)
 
+> **Mandatory reference:** the full token table, components, layout rules and the new-page checklist are in [Founder OS Design System](./founder-os-design-system.md). Follow it for every new Founder page or feature.
+
 Founder screens use the "Cool Slate" palette, scoped to the `.app` wrapper in `app/src/components/founder.module.css` by overriding the global tokens in light and dark. The storefront keeps the wine palette. New tokens: `--on-primary`, `--primary-hover`, `--control`, `--chip`, `--alert-fg`, `--side-*`, `--hero-*`. Do not hard-code colors in founder components; use the tokens. Design source: Design artifact "Founder OS Redesign". All four phases are done (shell, Beranda, Pesanan, Stok, Keuangan, Kalender, Invoice, Pengaturan, Login). The login page scopes the same tokens on its own `.page` wrapper. New tokens also: `--bar-neutral`, `--chart-1..3`. See [changelog 0.17.0](../changelog.md).

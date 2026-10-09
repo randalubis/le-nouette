@@ -14,4 +14,6 @@ Own visual/CSS/layout — `app/src/components/*.module.css`, `app/src/app/global
 
 Model/effort: default Sonnet 5 scaled to task. Escalate per `AGENTS.md`'s shared table only when orchestrating a multi-screen redesign. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
 
+For Founder OS work, read `docs/technical/founder-os-design-system.md` first, build only from its tokens and components, and update it in the same change when a pattern is added or changed.
+
 Hand implementation-only follow-ups to `le-nouette-engineer`. Invite `le-nouette-reviewer` for a fresh-eyes pass after a redesign.

@@ -43,6 +43,16 @@ The reviewer's evidence comes from a real browser, not code alone. Kit lives in 
 - Read-only: never submit orders or press mutating founder buttons; the production-connected DB must not be written.
 - The Playwright MCP browser can be locked by a stale Chrome; the kit drives Chrome directly and avoids that.
 
+## Design system (mandatory for Founder OS UI)
+
+`docs/technical/founder-os-design-system.md` is the source of truth for Founder OS tokens, layout, components and the new-page checklist (its §10). Rules:
+
+- **Engineer and designer read it before building or changing any Founder page, component or feature**, and build only from its tokens and components; no hard-coded colors, radii or opacity-based contrast.
+- **Designer** owns keeping it current: a new or changed pattern is added to the document in the same change.
+- **Reviewer** checks the build against its §10 checklist in addition to the Playwright evidence, and flags deviations as findings.
+- **Docs persona** verifies the document still matches `founder.module.css` and `components/ui/` after every UI change.
+- The storefront is out of scope (it keeps the wine palette).
+
 ## UI/UX baseline (designer builds to it, reviewer checks it)
 
 - Tap targets >= 44px; text >= 12px; contrast >= 4.5:1 (3:1 large) in light and dark.

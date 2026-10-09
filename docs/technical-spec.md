@@ -49,6 +49,7 @@ These labels describe **decision confidence**, not build status. For what's actu
 | [Core Data Model](./technical/data-model.md) | Full field-level schema for all 18 tables, plus derived values and required invariants (§6–7) |
 | [Fulfillment Scheduling Engine](./technical/scheduling-engine.md) | Weekday mapping, availability evaluation, new-order algorithm, checkout cutoff, date blocking, Pause Orders (§8) |
 | [Order, Inventory, and Payment Workflows](./technical/workflows.md) | Order lifecycle, inventory workflows, payment workflow, failure handling (§9–11, 18) |
+| [Founder OS Design System](./technical/founder-os-design-system.md) | Tokens, components, layout rules and checklist every new Founder OS page must follow |
 | [Founder OS and Storefront UI Requirements](./technical/ui-requirements.md) | Per-screen Founder OS requirements, public storefront requirements (§12–13) |
 | [Application Actions and API Surface](./technical/api-surface.md) | Public/founder reads and commands, concurrency/idempotency, connectivity model (§14) |
 | [Authentication, Authorization, and Security](./technical/security.md) | Founder access, public input controls, sensitive data, retention/anonymization, auditability (§15) |
