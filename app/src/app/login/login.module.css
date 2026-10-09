@@ -1,4 +1,9 @@
+/* Founder login uses the same "Cool Slate" tokens as the Founder shell (see components/founder.module.css). */
 .page {
+  --paper: #f2f4f5; --surface: #ffffff; --cream: #f8fafa; --ink: #161b1d; --muted: #5b686d; --line: #dfe4e6; --control: #cfd7da;
+  --wine: #1f2a2e; --wine-deep: #161e21; --wine-text: #1f2a2e; --on-primary: #fafbfb; --primary-hover: #161e21;
+  --radius-card: 22px; --radius-control: 12px; --shadow: 0 18px 55px rgba(22, 27, 29, 0.08);
+  color: var(--ink);
   min-height: 100dvh;
   display: flex;
   align-items: center;
@@ -17,12 +22,18 @@
   padding: 32px 28px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
+.card :global(.brand-wordmark) { font-size: 19px; letter-spacing: .12em; color: var(--wine); }
+.card :global(.btn-primary) { min-height: 48px; border-radius: 14px; color: var(--on-primary); font-size: 15px; font-weight: 650; }
+.card :global(.btn-primary:hover) { background: var(--primary-hover); }
+
 .card h1 {
-  margin: 0;
-  font-size: 22px;
+  margin: 10px 0 0;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -.02em;
 }
 
 .card p {
@@ -42,7 +53,7 @@
 
 .card input {
   min-height: 44px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control);
   border-radius: var(--radius-control);
   padding: 0 14px;
   background: var(--cream);
@@ -51,6 +62,13 @@
 
 .card button {
   margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --paper: #121719; --surface: #1b2326; --cream: #263033; --ink: #e6ecee; --muted: #a9b7bc; --line: #2f3b3f; --control: #3d4b50;
+    --wine: #b7cbb8; --wine-deep: #0e1315; --wine-text: #b7cbb8; --on-primary: #1f2a2e; --primary-hover: #cddccd; --shadow: 0 18px 55px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .error {

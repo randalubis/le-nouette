@@ -1,9 +1,11 @@
 .form { display: grid; gap: 18px; max-width: 760px; }
+.logoRow > input { flex: 1; min-width: 0; }
 .field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
 .field input, .field textarea, .field select { min-height: 44px; padding: 10px 14px; border: 1px solid var(--control, var(--line)); border-radius: 12px; background: var(--canvas); color: inherit; font: inherit; font-size: 15px; font-weight: 400; width: 100%; transition: border-color .16s ease, box-shadow .16s ease; }
 .field textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
 .field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; border-color: var(--wine-text); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wine-text) 22%, transparent); }
 .field input[type="file"] { padding: 9px 12px; font-size: 14px; }
+.field input[type="file"]::file-selector-button { min-height: 32px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--control, var(--line)); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .field small { color: var(--muted); font-size: 13px; font-weight: 400; }
 .field { min-width: 0; }
 .row > * { min-width: 0; }
@@ -38,6 +40,7 @@
 .ok { margin: 0; padding: 10px 12px; border-radius: var(--radius-control); background: var(--safe-bg); color: var(--safe-fg); font-size: 14px; font-weight: 600; }
 
 .logoRow { display: flex; align-items: center; gap: 14px; }
+.logoPlaceholder { flex: none; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); color: var(--muted); font-weight: 700; font-size: 18px; letter-spacing: .04em; }
 .logo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); }
 .check { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--canvas); font-size: 14px; font-weight: 600; cursor: pointer; }
 .field.check input { width: 22px; min-height: 22px; height: 22px; padding: 0; border: 0; flex: 0 0 auto; accent-color: var(--wine); cursor: pointer; }

@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.20.0 (9 October 2026)
+
+- **Founder OS "Cool Slate" redesign, phase 4: Pengaturan and Login (complete):** See [changelog 0.20.0](./changelog.md). Files: `app/src/app/login/login.module.css`, `app/src/components/settings-form.tsx`, `invoice.module.css`. Verified on a throwaway local Postgres: `tsc`, lint, `npm test`, build, Playwright audit at 390/1440 light and dark on all Founder pages, login and Pengaturan (clean). Redesign phases 1 to 4 are complete; the reviewer persona has only reviewed phase 1, and `npm run e2e` has not been re-run since the redesign. Open items from the phase 1 review remain (see 0.17.0).
+
 ### 0.19.0 (9 October 2026)
 
 - **Founder OS "Cool Slate" redesign, phase 3: Kalender and Invoice (partial):** See [changelog 0.19.0](./changelog.md). Files: `app/src/components/founder.module.css`, `founder-boards.tsx` (`MonthCalendar`, AvailabilityBoard layout), `invoice.module.css`. Verified on a throwaway local Postgres: `tsc`, lint, `npm test`, build, Playwright audit at 390/1440 light and dark on Kalender, Invoice list, new-invoice wizard and Pengaturan (clean after fixing calendar-day contrast/tap size and disabled-button opacity). Not re-reviewed by the reviewer persona; invoice edit page, PDF output and `npm run e2e` not re-checked.
