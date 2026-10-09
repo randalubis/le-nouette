@@ -6,7 +6,7 @@
 
 Scope: the Founder OS back office and the founder login. The public storefront keeps its own wine palette and is **not** covered here.
 
-Provenance: designed in the "Founder OS Redesign" Design canvas (Palette C "Cool Slate"), built in phases 1 to 4 (changelog 0.17.0 to 0.20.0) and refined by the reviewer passes (0.20.1), then by reviewer pass 1 and pass 2 with fixes made after pass 2 and verified without a third pass (0.20.3). Where this file and the code disagree, the code in `app/src/components/founder.module.css` wins, then fix this file.
+Provenance: designed in the "Founder OS Redesign" Design canvas (Palette C "Cool Slate"), built in phases 1 to 4 (changelog 0.17.0 to 0.20.0) and refined by the reviewer passes (0.20.1), then by reviewer pass 1 and pass 2 with fixes made after pass 2 and verified without a third pass (0.20.3). The 0.20.5 single reviewer pass covered order-card action order and attention icon chips (7/10, synthetic states only). Where this file and the code disagree, the code in `app/src/components/founder.module.css` wins, then fix this file.
 
 ## 1. Principles
 
@@ -95,7 +95,7 @@ Reuse before you build. If a pattern appears twice, add it here and to `componen
 
 ### 7.1 Buttons (`globals.css`, themed by `.app`)
 
-- `.btn .btn-primary`: filled slate (sage in dark). **One per card or form.** Min height 46px, 48px and 15px text inside order cards.
+- `.btn .btn-primary`: filled slate (sage in dark). **One per card or form.** Min height 48px and 15px text for the primary inside order cards.
 - `.btn .btn-quiet`: outlined neutral, for secondary actions.
 - `.btn .btn-secondary`: transparent with a primary-color border, for alternate positive actions.
 - `.icon-btn`: 44px round icon button.
@@ -103,6 +103,7 @@ Reuse before you build. If a pattern appears twice, add it here and to `componen
 - Header actions on desktop are outlined pills (`--control` border, 999px radius).
 - Disabled buttons use the solid dashed `button.btn:disabled` style, **not opacity**.
 - **State-dependent primary:** the primary button is the step that unblocks the order. Example: a ready-for-handover order that is unpaid leads with "Tandai Lunas"; "Tandai Dikirim" / "Tandai Selesai" become quiet until it is paid. Keep button labels stable; change emphasis, not wording.
+- **Primary first in order cards:** `.cardActions .btn-primary` has `order: -1`, so the single primary renders first even when the markup puts a quiet button before it. An unpaid ready order therefore leads with "Tandai Lunas" while dispatch/complete stays quiet after it. Keep one primary per card; do not rely on markup order for it.
 - Destructive actions are never the primary button, are text or quiet style, sit at the end of the row, and always confirm inline before acting.
 - **Invoice row actions (`invoice-row-actions.tsx`):** "Tandai Lunas" is the single primary on an unpaid invoice. Unduh and Edit share a compact row; Hapus is quiet at the end. Desktop table buttons (901px and up) are 36px high in one row. Card layout (900px and below) uses 44px.
 - **Locked actions:** when an action is blocked (for example Edit and Hapus on a paid invoice), disable the buttons, show a lock icon with the text "Terkunci", put the reason in a `title`, and link the reason to the buttons with visually hidden text and `aria-describedby`.
@@ -134,7 +135,7 @@ Title and subtitle on the left, optional middle, trailing value or chip on the r
 
 ### 7.7 Order card
 
-Head row (ID plus payment chip), customer name, items, meta row (place, ready date, dispatch), optional referral and address hints, footer total (17px, right), then `.cardActions`. The primary button spans the full width; quiet buttons share the row two per line; secondary links (WhatsApp, cancel) go last.
+Head row (ID plus payment chip), customer name, items, meta row (place, ready date, dispatch), optional referral and address hints, footer total (17px, right), then `.cardActions`. `.cardActions` is a wrapping flex row. The primary button is full width and renders first (`order: -1`). Quiet buttons pair two per row. The WhatsApp link (`.waRow`, order 98) comes after them and the text-link footer (`.cardFoot`, order 99) comes last. Worst case is three button rows (primary; quiet pair such as dispatch/complete plus Buat Invoice; Kirim WhatsApp) plus the footer. Do not add a fourth button row. A paid ready order shows Buat Invoice alone at full width (open item, section 11).
 
 ### 7.8 Stock card and bar
 
@@ -169,6 +170,16 @@ Muted one-liner ("Tidak ada pesanan di sini.") for empty lists; a green check li
 ### 7.14 Icons
 
 Phosphor icons (`@phosphor-icons/react`), 13 to 18px inline, 22 to 24px in nav. Icons support text; they do not replace it. Every icon-only control needs an `aria-label`.
+
+### 7.15 Attention row (Beranda "Perlu perhatian")
+
+A two-column grid row: a 36px icon chip on the left (`.attnIcon`, 12px radius, centred icon, `--chip` background and `--muted` icon by default), then the title link, a detail line, and the status chip or "Pesan ulang" button. The chip spans the row's three grid rows.
+
+- Low stock rows: `.attnIcon.warn` (Package icon, `--warn-bg` / `--warn-fg`).
+- Payment rows: `.attnIcon.danger` (Wallet icon, `--danger-bg` / `--danger-fg`).
+- The chip is `aria-hidden`. The title text carries the meaning, so the icon and colour never stand alone.
+- Do not put an icon inside the title; the chip is the only icon in the row.
+- Two-line rows are not yet confirmed on real data (section 11).
 
 ## 8. Interaction and accessibility baseline
 
@@ -216,3 +227,5 @@ Phosphor icons (`@phosphor-icons/react`), 13 to 18px inline, 22 to 24px in nav. 
 - The `--alert-*` and `--danger-*` token families overlap; pick one canonical family.
 - Not viewed by the reviewer: dark theme of the invoice list, Pengaturan and Kalender, and wizard desktop steps 1, 2 and 4.
 - Invoice edit page PDF content is not rendered or checked.
+- Order card: a paid ready order shows "Buat Invoice" alone at full width. It could pair with WhatsApp or become a text link.
+- Order-card and attention-chip states (`.attnIcon`, Wallet chip on a real payment row) are not checked on real data; the local e2e database has no orders. Tracked in [implementation-status](../implementation-status.md#prioritized-open-follow-ups).

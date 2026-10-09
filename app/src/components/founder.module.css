@@ -93,7 +93,11 @@
 .batchButton { width: 100%; margin-top: 18px; }
 .batchDone { margin: 18px 0 0; display: flex; align-items: center; gap: 8px; color: var(--safe-fg); font-weight: 700; font-size: 14px; }
 .attentionList { display: grid; gap: 9px; }
-.attention { padding: 4px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr; gap: 5px 12px; padding-bottom: 10px; }
+.attention { padding: 4px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 36px 1fr; gap: 5px 12px; padding-bottom: 10px; }
+.attention > :not(.attnIcon) { grid-column: 2; }
+.attnIcon { grid-column: 1; grid-row: 1 / span 3; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--chip); color: var(--muted); }
+.attnIcon.warn { background: var(--warn-bg); color: var(--warn-fg); }
+.attnIcon.danger { background: var(--danger-bg); color: var(--danger-fg); }
 .attention:last-child { border: 0; }
 .attention :global(.status), .attention :global(.btn) { justify-self: start; }
 .attention a:global(.btn) { min-height: 44px; padding: 0 14px; }
@@ -127,7 +131,7 @@
 .empty { color: var(--muted); padding: 24px 0; margin: 0; }
 .cardActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
 .cardActions :global(.btn) { flex: 1 1 auto; min-height: 44px; }
-.cardActions :global(.btn-primary) { flex: 1 1 100%; min-height: 48px; font-size: 15px; }
+.cardActions :global(.btn-primary) { flex: 1 1 100%; min-height: 48px; font-size: 15px; order: -1; } /* the single primary action always renders first */
 .cardActions :global(.btn-quiet) { flex: 1 1 calc(50% - 4px); }
 .cardActions .waRow { flex: 1 1 100%; order: 98; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
 .cardActions small.waRow { color: var(--muted); text-align: center; }

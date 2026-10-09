@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, Package, Wallet, WarningCircle } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
@@ -37,13 +37,13 @@ export function DashboardSummary({ session }: { session: op.State }) {
           <div className={styles.panelHeader}><div><h2>Perlu perhatian</h2><p>Tindakan yang disarankan hari ini</p></div></div>
           <div className={styles.attentionList}>
             {lowStock.length > 2 && (
-              <div className={styles.attention}><Link href="/founder/stock"><strong><WarningCircle size={16} /> {lowStock.length} bahan di bawah ambang</strong></Link><span>{lowStock.map((item) => `${item.name} ${formatQuantity(item.id, item.available)}`).join(" · ")}</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
+              <div className={styles.attention}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{lowStock.length} bahan di bawah ambang</strong></Link><span>{lowStock.map((item) => `${item.name} ${formatQuantity(item.id, item.available)}`).join(" · ")}</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
             )}
             {lowStock.length <= 2 && lowStock.map((item) => (
-              <div className={styles.attention} key={item.id}><Link href="/founder/stock"><strong><WarningCircle size={16} /> {item.name} di bawah ambang</strong></Link><span>{formatQuantity(item.id, item.available)} tersedia setelah reservasi</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
+              <div className={styles.attention} key={item.id}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{item.name} di bawah ambang</strong></Link><span>{formatQuantity(item.id, item.available)} tersedia setelah reservasi</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
             ))}
             {unpaidReady.map((o) => (
-              <div className={styles.attention} key={o.id}><Link href="/founder/orders?tab=READY_FOR_HANDOVER"><strong>Pembayaran {o.id}</strong></Link><span>{o.fulfillment === "DELIVERY" ? "Belum lunas: kirim butuh konfirmasi, sisa jadi piutang" : "Jatuh tempo saat serah terima"}</span><span className="status status-danger">{formatRupiah(op.receivable(o))}</span></div>
+              <div className={styles.attention} key={o.id}><span className={`${styles.attnIcon} ${styles.danger}`} aria-hidden><Wallet size={20} /></span><Link href="/founder/orders?tab=READY_FOR_HANDOVER"><strong>Pembayaran {o.id}</strong></Link><span>{o.fulfillment === "DELIVERY" ? "Belum lunas: kirim butuh konfirmasi, sisa jadi piutang" : "Jatuh tempo saat serah terima"}</span><span className="status status-danger">{formatRupiah(op.receivable(o))}</span></div>
             ))}
             {lowStock.length === 0 && unpaidReady.length === 0 && <p className={styles.empty}>Tidak ada yang mendesak.</p>}
           </div>
