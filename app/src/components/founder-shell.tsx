@@ -31,6 +31,7 @@ export function FounderShell({ active, title, subtitle, children }: { active: st
         <Link href="/founder" className={styles.founderBrand}><span className="brand-wordmark">LE NOUETTE</span><small>Founder OS</small></Link>
         <nav>{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={active === label ? styles.active : ""}><Icon size={20} weight={active === label ? "fill" : "regular"} /><span>{label}</span></Link>)}</nav>
         <Link href="/" className={styles.storeLink}><SquaresFour size={19} />Lihat Storefront</Link>
+        <div className={styles.userCard}><span className={styles.userAvatar}>HS</span><div><strong>Founder</strong><small>Akses penuh</small></div></div>
       </aside>
       <div className={styles.workspace}>
         <header className={styles.topbar}>

@@ -9,10 +9,12 @@
 .neutral small { color: var(--muted); }
 .neutral:hover { border-color: var(--wine-text); }
 .neutral.alert { background: var(--alert-bg); border-color: var(--alert-line); }
+.neutral.alert span, .neutral.alert strong, .neutral.alert small { color: var(--alert-fg, var(--ink)); }
 
-.hero span { color: #dbc6c1; }
-.hero strong { color: #fff7ef; font-size: 44px; }
-.hero small { color: #dbc6c1; }
+.hero { min-height: 132px; padding: var(--pad-card); border-radius: var(--radius-card); background: var(--hero-bg, #1f2a2e); color: var(--hero-fg, #fff); }
+.hero span { color: var(--hero-sub, #c5d0d4); }
+.hero strong { color: var(--hero-fg, #fff); font-size: 32px; }
+.hero small { color: var(--hero-sub, #c5d0d4); }
 .hero.compact strong { font-size: 22px; }
 
 @media (max-width: 560px) {

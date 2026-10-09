@@ -136,3 +136,7 @@ Delivery tracking timeline (0.16.0): delivery orders show an ordered four-step l
 ### 13.6 Static assets
 
 **REQUIRED:** Keep V1 logos, product photographs, packaging imagery, QRIS artwork, and interface assets in the Next.js repository and deploy them with the application through Vercel. Do not add Supabase Storage or Founder OS upload management in V1. Secrets and private customer documents must never be placed in the public static directory.
+
+## Founder OS theme (0.17.0)
+
+Founder screens use the "Cool Slate" palette, scoped to the `.app` wrapper in `app/src/components/founder.module.css` by overriding the global tokens in light and dark. The storefront keeps the wine palette. New tokens: `--on-primary`, `--primary-hover`, `--control`, `--chip`, `--alert-fg`, `--side-*`, `--hero-*`. Do not hard-code colors in founder components; use the tokens. Design source: Design artifact "Founder OS Redesign". Phases 2 to 4 restyle Stok/Keuangan, Kalender/Invoice, Pengaturan/Login. See [changelog 0.17.0](../changelog.md).

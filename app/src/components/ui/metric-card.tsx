@@ -27,8 +27,8 @@ export function MetricCard({
     </>
   );
   return href ? (
-    <Link href={href} className={className} aria-label={`${label}: ${value}${hint ? `, ${hint}` : ""}`}>{content}</Link>
+    <Link href={href} className={className} data-variant={variant} data-alert={alert || undefined} aria-label={`${label}: ${value}${hint ? `, ${hint}` : ""}`}>{content}</Link>
   ) : (
-    <div className={className}>{content}</div>
+    <div className={className} data-variant={variant} data-alert={alert || undefined}>{content}</div>
   );
 }
