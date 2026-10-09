@@ -83,6 +83,7 @@
   .list td:nth-child(3) { grid-column: 1; font-size: 13px; color: var(--muted); }
   .list td:nth-child(4) { grid-column: 2; grid-row: 1; text-align: right; font-weight: 700; }
   .list td:nth-child(5) { grid-column: 2; grid-row: 2; justify-self: end; }
+  .list td:nth-child(5) :global(.status) { min-height: 0; }
   .list td:nth-child(6) { grid-column: 1 / -1; margin-top: 6px; }
   .actions { justify-content: flex-start; }
   .hint { text-align: left; }

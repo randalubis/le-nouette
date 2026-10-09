@@ -112,6 +112,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
           const active = order.status === "NEEDS_PREPARATION" || order.status === "READY_FOR_HANDOVER";
           const waKind = waKindFor(order);
           const wa = waKind && waLink(waKind, order);
+          const payFirst = !paid && order.status === "READY_FOR_HANDOVER";
           const bulkEligible = order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt;
           return (
             <article className={styles.orderCard} key={order.id}>
@@ -145,16 +146,16 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                   {order.status === "NEEDS_PREPARATION" && <>
                     <button className="btn btn-primary" onClick={() => window.confirm(`Pesanan ${order.id} sudah dipacking? Stok bahan pesanan ini akan dikurangi dan pesanan pindah ke Siap Diserahkan.`) && act(order.id, markOrderReadyAction(order.id))}>Selesai Packing</button>
                   </>}
-                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className="btn btn-primary" onClick={() => {
+                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} onClick={() => {
                     if (today() < order.currentReadyDate) return setError({ id: order.id, message: `Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.` });
                     if (!paid && !window.confirm(`Pesanan belum lunas (sisa ${formatRupiah(op.receivable(order))}). Tetap kirim? Sisa menjadi piutang.`)) return;
                     act(order.id, dispatchOrderAction(order.id, true));
                   }}>Tandai Dikirim</button>}
-                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className="btn btn-primary" onClick={() => {
+                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} onClick={() => {
                     if (!paid && !window.confirm(`Belum lunas (sisa ${formatRupiah(op.receivable(order))}). Pesanan tetap selesai dan sisa masuk Piutang.`)) return;
                     act(order.id, completeOrderAction(order.id));
                   }}>Tandai Selesai</button>}
-                  {!paid && order.status !== "CANCELLED" && <button className="btn btn-quiet" onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
+                  {!paid && order.status !== "CANCELLED" && <button className={`btn ${payFirst ? "btn-primary" : "btn-quiet"}`} onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
                   {order.status !== "CANCELLED" && <Link className="btn btn-quiet" href={`/founder/invoices/new?order=${order.id}`}>Buat Invoice</Link>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}
                   {waKind && (wa

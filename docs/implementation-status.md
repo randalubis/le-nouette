@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.20.1 (9 October 2026)
+
+- **Founder OS redesign reviewer pass fixes:** See [changelog 0.20.1](./changelog.md). `tsc`, lint and the Playwright audit are clean. `npm run e2e` has still not been re-run since the redesign.
+
 ### 0.20.0 (9 October 2026)
 
 - **Founder OS "Cool Slate" redesign, phase 4: Pengaturan and Login (complete):** See [changelog 0.20.0](./changelog.md). Files: `app/src/app/login/login.module.css`, `app/src/components/settings-form.tsx`, `invoice.module.css`. Verified on a throwaway local Postgres: `tsc`, lint, `npm test`, build, Playwright audit at 390/1440 light and dark on all Founder pages, login and Pengaturan (clean). Redesign phases 1 to 4 are complete; the reviewer persona has only reviewed phase 1, and `npm run e2e` has not been re-run since the redesign. Open items from the phase 1 review remain (see 0.17.0).

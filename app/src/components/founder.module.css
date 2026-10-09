@@ -16,9 +16,9 @@
 @media (prefers-color-scheme: dark) {
   .app {
     --canvas: #121719; --cream: #1b2326; --surface: #1b2326; --paper: #121719; --sunken: #263033; --sunken-neutral: #263033; --sunken-green: #263033;
-    --ink: #e6ecee; --muted: #a9b7bc; --line: #2f3b3f;
+    --ink: #e6ecee; --muted: #b4c1c6; --line: #3a484d;
     --wine: #b7cbb8; --wine-deep: #0e1315; --wine-text: #b7cbb8; --wine-soft: #263033;
-    --alert-bg: #4a2226; --alert-line: #7a3a3f; --alert-fg: #f4b4ae; --on-primary: #1f2a2e; --primary-hover: #cddccd; --chip: #2f3b3f; --control: #3d4b50;
+    --alert-bg: #4a2226; --alert-line: #7a3a3f; --alert-fg: #f4b4ae; --on-primary: #1f2a2e; --primary-hover: #cddccd; --chip: #34434a; --control: #4a5a60;
     --side-bg: #0e1315; --side-fg: #fafbfb; --side-fg2: #c5d0d4; --side-mute: #93a3a9; --side-accent: #b7cbb8;
     --hero-bg: #263033; --hero-fg: #ffffff; --hero-sub: #c5d0d4; --hero-accent: #b7cbb8;
     --bar-neutral: #5d6e74; --chart-1: #b7cbb8; --chart-2: #6d7f86; --chart-3: #3d4b50;
@@ -45,8 +45,8 @@
 .userCard strong { color: #fff; font-weight: 600; font-size: 14px; }
 .userCard small { color: var(--side-fg2); font-size: 12px; }
 .workspace { min-width: 0; }
-.topbar { min-height: 92px; padding: 19px 32px; border-bottom: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 20px; position: sticky; top: 0; z-index: 10; }
-.topbar h1 { font-size: 26px; margin: 0 0 3px; letter-spacing: -.02em; }
+.topbar { min-height: 76px; padding: 14px 32px; border-bottom: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 20px; position: sticky; top: 0; z-index: 10; }
+.topbar h1 { font-size: 22px; margin: 0 0 2px; letter-spacing: -.02em; }
 .topbar p { color: var(--muted); margin: 0; font-size: 13px; }
 .topActions { display: flex; align-items: center; gap: 12px; }
 .exportMenu { position: relative; }
@@ -78,12 +78,12 @@
 .metric small { color: var(--muted); }
 .metric:hover { border-color: var(--wine-text); }
 .metricAlert { background: var(--alert-bg); border-color: var(--alert-line); }
-.dashboardGrid { margin-top: 18px; display: grid; grid-template-columns: minmax(300px,.8fr) minmax(0,1.2fr); gap: 18px; }
+.dashboardGrid { margin-top: 18px; display: grid; grid-template-columns: minmax(0,1.2fr) minmax(300px,.8fr); gap: 18px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 24px; }
 .panelHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
 .panelHeader h2 { font-size: 17px; margin: 0 0 4px; }
 .panelHeader p { color: var(--muted); margin: 0; font-size: 13px; }
-.textLink { min-height: 44px; border: 0; background: none; padding: 0; color: var(--wine-text); font-weight: 750; font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.textLink { min-height: 44px; min-width: 44px; padding-inline: 6px; border: 0; background: none; padding: 0; color: var(--wine-text); font-weight: 750; font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
 .packing { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
 .packItem { background: var(--canvas); border-radius: 16px; padding: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
 .packItem span { color: var(--muted); font-size: 13px; }
@@ -183,7 +183,7 @@
 .stockValue { font-size: 32px; color: var(--ink); font-weight: 650; margin: 14px 0 2px; letter-spacing: -.04em; line-height: 1.1; }
 .stockCard p { margin: 0; color: var(--muted); font-size: 13px; }
 .stockFooter { display: flex; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.stockMore > summary { display: none; min-height: 44px; align-items: center; color: var(--wine-text); font-weight: 700; cursor: pointer; }
+.stockMore > summary { display: none; min-height: 44px; min-width: 44px; padding: 0 16px; margin-top: 4px; justify-content: center; align-items: center; border: 1px solid var(--control); border-radius: 999px; color: var(--wine-text); font-weight: 700; cursor: pointer; }
 @media (max-width: 900px) {
   .stockMore > summary { display: flex; }
   .stockValue { margin-top: 6px; font-size: 24px; }
@@ -261,6 +261,10 @@
   .tabs.fulfillChips button { font-size: 13px; padding: 10px 2px; }
 }
 @media (max-width: 560px) {
+  .orderCard { padding: 14px; }
+  .orderCard p { margin-bottom: 8px; }
+  .orderCard .stockFooter { margin-top: 10px; padding-top: 8px; }
+  .cardActions { margin-top: 10px; }
   .calPanel { padding: 16px; }
   .calGrid { gap: 2px; }
   .metric { min-height: 116px; padding: 15px; }

@@ -32,6 +32,7 @@ export function DashboardSummary({ session }: { session: op.State }) {
       </section>}
 
       <section className={styles.dashboardGrid}>
+        <PackingPanel session={session} />
         {!allClear && <article className={styles.panel}>
           <div className={styles.panelHeader}><div><h2>Perlu perhatian</h2><p>Tindakan yang disarankan hari ini</p></div></div>
           <div className={styles.attentionList}>
@@ -47,7 +48,6 @@ export function DashboardSummary({ session }: { session: op.State }) {
             {lowStock.length === 0 && unpaidReady.length === 0 && <p className={styles.empty}>Tidak ada yang mendesak.</p>}
           </div>
         </article>}
-        <PackingPanel session={session} />
       </section>
     </>
   );
