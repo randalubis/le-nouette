@@ -44,3 +44,13 @@ export function recommendReschedule(target: string, calendar: Calendar, today: s
 
 export const formatDate = (date: string, style: "long" | "short" = "long", locale: "ID" | "EN" = "ID") =>
   new Intl.DateTimeFormat(locale === "EN" ? "en-GB" : "id-ID", style === "long" ? { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" } : { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(date));
+
+// "9 Okt, 11.20" in Jakarta time, 24h; the year is added only when it differs from `now`'s year.
+export const formatDateTime = (value: Date | string, now: Date = new Date()) => {
+  const parts = (d: Date, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", hourCycle: "h23", ...o }).formatToParts(d);
+  const at = new Date(value);
+  const get = (type: string) => parts(at, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).find((p) => p.type === type)!.value;
+  const year = get("year");
+  const sameYear = year === parts(now, { year: "numeric" }).find((p) => p.type === "year")!.value;
+  return `${get("day")} ${get("month")}${sameYear ? "" : ` ${year}`}, ${get("hour")}.${get("minute")}`;
+};

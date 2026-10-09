@@ -29,7 +29,7 @@ Every count opens the corresponding filtered screen.
 - External-delivery cards show payment status and expose dispatch only after full payment.
 - Swipe may remain a nonessential shortcut but cannot be the only way to change status.
 
-**Implementation: ✅ BUILT** — the bulk-dispatch bar is `position: fixed` above the bottom nav at ≤900px (0.15.0). Browser pass at 390/1440 pending.
+**Implementation: ✅ BUILT** — the bulk-dispatch bar is `position: fixed` above the bottom nav at ≤900px (0.15.0); the list has bottom padding under it and the desktop bar is one compact row (0.22.0). Layout is in the [design system §7.16](./founder-os-design-system.md#716-bulk-bar-and-selection-checkbox-pesanan).
 
 ### 12.3 Packing
 
@@ -141,4 +141,4 @@ Delivery tracking timeline (0.16.0): delivery orders show an ordered four-step l
 
 > **Mandatory reference:** the full token table, components, layout rules and the new-page checklist are in [Founder OS Design System](./founder-os-design-system.md). Follow it for every new Founder page or feature.
 
-Founder screens use the "Cool Slate" palette, scoped to the `.app` wrapper in `app/src/components/founder.module.css` by overriding the global tokens in light and dark. The storefront keeps the wine palette. New tokens: `--on-primary`, `--primary-hover`, `--control`, `--chip`, `--alert-fg`, `--side-*`, `--hero-*`. Do not hard-code colors in founder components; use the tokens. Design source: Design artifact "Founder OS Redesign". All four phases are done (shell, Beranda, Pesanan, Stok, Keuangan, Kalender, Invoice, Pengaturan, Login). The login page scopes the same tokens on its own `.page` wrapper. New tokens also: `--bar-neutral`, `--chart-1..3`. See [changelog 0.17.0](../changelog.md).
+Founder screens use the "Cool Slate" palette, scoped to the `.app` wrapper in `app/src/components/founder.module.css` by overriding the global tokens in light and dark. The storefront keeps the wine palette. New tokens: `--on-primary`, `--primary-hover`, `--control`, `--chip`, `--danger-fg` (the `--alert-*` family was replaced by `--danger-*` in 0.22.0), `--side-*`, `--hero-*`. Do not hard-code colors in founder components; use the tokens. Design source: Design artifact "Founder OS Redesign". All four phases are done (shell, Beranda, Pesanan, Stok, Keuangan, Kalender, Invoice, Pengaturan, Login). The login page scopes the same tokens on its own `.page` wrapper. New tokens also: `--bar-neutral`, `--chart-1..3`. See [changelog 0.17.0](../changelog.md).

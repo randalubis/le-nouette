@@ -9,15 +9,17 @@ const PHRASE = "HAPUS DATA";
 
 export function ResetSessionCard({ secretKey }: { secretKey?: string }) {
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const reset = () => startTransition(async () => { const result = await resetSeedAction(secretKey); setError(result?.error ?? null); });
   return (
     <ActionCard
       title="Reset data"
       subtitle="Menghapus semua pesanan, pembayaran, stok, dan riwayat. Jalankan `npm run db:seed` setelahnya untuk data contoh."
-      note={`Ketik "${PHRASE}" untuk mengaktifkan tombol.`}
+      note={<>{`Ketik "${PHRASE}" untuk mengaktifkan tombol.`}{error && <span role="alert" className={styles.cardError}> {error}</span>}</>}
     >
       <input className={styles.search} value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={PHRASE} aria-label="Ketik untuk konfirmasi reset" />
-      <button className="btn btn-primary" disabled={pending || confirm !== PHRASE} onClick={() => startTransition(() => void resetSeedAction(secretKey))}>Reset data</button>
+      <button className="btn btn-primary" disabled={pending || confirm !== PHRASE} onClick={reset}>{pending ? "Memproses..." : "Reset data"}</button>
     </ActionCard>
   );
 }

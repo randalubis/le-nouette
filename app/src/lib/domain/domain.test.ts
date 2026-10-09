@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as op from "./operations.ts";
 import { percentShares } from "./percent.ts";
-import { promisedReadyDate, recommendReschedule } from "./schedule.ts";
+import { formatDateTime, promisedReadyDate, recommendReschedule } from "./schedule.ts";
+import { formatAvailable, formatShortage } from "./catalog.ts";
 
 // Monday 14 Sep 2026. `wib(day, time)` builds an instant in Asia/Jakarta.
 const wib = (date: string, time = "10:00") => new Date(`${date}T${time}:00+07:00`);
@@ -414,4 +415,20 @@ test("percentShares sums to 100 (largest remainder)", () => {
   assert.deepEqual(percentShares([0, 0, 0]), [0, 0, 0]);
   assert.deepEqual(percentShares([50, 50, 0]), [50, 50, 0]);
   for (const parts of [[1, 2, 3], [7, 13, 29], [1, 1000, 1]]) assert.equal(percentShares(parts).reduce((a, b) => a + b, 0), 100);
+});
+
+test("formatAvailable never prints a negative quantity and formatShortage labels the gap", () => {
+  assert.equal(formatAvailable("raw_cheese", -2500), "0 pak (0 g)");
+  assert.equal(formatShortage("raw_cheese", -2500), "Kurang 0,1 pak (25 g)");
+  assert.equal(formatAvailable("jar", -3), "0 pcs");
+  assert.equal(formatShortage("jar", -3), "Kurang 3 pcs");
+  assert.equal(formatAvailable("jar", 5), "5 pcs");
+  assert.equal(formatShortage("jar", 5), null);
+});
+
+test("formatDateTime renders Jakarta 24h time and omits the current year", () => {
+  const now = new Date("2026-10-09T05:00:00Z");
+  assert.equal(formatDateTime("2026-10-09T04:20:00Z", now), "9 Okt, 11.20");
+  assert.equal(formatDateTime(new Date("2026-10-09T17:30:00Z"), now), "10 Okt, 00.30");
+  assert.equal(formatDateTime("2025-12-31T16:59:00Z", now), "31 Des 2025, 23.59");
 });

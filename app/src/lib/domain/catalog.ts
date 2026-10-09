@@ -30,3 +30,7 @@ export const formatQuantity = (item: ItemId, quantity: number) =>
   item === "raw_cheese"
     ? `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(quantity / SUPPLIER_PACK)} pak (${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(quantity / 100)} g)`
     : `${quantity} pcs`;
+
+// Reservations can exceed stock (createOrder never blocks), so "available" can be negative: show 0 plus a shortage label.
+export const formatAvailable = (item: ItemId, quantity: number) => formatQuantity(item, Math.max(0, quantity));
+export const formatShortage = (item: ItemId, quantity: number) => (quantity < 0 ? `Kurang ${formatQuantity(item, -quantity)}` : null);

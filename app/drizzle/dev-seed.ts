@@ -15,8 +15,8 @@ const H = 3_600_000, D = 24 * H;
 
 function buildState(now: Date): op.State {
   const ago = (ms: number) => new Date(now.getTime() - ms);
-  // Low on sticker_round / jar_seal / pouch so Beranda shows low-stock rows.
-  const stock = [["raw_cheese", 480000], ["jar", 40], ["pouch", 14], ["sticker_square_milieu", 40], ["sticker_square_grande", 30], ["sticker_round", 20], ["jar_seal", 19]] as const;
+  // Stock covers every reservation (raw cheese ~48 packs worth ~ 8 kg); only pouch ends up low, so Beranda shows one low-stock row.
+  const stock = [["raw_cheese", 800000], ["jar", 40], ["pouch", 14], ["sticker_square_milieu", 40], ["sticker_square_grande", 30], ["sticker_round", 40], ["jar_seal", 40]] as const;
   let s = stock.reduce((acc, [item, qty]) => op.receiveStock(acc, item, qty, ago(14 * D)), op.emptyState());
 
   let n = 0;
@@ -35,17 +35,17 @@ function buildState(now: Date): op.State {
   s = op.markOrderReady(s, b, ago(5 * D)); s = op.completeOrder(s, b, ago(5 * D)); // completed unpaid = piutang
   const c = mk("Dina Prameswari", "DELIVERY", { grande: 2 }, 5 * D, { address: addr("Jl. Kemang Raya 10") });
   s = op.markOrderReady(s, c, ago(4 * D)); s = op.recordPayment(s, c, "QRIS", ago(4 * D));
-  s = op.dispatchOrder(s, c, ago(3 * D)); s = op.completeOrder(s, c, ago(3 * D));
+  s = op.dispatchOrder(s, c, ago(2 * H)); s = op.completeOrder(s, c, ago(2 * H)); // dispatch guard needs today >= ready date, which varies with weekday/holidays
   s = op.setReferral(s, c, "dev-token-3", "INSTAGRAM", "@dina.p");
   const d = mk("Maya Anggraini", "PICKUP_BI", { milieu: 2 }, 4 * D);
   s = op.cancelOrder(op.recordPayment(s, d, "TRANSFER", ago(4 * D)), d, ago(3 * D)); // refund due
   const e = mk("Bagus Santoso", "PICKUP_MANDIRI", { grande: 1 }, 4 * D);
   s = op.cancelOrder(s, e, ago(3 * D));
   const f = mk("Citra Lestari", "DELIVERY", { milieu: 3 }, 4 * D, { address: addr("Jl. Wijaya II No. 7"), note: "Titip di satpam" });
-  s = op.markOrderReady(s, f, ago(2 * D)); s = op.recordPayment(s, f, "TRANSFER", ago(2 * D)); s = op.dispatchOrder(s, f, ago(1 * D));
+  s = op.markOrderReady(s, f, ago(2 * D)); s = op.recordPayment(s, f, "TRANSFER", ago(2 * D)); s = op.dispatchOrder(s, f, ago(2 * H));
   s = op.setReferral(s, f, "dev-token-6", "TEMAN_KELUARGA", "Maya");
   const g = mk("Andi Wirawan", "DELIVERY", { milieu: 1, grande: 1 }, 4 * D, { address: addr("Jl. Senopati 21") });
-  s = op.markOrderReady(s, g, ago(2 * D)); s = op.dispatchOrder(s, g, ago(1 * D), { allowUnpaid: true });
+  s = op.markOrderReady(s, g, ago(2 * D)); s = op.dispatchOrder(s, g, ago(2 * H), { allowUnpaid: true });
   const h = mk("Fitri Handayani", "DELIVERY", { milieu: 2 }, 4 * D, { address: addr("Jl. Tebet Barat IV No. 3") });
   s = op.markOrderReady(s, h, ago(2 * D));
   const i = mk("Galih Pratama", "PICKUP_BI", { grande: 2 }, 3 * D);
@@ -59,6 +59,8 @@ function buildState(now: Date): op.State {
   s = op.recordPayment(s, l, "TRANSFER", ago(2 * H));
   mk("Dewi Kusuma", "PICKUP_MANDIRI", { grande: 1 }, 2 * H);
   mk("Erlangga Putra", "DELIVERY", { milieu: 1, grande: 2 }, 1 * H, { address: addr("Jl. Cipete Raya 15"), note: "Tanpa sambal ya" });
+  const h2 = mk("Hendra Gunawan", "DELIVERY", { grande: 1 }, 4 * D, { address: addr("Jl. Pondok Indah 8") });
+  s = op.markOrderReady(s, h2, ago(2 * D)); // second unshipped delivery card, ready date reached: two-card bulk select
 
   // Ready-to-sell extra packed units (after the orders so they are not auto-allocated to them).
   s = op.recordExtraPacked(s, "milieu", 3, ago(6 * H), "Sisa produksi");

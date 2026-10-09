@@ -64,15 +64,15 @@ export function InvoiceRowActions({ id, number, total, paid, order, orderPayment
 
   return (
     <div className={s.actions}>
-      <a className={s.act} href={`/founder/invoices/${id}/pdf`} target="_blank" rel="noopener noreferrer">Unduh</a>
+      <a className="btn btn-quiet" href={`/founder/invoices/${id}/pdf`} target="_blank" rel="noopener noreferrer">Unduh</a>
       {paid ? <>
-        <button type="button" className={s.act} disabled aria-describedby={lockId}>Edit</button>
-        <button type="button" className={`${s.act} ${s.danger}`} disabled aria-describedby={lockId}>Hapus</button>
+        <button type="button" className="btn btn-quiet" disabled aria-describedby={lockId}>Edit</button>
+        <button type="button" className={`btn btn-quiet ${s.danger}`} disabled aria-describedby={lockId}>Hapus</button>
         <button type="button" className={`btn btn-quiet ${s.lead}`} onClick={() => open("undo")}>Batalkan Lunas</button>
         <span className={s.lock} title={lockText}><Lock size={14} aria-hidden="true" />Terkunci<span id={lockId} className={s.sr}>{lockText}</span></span>
       </> : <>
-        <Link className={s.act} href={`/founder/invoices/${id}/edit`}>Edit</Link>
-        <button type="button" className={`${s.act} ${s.danger}`} onClick={() => open("delete")}>Hapus</button>
+        <Link className="btn btn-quiet" href={`/founder/invoices/${id}/edit`}>Edit</Link>
+        <button type="button" className={`btn btn-quiet ${s.danger}`} onClick={() => open("delete")}>Hapus</button>
         {!cancelled && <button type="button" className={`btn btn-primary ${s.lead}`} onClick={() => open("pay")}>Tandai Lunas</button>}
         {cancelled && <small className={s.hint} title={`Pesanan ${order!.id} dibatalkan; tidak bisa ditandai lunas.`}>Pesanan dibatalkan</small>}
         {!cancelled && order?.paid && <small className={s.hint}>Pesanan sudah lunas</small>}

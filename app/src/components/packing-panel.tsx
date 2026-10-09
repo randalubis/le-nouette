@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle, Package, Wallet, WarningCircle } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
-import { formatQuantity, formatRupiah, products } from "@/lib/domain/catalog";
+import { formatAvailable, formatQuantity, formatRupiah, formatShortage, products } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
 import { formatDate } from "@/lib/domain/schedule";
 import { completeBatchAction } from "@/lib/domain/actions";
 import { MetricCard } from "@/components/ui/metric-card";
 import styles from "./founder.module.css";
-
-const shortMoney = (value: number) => (value >= 1_000_000 ? `Rp${(value / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} jt` : value >= 1000 ? `Rp${Math.round(value / 1000)} rb` : formatRupiah(value));
 
 export function DashboardSummary({ session }: { session: op.State }) {
   const active = session.orders.filter((o) => o.status === "NEEDS_PREPARATION" || o.status === "READY_FOR_HANDOVER");
@@ -27,8 +25,8 @@ export function DashboardSummary({ session }: { session: op.State }) {
       {allClear ? <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua beres hari ini</p> : <section className={styles.metricGrid}>
         {nextBatch && <MetricCard variant="hero" href="/founder/availability" label="Batch packing berikutnya" value={formatDate(nextBatch, "short")} hint="Cut-off harian 18.00 WIB" />}
         <MetricCard href="/founder/orders" label="Pesanan aktif" value={active.length} hint={`${active.filter((o) => o.status === "NEEDS_PREPARATION").length} perlu disiapkan`} />
-        <MetricCard href="/founder/finance" label="Omzet bulan ini" value={shortMoney(revenue)} hint="Pesanan selesai" />
-        <MetricCard href="/founder/finance" label="Belum dibayar" value={shortMoney(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`Selesai ${shortMoney(unpaid.filter((o) => o.status === "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))} · berjalan ${shortMoney(unpaid.filter((o) => o.status !== "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))}`} alert={unpaid.length > 0} />
+        <MetricCard href="/founder/finance" label="Omzet bulan ini" value={formatRupiah(revenue)} hint="Pesanan selesai" />
+        <MetricCard href="/founder/finance" label="Belum dibayar" value={formatRupiah(unpaid.reduce((sum, o) => sum + op.receivable(o), 0))} hint={`Selesai ${formatRupiah(unpaid.filter((o) => o.status === "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))} · berjalan ${formatRupiah(unpaid.filter((o) => o.status !== "COMPLETED").reduce((sum, o) => sum + op.receivable(o), 0))}`} alert={unpaid.length > 0} />
       </section>}
 
       <section className={styles.dashboardGrid}>
@@ -37,10 +35,10 @@ export function DashboardSummary({ session }: { session: op.State }) {
           <div className={styles.panelHeader}><div><h2>Perlu perhatian</h2><p>Tindakan yang disarankan hari ini</p></div></div>
           <div className={styles.attentionList}>
             {lowStock.length > 2 && (
-              <div className={styles.attention}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{lowStock.length} bahan di bawah ambang</strong></Link><span>{lowStock.map((item) => `${item.name} ${formatQuantity(item.id, item.available)}`).join(" · ")}</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
+              <div className={styles.attention}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{lowStock.length} bahan di bawah ambang</strong></Link><span>{lowStock.map((item) => `${item.name} ${formatAvailable(item.id, item.available)}${formatShortage(item.id, item.available) ? ` (${formatShortage(item.id, item.available)})` : ""}`).join(" · ")}</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
             )}
             {lowStock.length <= 2 && lowStock.map((item) => (
-              <div className={styles.attention} key={item.id}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{item.name} di bawah ambang</strong></Link><span>{formatQuantity(item.id, item.available)} tersedia setelah reservasi</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
+              <div className={styles.attention} key={item.id}><span className={`${styles.attnIcon} ${styles.warn}`} aria-hidden><Package size={20} /></span><Link href="/founder/stock"><strong>{item.name} di bawah ambang</strong></Link><span>{item.available < 0 ? `${formatAvailable(item.id, item.available)} tersedia · ${formatShortage(item.id, item.available)}` : `${formatQuantity(item.id, item.available)} tersedia setelah reservasi`}</span><Link href="/founder/stock" className="btn btn-quiet">Pesan ulang</Link></div>
             ))}
             {unpaidReady.map((o) => (
               <div className={styles.attention} key={o.id}><span className={`${styles.attnIcon} ${styles.danger}`} aria-hidden><Wallet size={20} /></span><Link href="/founder/orders?tab=READY_FOR_HANDOVER"><strong>Pembayaran {o.id}</strong></Link><span>{o.fulfillment === "DELIVERY" ? "Belum lunas: kirim butuh konfirmasi, sisa jadi piutang" : "Jatuh tempo saat serah terima"}</span><span className="status status-danger">{formatRupiah(op.receivable(o))}</span></div>
@@ -82,7 +80,7 @@ export function PackingPanel({ session }: { session: op.State }) {
         <div className={styles.materials}><span>Kebutuhan bahan baku</span><b>{formatQuantity("raw_cheese", rawCheese)} cheese stick</b></div>
         <div className={styles.materials}><span>Quality-selection Milieu</span><b>±{formatQuantity("raw_cheese", units.milieu * (products[0].recipe.raw_cheese - products[0].netGrams * 100))} untuk konsumsi pribadi</b></div>
         {cheese.onHand < rawCheese && <p className={styles.hint}>Stok fisik {formatQuantity("raw_cheese", cheese.onHand)} belum cukup untuk batch ini.</p>}
-        <button className={`btn btn-primary ${styles.batchButton}`} disabled={pending} onClick={complete}>Selesaikan batch · {orders.length} pesanan</button>
+        <button className={`btn btn-primary ${styles.batchButton}`} disabled={pending} onClick={complete}>{pending ? "Memproses..." : `Selesaikan batch · ${orders.length} pesanan`}</button>
         {error && <p role="alert" className={styles.hint}>{error}</p>}
       </> : <p className={styles.batchDone}><CheckCircle size={18} weight="fill" /> Semua batch selesai.</p>}
     </article>

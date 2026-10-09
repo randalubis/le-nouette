@@ -43,7 +43,7 @@
 .pageIntro h1 { font-size: clamp(34px, 7vw, 50px); line-height: 1.05; letter-spacing: -.03em; margin: 8px 0; }
 .pageIntro p { color: var(--muted); margin: 0 0 24px; }
 .choices { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
-.choice:has(input:focus-visible) { outline: 2px solid var(--wine); outline-offset: 2px; }
+.choice:has(input:focus-visible) { outline: var(--focus-width) solid var(--wine-text); outline-offset: var(--focus-offset); }
 .choice { cursor: pointer; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--paper); color: var(--ink); min-height: 72px; display: grid; grid-template-columns: 34px 1fr 22px; text-align: left; align-items: center; gap: 10px; padding: 10px 13px; }
 .choice span { display: grid; gap: 4px; }
 .choice small { color: var(--muted); }
@@ -141,7 +141,7 @@
 .referral h2 { text-wrap: balance; margin: 0; color: var(--wine-text); font-size: 22px; }
 .referralChips { display: flex; flex-wrap: wrap; gap: 8px; }
 .referralChips label { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--cream); color: var(--ink); font-size: 14px; font-weight: 650; }
-.referralChips label:has(input:focus-visible) { outline: 2px solid var(--wine); outline-offset: 2px; }
+.referralChips label:has(input:focus-visible) { outline: var(--focus-width) solid var(--wine-text); outline-offset: var(--focus-offset); }
 .referralChips .referralChipActive { border-color: var(--wine-text); background: var(--wine-soft); color: var(--wine-text); }
 .referralInput { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--cream); color: var(--ink); border-radius: var(--radius-control); padding: 11px 14px; outline: none; }
 .referralInput:focus { border-color: var(--wine-text); box-shadow: 0 0 0 3px rgba(118,18,28,.12); }

@@ -33,12 +33,17 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
   const [paying, setPaying] = useState<string | null>(null);
   const [error, setError] = useState<{ id: string; message: string } | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [busy, setBusy] = useState("");
+  const lbl = (key: string, text: string) => (isPending && busy === key ? "Memproses..." : text);
 
   const changeTab = (status: op.OrderStatus) => { setTab(status); setSelected(new Set()); };
-  const act = (id: string, action: Promise<{ error: string | null }>) => {
+  // Takes a thunk so a blocked double-submit never fires the server action; `kind` names the clicked button.
+  const act = (id: string, kind: string, run: () => Promise<{ error: string | null }>) => {
+    if (isPending) return;
+    setBusy(`${id}:${kind}`);
     startTransition(async () => {
-      const { error } = await action;
+      const { error } = await run();
       setError(error ? { id, message: error } : null);
     });
   };
@@ -54,7 +59,9 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
     const unpaid = session.orders.filter((o) => selected.has(o.id) && !op.isPaid(o));
     const owed = unpaid.reduce((sum, o) => sum + op.receivable(o), 0);
     if (unpaid.length && !window.confirm(`${unpaid.length} dari ${selected.size} pesanan belum lunas (sisa ${formatRupiah(owed)}). Tetap kirim? Sisa menjadi piutang.`)) return;
+    if (isPending) return;
     setBulkError(null);
+    setBusy("bulk");
     startTransition(async () => {
       const { error } = await dispatchOrdersAction([...selected], true);
       if (error) setBulkError(error); else setSelected(new Set());
@@ -98,12 +105,12 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
           headerAction={<button className={styles.textLink} onClick={() => setSelected(new Set())}>Batal pilih</button>}
           note={bulkError}
         >
-          <button className="btn btn-primary" onClick={bulkDispatch}>Tandai Dikirim ({selected.size})</button>
+          <button className="btn btn-primary" disabled={isPending} onClick={bulkDispatch}>{lbl("bulk", `Tandai Dikirim (${selected.size})`)}</button>
         </ActionCard></div>
       )}
       {tab === "NEEDS_PREPARATION" && visible.length > 0 && <p className={styles.hint}>Atau selesaikan seluruh batch dari Beranda.</p>}
 
-      <section className={styles.orderList} aria-live="polite">
+      <section className={`${styles.orderList} ${selected.size > 0 ? styles.hasBulk : ""}`} aria-live="polite">
         {visible.length === 0 && <p className={styles.empty}>{needle ? "Tidak ada pesanan yang cocok." : "Tidak ada pesanan di sini."}</p>}
         {visible.map((order) => {
           const paid = op.isPaid(order);
@@ -116,9 +123,10 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
           const bulkEligible = order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt;
           return (
             <article className={styles.orderCard} key={order.id}>
+              <div className={styles.orderBody}>
               <div className={styles.orderHead}>
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {bulkEligible && <label className={styles.pick}><input type="checkbox" aria-label={`Pilih ${order.id}`} checked={selected.has(order.id)} onChange={() => toggleSelected(order.id)} /></label>}
+                  {bulkEligible && <label className={styles.pick}><input type="checkbox" aria-label={`Pilih ${order.id}`} checked={selected.has(order.id)} onChange={() => toggleSelected(order.id)} /><span className={styles.pickBox} aria-hidden="true" /></label>}
                   <strong>{order.id}</strong>
                 </span>
                 {(paid || order.status !== "CANCELLED") && <span className={`status ${paid ? "status-safe" : "status-danger"}`}>{paid ? `Lunas${lastPayment ? ` · ${methodLabel[lastPayment.method]}` : ""}` : "Belum dibayar"}</span>}
@@ -132,40 +140,41 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
               </div>
               {order.referral && <p className={styles.hint}>Referral: {referralLabel[order.referral.source]}{order.referral.name ? ` (${order.referral.name})` : ""}</p>}
               {delivery && order.address && <p className={styles.hint}>{order.address}</p>}
+              </div>
               <div className={styles.stockFooter}><span>Total</span><strong>{formatRupiah(order.total)}</strong></div>
 
               {paying === order.id ? (
                 <div className={styles.cardActions} role="group" aria-label={`Metode pembayaran ${order.id}`}>
                   {(Object.keys(methodLabel) as op.PaymentMethod[]).map((method) => (
-                    <button key={method} className="btn btn-quiet" onClick={() => { act(order.id, recordPaymentAction(order.id, method)); setPaying(null); }}>{methodLabel[method]}</button>
+                    <button key={method} className="btn btn-quiet" disabled={isPending} onClick={() => { act(order.id, "pay", () => recordPaymentAction(order.id, method)); setPaying(null); }}>{methodLabel[method]}</button>
                   ))}
-                  <button className={styles.textLink} onClick={() => setPaying(null)}>Batal</button>
+                  <button className={styles.textLink} disabled={isPending} onClick={() => setPaying(null)}>Batal</button>
                 </div>
               ) : (
                 <div className={styles.cardActions}>
                   {order.status === "NEEDS_PREPARATION" && <>
-                    <button className="btn btn-primary" onClick={() => window.confirm(`Pesanan ${order.id} sudah dipacking? Stok bahan pesanan ini akan dikurangi dan pesanan pindah ke Siap Diserahkan.`) && act(order.id, markOrderReadyAction(order.id))}>Selesai Packing</button>
+                    <button className="btn btn-primary" disabled={isPending} onClick={() => window.confirm(`Pesanan ${order.id} sudah dipacking? Stok bahan pesanan ini akan dikurangi dan pesanan pindah ke Siap Diserahkan.`) && act(order.id, "ready", () => markOrderReadyAction(order.id))}>{lbl(`${order.id}:ready`, "Selesai Packing")}</button>
                   </>}
-                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} onClick={() => {
+                  {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} disabled={isPending} onClick={() => {
                     if (today() < order.currentReadyDate) return setError({ id: order.id, message: `Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.` });
                     if (!paid && !window.confirm(`Pesanan belum lunas (sisa ${formatRupiah(op.receivable(order))}). Tetap kirim? Sisa menjadi piutang.`)) return;
-                    act(order.id, dispatchOrderAction(order.id, true));
-                  }}>Tandai Dikirim</button>}
-                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} onClick={() => {
+                    act(order.id, "dispatch", () => dispatchOrderAction(order.id, true));
+                  }}>{lbl(`${order.id}:dispatch`, "Tandai Dikirim")}</button>}
+                  {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} disabled={isPending} onClick={() => {
                     if (!paid && !window.confirm(`Belum lunas (sisa ${formatRupiah(op.receivable(order))}). Pesanan tetap selesai dan sisa masuk Piutang.`)) return;
-                    act(order.id, completeOrderAction(order.id));
-                  }}>Tandai Selesai</button>}
-                  {!paid && order.status !== "CANCELLED" && <button className={`btn ${payFirst ? "btn-primary" : "btn-quiet"}`} onClick={() => setPaying(order.id)}>Tandai Lunas</button>}
-                  {order.status !== "CANCELLED" && <Link className="btn btn-quiet" href={`/founder/invoices/new?order=${order.id}`}>Buat Invoice</Link>}
+                    act(order.id, "complete", () => completeOrderAction(order.id));
+                  }}>{lbl(`${order.id}:complete`, "Tandai Selesai")}</button>}
+                  {!paid && order.status !== "CANCELLED" && <button className={`btn ${payFirst ? "btn-primary" : "btn-quiet"}`} disabled={isPending} onClick={() => setPaying(order.id)}>{lbl(`${order.id}:pay`, "Tandai Lunas")}</button>}
                   {order.status === "CANCELLED" && amountPaidNote(order)}
                   {waKind && (wa
                     ? <a className={`btn btn-quiet ${styles.waRow}`} href={wa} target="_blank" rel="noopener noreferrer"><WhatsappLogo size={18} weight="fill" aria-hidden />Kirim WhatsApp</a>
                     : <small className={`${styles.hint} ${styles.waRow}`}>Nomor WA tidak valid</small>)}
                   {error?.id === order.id && <small role="alert" className={`${styles.hint} ${styles.cardError}`}>{error.message}</small>}
-                  {((paid && lastPayment && !order.dispatchedAt) || (active && !order.dispatchedAt)) && (
+                  {order.status !== "CANCELLED" && (
                     <div className={styles.cardFoot}>
-                      {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, reversePaymentAction(order.id, lastPayment.id))}>Koreksi pembayaran</button>}
-                      {active && !order.dispatchedAt && <button className={`${styles.textLink} ${styles.destructive}`} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?${session.reservations.some((r) => r.orderId === order.id && r.state === "CONSUMED") ? " Pesanan sudah dipacking: bahan yang terpakai TIDAK dikembalikan ke stok." : ""}`) && act(order.id, cancelOrderAction(order.id))}>Batalkan pesanan</button>}
+                      <Link className={styles.textLink} href={`/founder/invoices/new?order=${order.id}`}>Buat Invoice</Link>
+                      {paid && lastPayment && !order.dispatchedAt && <button className={styles.textLink} disabled={isPending} onClick={() => window.confirm(`Batalkan catatan pembayaran ${order.id}?`) && act(order.id, "reverse", () => reversePaymentAction(order.id, lastPayment.id))}>{lbl(`${order.id}:reverse`, "Koreksi pembayaran")}</button>}
+                      {active && !order.dispatchedAt && <button className={`${styles.textLink} ${styles.destructive}`} disabled={isPending} onClick={() => window.confirm(`Batalkan pesanan ${order.id}?${session.reservations.some((r) => r.orderId === order.id && r.state === "CONSUMED") ? " Pesanan sudah dipacking: bahan yang terpakai TIDAK dikembalikan ke stok." : ""}`) && act(order.id, "cancel", () => cancelOrderAction(order.id))}>{lbl(`${order.id}:cancel`, "Batalkan pesanan")}</button>}
                     </div>
                   )}
                 </div>

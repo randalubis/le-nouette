@@ -1,24 +1,25 @@
-.card { display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; }
+.card { display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; min-width: 0; container-type: inline-size; }
 .card span { font-size: 13px; }
-.card strong { letter-spacing: -.04em; }
-.card small { font-size: 12px; }
+.card strong { letter-spacing: -.04em; overflow-wrap: anywhere; }
+.card small { font-size: 12px; overflow-wrap: anywhere; }
 
+/* Money values size from the tile's own width (cqi) so full Rupiah never wraps or touches the edge, even at 320px. */
 .neutral { min-height: 132px; padding: var(--pad-card); border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--line); }
 .neutral span { color: var(--muted); }
-.neutral strong { color: var(--wine-text); font-size: 32px; }
+.neutral strong { color: var(--wine-text); font-size: clamp(17px, 16cqi, 32px); line-height: 1.1; }
 .neutral small { color: var(--muted); }
 .neutral:hover { border-color: var(--wine-text); }
-.neutral.alert { background: var(--alert-bg); border-color: var(--alert-line); }
-.neutral.alert span, .neutral.alert strong, .neutral.alert small { color: var(--alert-fg, var(--ink)); }
+.neutral.alert { background: var(--danger-bg); border-color: var(--danger-line); }
+.neutral.alert span, .neutral.alert strong, .neutral.alert small { color: var(--danger-fg); }
 
-.hero { min-height: 132px; padding: var(--pad-card); border-radius: var(--radius-card); background: var(--hero-bg, #1f2a2e); color: var(--hero-fg, #fff); }
-.hero span { color: var(--hero-sub, #c5d0d4); }
-.hero strong { color: var(--hero-fg, #fff); font-size: 32px; }
-.hero small { color: var(--hero-sub, #c5d0d4); }
-.hero.compact strong { font-size: 22px; }
+.hero { min-height: 132px; padding: var(--pad-card); border-radius: var(--radius-card); background: var(--hero-bg); color: var(--hero-fg); }
+.hero span { color: var(--hero-sub); }
+.hero strong { color: var(--hero-fg); font-size: 32px; }
+.hero small { color: var(--hero-sub); }
+.hero.compact strong { font-size: clamp(16px, 14cqi, 22px); white-space: nowrap; }
 
 @media (max-width: 560px) {
   .neutral { min-height: 116px; padding: 15px; }
-  .neutral strong { font-size: 27px; }
+  .neutral strong { font-size: clamp(17px, 16cqi, 27px); }
   .hero strong { font-size: 35px; }
 }

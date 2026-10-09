@@ -178,8 +178,9 @@ Log in at `http://localhost:3000/founder/login` with `dev@lenouette.local` / `de
 
 - `npm run dev:db` is idempotent: it creates and seeds only when the database has no orders.
 - `npm run dev:db:reset` truncates the app tables and reseeds (`--reset` requires the database name `le_nouette_dev`).
-- Seed contents: 14 fake orders `LN-0001`..`LN-0014` covering every Pesanan card state, 3 invoices (one paid), company settings, low-stock rows, 5 ready-to-sell units and 2 calendar rows.
-- Known gap: the seed has only one unshipped delivery order, so bulk-select of two delivery cards cannot be tested yet (backlog, [implementation-status](../implementation-status.md#prioritized-open-follow-ups)).
+- Seed contents (0.22.0): 15 fake orders `LN-0001`..`LN-0015` covering every Pesanan card state, 3 invoices (one paid), company settings, low-stock rows (only the pouch is below its threshold), 5 ready-to-sell units and 2 calendar rows. Dispatch and complete timestamps are set, so the seed reset runs cleanly.
+- Two unshipped delivery orders (`LN-0015` is the second, added in 0.22.0), so a two-card bulk dispatch can be tested on the Pesanan page.
+- **Viewing loading and error states (0.22.0):** the seed has no trigger. `founder/loading.tsx` shows while a `/founder/*` route is slow: throttle the network in Chrome DevTools and navigate inside Founder OS. `error.tsx` needs a thrown error in a page, and `global-error.tsx` needs one in the root layout. To look at either, throw locally, check the screen, and revert before committing; never commit the throw. The steps are a suggestion and have not been recorded as a verified procedure. See [design system §7.17](./founder-os-design-system.md#717-route-states).
 
 ### 5.3 Why throwaway?
 

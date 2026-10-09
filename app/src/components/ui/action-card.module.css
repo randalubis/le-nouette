@@ -6,9 +6,9 @@
 .actions :global(.btn) { flex: 1 1 auto; min-height: 44px; }
 .note { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
 
-.dark { background: var(--hero-bg, #1f2a2e); border-color: transparent; color: var(--hero-fg, #fff); }
-.dark .header p, .dark .note { color: var(--hero-sub, #c5d0d4); }
-.dark input, .dark select { background: #fafbfb; color: #161b1d; border-color: transparent; }
-.dark :global(.btn-primary) { background: var(--hero-accent, #b7cbb8); color: #1f2a2e; }
-.dark :global(.btn-primary:hover) { background: #cddccd; }
-.dark :global(.btn):disabled { background: rgba(255,255,255,.1); color: var(--hero-sub, #c5d0d4); border-color: var(--hero-sub, #c5d0d4); }
+.dark { background: var(--hero-bg); border-color: transparent; color: var(--hero-fg); }
+.dark .header p, .dark .note { color: var(--hero-sub); }
+.dark input, .dark select { background: var(--hero-field-bg); color: var(--hero-field-fg); border-color: transparent; }
+.dark :global(.btn-primary) { background: var(--hero-accent); color: var(--hero-on-accent); }
+.dark :global(.btn-primary:hover) { background: var(--hero-accent-hover); }
+.dark :global(.btn):disabled { background: var(--hero-tint); color: var(--hero-sub); border-color: var(--hero-sub); }

@@ -10,6 +10,7 @@ type Text = { name: string; phone: string; email: string; address: string; insta
 export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: string | null }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, start] = useTransition();
+  const [fileName, setFileName] = useState("");
   const submit = (form: FormData) => start(async () => {
     const res = await saveSettingsAction(form);
     setMsg(res.error ? { ok: false, text: res.error } : { ok: true, text: "Pengaturan tersimpan." });
@@ -22,7 +23,7 @@ export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: str
   );
   return (
     <section className={styles.panel}>
-      <form action={submit} className={s.form}>
+      <form action={submit} className={`${s.form} ${s.formWide}`}>
         {f("name", "Nama perusahaan")}
         <div className={s.contactRow}>{f("phone", "Telepon", false, undefined, "[nomor telepon]")}{f("email", "Email", false, undefined, "[email]")}{f("instagram", "Instagram", false, undefined, "[akun Instagram]")}</div>
         {f("address", "Alamat", true, undefined, "[alamat lengkap]")}
@@ -33,7 +34,11 @@ export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: str
           <span className={s.logoRow}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {logoSrc ? <img className={s.logo} src={logoSrc} alt="Logo saat ini" width={72} height={72} /> : <span className={s.logoPlaceholder} aria-hidden="true">LN</span>}
-            <input type="file" name="logo" accept="image/png,image/jpeg" />
+            <span className={s.filePick}>
+              <input className={s.fileInput} type="file" name="logo" accept="image/png,image/jpeg" onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")} />
+              <span className={`btn btn-quiet ${s.fileBtn}`} aria-hidden="true">Pilih berkas</span>
+              <span className={s.fileName}>{fileName || "Belum ada berkas dipilih"}</span>
+            </span>
           </span>
         </label>
         {logoSrc && <label className={`${s.field} ${s.check}`}><input type="checkbox" name="removeLogo" /><span className={s.box} aria-hidden="true" />Hapus logo</label>}

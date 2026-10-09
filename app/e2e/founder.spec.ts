@@ -83,8 +83,14 @@ test("login, board, WhatsApp link, mark paid, export, logout", async ({ page }) 
   // logout
   await page.goto("/founder");
   const menu = page.getByLabel("Menu akun dan unduh data");
-  if (await menu.isVisible()) await menu.click(); // mobile: logout lives in the avatar menu
-  await page.getByRole("button", { name: "Keluar" }).filter({ visible: true }).click();
+  const logout = page.getByRole("button", { name: "Keluar" }).filter({ visible: true });
+  // /founder streams a loading skeleton first and the menu needs hydration; wait, then open the avatar menu on mobile if still closed
+  await expect(menu.or(logout).first()).toBeVisible();
+  await expect(async () => {
+    if (!(await logout.isVisible())) await menu.click();
+    await expect(logout).toBeVisible({ timeout: 1500 });
+  }).toPass();
+  await logout.click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/founder");
   await expect(page).toHaveURL(/\/login$/);
