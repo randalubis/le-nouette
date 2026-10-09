@@ -10,6 +10,10 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
 
+### 0.18.0 (9 October 2026)
+
+- **Founder OS "Cool Slate" redesign, phase 2: Stok and Keuangan (partial):** See [changelog 0.18.0](./changelog.md). Files: `app/src/components/founder.module.css`, `founder-boards.tsx` (StockBoard bar, FinanceBoard method panel, ReadyToSell dark card), `ui/action-card.{tsx,module.css}` (`tone` prop). Verified on a throwaway local Postgres: `tsc`, lint, `npm test`, build, Playwright audit at 390/1440 light and dark on all founder pages (clean). Not re-reviewed by the reviewer persona; `npm run e2e` not run.
+
 ### 0.17.0 (9 October 2026)
 
 - **Founder OS "Cool Slate" redesign, phase 1 (partial):** Shell, Beranda and Pesanan restyled with scoped light and dark tokens (see [changelog 0.17.0](./changelog.md)). Files: `app/src/components/founder.module.css`, `founder-shell.tsx` (user card), `packing-panel.tsx` (hero tile first), `ui/metric-card.{tsx,module.css}` (`hero` variant styled, `data-variant`/`data-alert`). Verified on a throwaway local Postgres: `tsc`, lint, `npm test` (74 pass), build (fonts stubbed in the sandbox only), Playwright audit at 390/1440 light and dark on all founder pages (no contrast, tap-target, overflow or console issues), one reviewer pass (7.5/10). Open from the review: unpaid order cards could make "Tandai Lunas" the primary action; merge or collapse stacked buttons on mobile; attention-list icon chips; mobile order filters could scroll in one row. `npm run e2e` not re-run.

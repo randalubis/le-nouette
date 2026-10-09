@@ -6,15 +6,17 @@ export function ActionCard({
   headerAction,
   children,
   note,
+  tone = "light",
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   headerAction?: React.ReactNode;
   children: React.ReactNode;
   note?: React.ReactNode;
+  tone?: "light" | "dark";
 }) {
   return (
-    <div className={styles.panel}>
+    <div className={`${styles.panel} ${tone === "dark" ? styles.dark : ""}`}>
       <div className={styles.header}>
         <div>
           <h2>{title}</h2>

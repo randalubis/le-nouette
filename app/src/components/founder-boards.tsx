@@ -58,7 +58,7 @@ function ReadyToSell({ session }: { session: op.State }) {
       </section>
       {writeOffError && <p role="alert" className={styles.hint}>{writeOffError}</p>}
       <div className={styles.receivables}>
-        <ActionCard title="Catat Produk Ekstra" subtitle="Mengurangi bahan sesuai resep dan menambah stok siap jual dalam satu langkah." note={error && <p role="alert" className={styles.hint}>{error}</p>}>
+        <ActionCard tone="dark" title="Catat Produk Ekstra" subtitle="Mengurangi bahan sesuai resep dan menambah stok siap jual dalam satu langkah." note={error && <p role="alert" className={styles.hint}>{error}</p>}>
           <select className={styles.search} aria-label="Produk" value={product} onChange={(event) => setProduct(event.target.value as ProductId)}>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
           <input className={styles.search} type="number" min={1} inputMode="numeric" aria-label="Jumlah ekstra" placeholder="Jumlah" value={qty} onChange={(event) => setQty(event.target.value)} />
           <input className={styles.search} aria-label="Catatan" placeholder="Catatan (opsional)" value={note} onChange={(event) => setNote(event.target.value)} />
@@ -113,6 +113,7 @@ export function StockBoard({ session }: { session: op.State }) {
               <div className={styles.stockCardTop}><h3>{item.name}</h3>{low ? <span className="status status-warning"><WarningCircle size={13} /> Rendah</span> : <span className="status status-safe">Aman</span>}</div>
               <div className={styles.stockValue}>{formatQuantity(item.id, item.available)}</div>
               <p>tersedia · fisik {formatQuantity(item.id, item.onHand)} · reservasi {formatQuantity(item.id, item.reserved)}</p>
+              <div className={styles.stockBar} role="img" aria-label={`Tersedia ${formatQuantity(item.id, item.available)}, ambang ${formatQuantity(item.id, item.threshold)}`}><i style={{ width: `${Math.max(0, Math.min(100, Math.round((item.available / (item.threshold * 2)) * 100)))}%` }} /><b /></div>
               <details className={styles.stockMore} open={desktop}>
                 <summary>Ubah stok</summary>
               <div className={styles.cardActions}>
@@ -171,9 +172,15 @@ export function FinanceBoard({ session }: { session: op.State }) {
           <MetricCard variant="hero" compact label="Menunggu bayar" value={formatRupiah(f.awaitingPayment)} hint="Pesanan berjalan, belum lunas" />
           {f.heldPayments > 0 && <MetricCard variant="hero" compact label="Dibayar, belum selesai" value={formatRupiah(f.heldPayments)} hint="Pesanan belum selesai" />}
           {f.refundDue > 0 && <MetricCard variant="hero" compact label="Perlu refund" value={formatRupiah(f.refundDue)} hint="Pesanan dibatalkan" />}
-          <div className={styles.methodRow}>
-            {methods.map((m, i) => <MetricCard key={m} variant="hero" compact label={methodLabel[m]} value={share(i)} hint="Porsi diterima" />)}
-          </div>
+        </div>
+      </section>
+      <section className={`${styles.panel} ${styles.receivables}`}>
+        <div className={styles.panelHeader}><div><h2>Porsi metode pembayaran</h2><p>Dihitung dari pembayaran yang sudah diterima</p></div></div>
+        <div className={styles.methodBar} role="img" aria-label={f.received ? methods.map((m, i) => `${methodLabel[m]} ${pct[i]} persen`).join(", ") : "Belum ada pembayaran diterima"}>
+          {f.received > 0 && methods.map((m, i) => pct[i] > 0 && <span key={m} style={{ flex: pct[i], background: `var(--chart-${i + 1})` }} />)}
+        </div>
+        <div className={styles.methodLegend}>
+          {methods.map((m, i) => <div key={m}><i style={{ background: `var(--chart-${i + 1})` }} /><div><small>{methodLabel[m]}</small><strong>{share(i)}</strong></div></div>)}
         </div>
       </section>
       {f.refundOrders.length > 0 && (
