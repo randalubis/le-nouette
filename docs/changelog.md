@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.19.0 — 9 October 2026
+
+- **Founder OS "Cool Slate" redesign, phase 3: Kalender and Invoice (partial):** Kalender gains a month calendar (`MonthCalendar` in `founder-boards.tsx`): Monday-first grid with previous/next month, closed dates filled, today ringed, the date picked for closing dashed; tapping a day (today or later) fills the "Tutup tanggal" date. Status toko shows a Buka/Dijeda chip, and the affected-orders notice is a warning box. Invoice list, wizard and settings forms use the Cool Slate tokens: 18px step fieldsets, 12px controls with the `--control` border, pill stepper with `--on-primary` active label, rounded table wrapper, and on mobile each invoice row is its own rounded card. Disabled invoice buttons no longer use opacity (solid sunken style per the UI baseline). Presentation only, no data or behavior change, no migration.
+
 ### 0.18.0 — 9 October 2026
 
 - **Founder OS "Cool Slate" redesign, phase 2: Stok and Keuangan (partial):** Stok cards gain a threshold bar (fill = available against twice the threshold, tick at the threshold, dark for low and neutral for safe), 22px radius, soft red border for low items, 32px value; "Catat Produk Ekstra" is now a dark `ActionCard tone="dark"`. Keuangan: the payment-method share moves out of the hero into its own "Porsi metode pembayaran" panel with a stacked bar and legend (colors from `--chart-1..3`, light and dark); hero shows Omzet at 52px with four sub-tiles, and fixes the oversized nested hero tiles that phase 1 introduced (`.financeHero [data-variant="hero"]` resets). Presentation only, no data or behavior change, no migration.

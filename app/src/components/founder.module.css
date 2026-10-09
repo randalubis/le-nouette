@@ -143,6 +143,30 @@
 .orderCard .stockFooter { align-items: baseline; font-size: 13px; }
 .orderCard .stockFooter strong { font-size: 17px; color: var(--ink); letter-spacing: -.02em; }
 .orderMeta { display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
+.calLayout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px,100%), 1fr)); gap: 20px; align-items: start; }
+.calCol { display: grid; gap: 20px; min-width: 0; }
+.calCol .receivables { margin-top: 0; }
+.panelHeader h2 :global(.status) { display: flex; width: fit-content; margin: 0 0 6px; }
+.alertBox { padding: 14px 16px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-fg); border: 0; }
+.alertBox span { color: var(--warn-fg); }
+.calHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.calHead h2 { margin: 0; font-size: 19px; text-transform: capitalize; }
+.calNav { display: flex; gap: 6px; }
+.calNav :global(.icon-btn) { border-radius: 12px; color: var(--ink); }
+.calGrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.calDow { text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+.calDay { min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.calDay:hover:not(:disabled) { background: var(--sunken); }
+.calDay:disabled { color: var(--muted); cursor: default; font-weight: 400; }
+.calDay.calClosed { background: var(--wine); color: var(--on-primary); font-weight: 700; opacity: 1; }
+.calDay.calToday { box-shadow: inset 0 0 0 2px var(--wine); font-weight: 700; }
+.calDay.calPending { border: 2px dashed var(--chart-2); }
+.calLegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.calLegend span { display: inline-flex; align-items: center; gap: 8px; }
+.calLegend i { box-sizing: border-box; width: 16px; height: 16px; border-radius: 5px; }
+.calLegend i.calClosed { background: var(--wine); }
+.calLegend i.calToday { box-shadow: inset 0 0 0 2px var(--wine); }
+.calLegend i.calPending { border: 2px dashed var(--chart-2); }
 .stockHeader { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 18px; }
 .stockHeader p { color: var(--muted); margin: 4px 0 0; }
 .stockHeader h2 { margin: 0; }
@@ -237,6 +261,8 @@
   .tabs.fulfillChips button { font-size: 13px; padding: 10px 2px; }
 }
 @media (max-width: 560px) {
+  .calPanel { padding: 16px; }
+  .calGrid { gap: 2px; }
   .metric { min-height: 116px; padding: 15px; }
   .metric strong { font-size: 27px; }
   .packing { grid-template-columns: 1fr; }

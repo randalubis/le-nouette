@@ -1,6 +1,6 @@
 "use client";
 
-import { WarningCircle } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, WarningCircle } from "@phosphor-icons/react";
 import { useEffect, useState, useTransition } from "react";
 import { formatQuantity, formatRupiah, products, SUPPLIER_PACK, type ItemId, type ProductId } from "@/lib/domain/catalog";
 import * as op from "@/lib/domain/operations";
@@ -209,8 +209,45 @@ export function FinanceBoard({ session }: { session: op.State }) {
   );
 }
 
+const weekdays = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const shiftMonth = (ym: string, by: number) => { const [y, m] = ym.split("-").map(Number); const d = new Date(Date.UTC(y, m - 1 + by, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
+
+function MonthCalendar({ month, onMonth, closed, todayStr, selected, onPick }: { month: string; onMonth: (m: string) => void; closed: Set<string>; todayStr: string; selected: string; onPick: (d: string) => void }) {
+  const [y, m] = month.split("-").map(Number);
+  const offset = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7; // Monday first
+  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const title = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("id-ID", { month: "long", year: "numeric", timeZone: "UTC" });
+  return (
+    <section className={`${styles.panel} ${styles.calPanel}`}>
+      <div className={styles.calHead}>
+        <h2>{title}</h2>
+        <div className={styles.calNav}>
+          <button type="button" className="icon-btn" aria-label="Bulan sebelumnya" onClick={() => onMonth(shiftMonth(month, -1))}><CaretLeft size={18} /></button>
+          <button type="button" className="icon-btn" aria-label="Bulan berikutnya" onClick={() => onMonth(shiftMonth(month, 1))}><CaretRight size={18} /></button>
+        </div>
+      </div>
+      <div className={styles.calGrid}>
+        {weekdays.map((w) => <span key={w} className={styles.calDow}>{w}</span>)}
+        {Array.from({ length: offset }, (_, i) => <span key={`b${i}`} />)}
+        {Array.from({ length: days }, (_, i) => {
+          const d = `${month}-${String(i + 1).padStart(2, "0")}`;
+          const isClosed = closed.has(d);
+          const cls = [styles.calDay, isClosed ? styles.calClosed : "", d === todayStr ? styles.calToday : "", d === selected && !isClosed ? styles.calPending : ""].join(" ");
+          return <button type="button" key={d} className={cls} disabled={d < todayStr} aria-label={`${formatDate(d)}${isClosed ? ", tertutup" : ""}`} aria-pressed={d === selected} onClick={() => onPick(d)}>{i + 1}</button>;
+        })}
+      </div>
+      <div className={styles.calLegend}>
+        <span><i className={styles.calClosed} />Tertutup</span>
+        <span><i className={styles.calToday} />Hari ini</span>
+        <span><i className={styles.calPending} />Akan ditutup</span>
+      </div>
+    </section>
+  );
+}
+
 export function AvailabilityBoard({ session }: { session: op.State }) {
   const [date, setDate] = useState("");
+  const [month, setMonth] = useState(today().slice(0, 7));
   const [status, setStatus] = useState<DateStatus>("HOLIDAY");
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -231,9 +268,11 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
 
   return (
     <>
+      <div className={styles.calLayout}>
+      <div className={styles.calCol}>
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
-          <div><h2>Status toko</h2><p>{paused ? "Pesanan baru ditolak. Pesanan yang ada tetap berjalan." : "Toko menerima pesanan. Tanggal tertutup dilewati otomatis."}</p></div>
+          <div><h2><span className={`status ${paused ? "status-danger" : "status-safe"}`}>{paused ? "Dijeda" : "Buka"}</span> Status toko</h2><p>{paused ? "Pesanan baru ditolak. Pesanan yang ada tetap berjalan." : "Toko menerima pesanan. Tanggal tertutup dilewati otomatis."}</p></div>
           <button className={`btn ${paused ? "btn-primary" : "btn-quiet"}`} onClick={() => act(setStoreStatusAction(paused ? "OPEN" : "PAUSED"))}>{paused ? "Buka pemesanan" : "Jeda pemesanan"}</button>
         </div>
       </section>
@@ -245,7 +284,7 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
           note={
             <>
               {affected.length > 0 && (
-                <div className={styles.attention}>
+                <div className={`${styles.attention} ${styles.alertBox}`}>
                   <strong><WarningCircle size={16} /> {affected.length} pesanan pada {formatDate(date)}</strong>
                   <span>{affected.map((o) => `${o.id} (${itemsLabel(o)})`).join(" · ")}</span>
                   {suggestion
@@ -261,6 +300,9 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
           <select className={styles.search} aria-label="Jenis" value={status} onChange={(event) => setStatus(event.target.value as DateStatus)}><option value="HOLIDAY">Libur nasional</option><option value="UNAVAILABLE">Tidak tersedia</option></select>
           {affected.length === 0 && <button className={`btn btn-primary ${styles.noGrow}`} disabled={!date} onClick={block}>Tutup tanggal</button>}
         </ActionCard>
+      </div>
+      </div>
+      <MonthCalendar month={month} onMonth={setMonth} closed={new Set(Object.keys(session.calendar))} todayStr={today()} selected={date} onPick={(d) => { setDate(d); setMonth(d.slice(0, 7)); }} />
       </div>
 
       <section className={`${styles.panel} ${styles.receivables}`}>
