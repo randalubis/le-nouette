@@ -98,7 +98,7 @@
 
 47. An accidental extra is recorded under Milieu or Grande only and atomically consumes its recipe components.
 48. A matching new order allocates the oldest ready unit first and reserves components only for the uncovered quantity.
-49. Cancelling or reducing the order restores its ready-unit allocation through an append-only reversal.
+49. Cancelling the order restores its ready-unit allocation through an append-only reversal. (Reducing the order is BACKLOG: no edit-quantity operation exists; see implementation-status.)
 50. Expiry is one calendar month from local packing date; allocation selects the oldest unexpired matching unit and never selects an expired source.
 
 ### 19.9 Layout (0.16.0)

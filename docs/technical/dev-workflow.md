@@ -226,7 +226,8 @@ From the `app/` directory:
 # Unit tests (in-memory domain + export logic; no database)
 npm test
 
-# Integration tests (loads/writes to DATABASE_URL; must use local Supabase)
+# Integration tests (loads/writes to DATABASE_URL from .env.local, which is the shared production DB).
+# Do NOT run until a local-DB env file exists; no host guard yet. See implementation-status prioritized follow-ups.
 npm run test:integration
 
 # Linter and build check

@@ -103,7 +103,7 @@ The following can start with these defaults and change later:
 
 ## 23. Open follow-ups from order-flow review (0.15.0)
 
-Found in review of the 0.15.0 per-order packing and unpaid dispatch/complete change. Items marked **CLOSED — BUILT** were fixed in 0.16.0 (delivery timeline, Keuangan split, toolbar). Items marked **OPEN** are not fixed.
+Found in review of the 0.15.0 per-order packing and unpaid dispatch/complete change. Items marked **CLOSED — BUILT** were fixed in 0.16.0 (delivery timeline, Keuangan split, toolbar). Items marked **OPEN** are not fixed. These OPEN items are also listed in the consolidated [prioritized open follow-ups](../implementation-status.md#prioritized-open-follow-ups) in the status doc.
 
 Closed in 0.16.0:
 

@@ -38,7 +38,7 @@
 
 ### 11.4 Invoice payment (Founder OS)
 
-**Implementation: 🚧 PARTIAL** — built and backend-tested on local `le_nouette_e2e`; browser pass and migration 0006 on production pending. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — built and backend-tested on local `le_nouette_e2e`; migration 0006 is applied to production (verified 9 October 2026 via Supabase `list_migrations`); browser pass pending. See [implementation-status.md](../implementation-status.md).
 
 - Marking an invoice paid records the linked order's remaining payment (`recordPayment`) first, then flags the invoice. Amount is the order's receivable, not the invoice total; the confirm shows both and warns if they differ.
 - If the order is already paid, or the invoice is manual (no order), marking paid sets the flag only and creates no payment.

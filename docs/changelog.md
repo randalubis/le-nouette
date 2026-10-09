@@ -4,6 +4,10 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.20.4 — 9 October 2026
+
+- **Full read-only code audit and docs sync (docs only; no code change):** Audit at HEAD 4192f6c. Checks that passed in the audit run: `tsc --noEmit`, lint, 74 unit tests, `npm run build`, and `npm run e2e` (26/26 on local `le_nouette_e2e`). Docs corrected to match: the 0.17.0 phase 1 open items (Tandai Lunas primary fixed in 0.20.1; stacked mobile order buttons partial; attention-list icon chips open; one-row mobile filters superseded by the 0.16.0 grid), stale paths and line references in the status doc, Backlog rows that were built or partial, the founder action count in [security](./technical/security.md) (15 to 22), and the §15.1 target-vs-built wording. Integration test coverage and its shared-database warning are now stated accurately in [dev-workflow](./technical/dev-workflow.md). New prioritized follow-up list in [implementation-status](./implementation-status.md#prioritized-open-follow-ups). Migrations 0005 and 0006 are verified applied to production (Supabase project `xvbloiuwedrpcrjjusky`, read-only `list_migrations` on 9 October 2026, all 7 migrations listed), which closes the former High item. Code findings (0 high, 16 medium, rest low) are tracked there and are not fixed in this entry.
+
 ### 0.20.3 — 9 October 2026
 
 - **Founder OS redesign reviewer pass on phases 2 to 4, and fixes:** Reviewer pass 1 scored 7.5/10; pass 2 scored 6/10 and found regressions. The fixes below were made after pass 2 and verified by engineer measurements and screenshots only; no third reviewer pass was run.
@@ -53,7 +57,7 @@ Merged, deduplicated history from the former `le-nouette-product-operating-speci
 
 ### 0.14.0 — 8 October 2026
 
-- **Invoice edit, mark paid, delete (Founder OS, partial):** Unpaid invoices can be edited (number kept, totals recomputed, optional company refresh). Tandai Lunas records the linked order's remaining payment and flags the invoice; Batalkan Lunas reverses only that payment and is blocked once the order is dispatched. Delete is unpaid-only and never touches the order. Invoice numbers now come from `invoice_counters`, so deleted numbers are never reused. Migration `app/drizzle/0006_invoice_payment.sql` (hand-written, journal idx 6, RLS on the new table; seeded from existing invoices). Founder command server actions now 21. Pending: browser check at 390/1440 light and dark, reviewer pass 2, `npm run e2e`, and migration 0006 on production. See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2, [product/payments-and-receivables.md](./product/payments-and-receivables.md) §11.4, [technical/data-model.md](./technical/data-model.md) §6.20–6.21.
+- **Invoice edit, mark paid, delete (Founder OS, partial):** Unpaid invoices can be edited (number kept, totals recomputed, optional company refresh). Tandai Lunas records the linked order's remaining payment and flags the invoice; Batalkan Lunas reverses only that payment and is blocked once the order is dispatched. Delete is unpaid-only and never touches the order. Invoice numbers now come from `invoice_counters`, so deleted numbers are never reused. Migration `app/drizzle/0006_invoice_payment.sql` (hand-written, journal idx 6, RLS on the new table; seeded from existing invoices). Founder command server actions now 21. Pending: browser check at 390/1440 light and dark, reviewer pass 2, `npm run e2e`. Migration 0006 is applied to production (verified 9 October 2026 via Supabase `list_migrations`). See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2, [product/payments-and-receivables.md](./product/payments-and-receivables.md) §11.4, [technical/data-model.md](./technical/data-model.md) §6.20–6.21.
 
 ### 0.13.1 — 8 October 2026
 
@@ -61,7 +65,7 @@ Merged, deduplicated history from the former `le-nouette-product-operating-speci
 
 ### 0.13.0 — 8 October 2026
 
-- **Founder OS invoice PDF (partial):** Numbered invoices (`INV/YYYY/NNNN`) created from a Pesanan card ("Buat Invoice") or the Invoice nav item, downloaded as PDF via a founder-gated route. Per-line discount and VAT %, delivery fee and amount paid are entered in a four-step wizard; totals are recomputed on the server; each invoice is a stored snapshot. Company details and logo are set on the new Pengaturan page. Migration `app/drizzle/0005_invoices.sql`. Browser checks and the production migration are still pending. See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2 and [technical/data-model.md](./technical/data-model.md) §6.19–6.20.
+- **Founder OS invoice PDF (partial):** Numbered invoices (`INV/YYYY/NNNN`) created from a Pesanan card ("Buat Invoice") or the Invoice nav item, downloaded as PDF via a founder-gated route. Per-line discount and VAT %, delivery fee and amount paid are entered in a four-step wizard; totals are recomputed on the server; each invoice is a stored snapshot. Company details and logo are set on the new Pengaturan page. Migration `app/drizzle/0005_invoices.sql`. Browser checks are still pending. Migration 0005 is applied to production (verified 9 October 2026 via Supabase `list_migrations`). See [technical/notifications-and-reporting.md](./technical/notifications-and-reporting.md) §17.2 and [technical/data-model.md](./technical/data-model.md) §6.19–6.20.
 
 ### 0.12.0 — 1 October 2026
 

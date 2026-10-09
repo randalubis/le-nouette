@@ -2,11 +2,13 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — Founder server actions are authenticated in-action via `requireFounder()` (`app/src/lib/founder-session.ts`), which verifies an HMAC-signed, httpOnly `founder_session` cookie and redirects to `/login` on failure. All 15 founder-only actions call `requireFounder()` as their first line. Authentication uses a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential rather than per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail. Cookie is verified server-side; session lookup does not query Supabase Auth. CSRF protection relies on Next.js Server Actions' built-in origin check. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — Founder server actions are authenticated in-action via `requireFounder()` (`app/src/lib/founder-session.ts`), which verifies an HMAC-signed, httpOnly `founder_session` cookie and redirects to `/login` on failure. All 22 founder-only server actions (16 in `app/src/lib/domain/actions.ts`, 6 in `invoice-actions.ts`) call `requireFounder()` as their first line. Public actions are `createOrderAction`, `saveReferralAction` and `trackOrdersAction`; none calls `requireFounder()`. Authentication uses a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential rather than per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail. Cookie is verified server-side; session lookup does not query Supabase Auth. CSRF protection relies on Next.js Server Actions' built-in origin check. See [implementation-status.md](../implementation-status.md).
 
 ## 15. Authentication, authorization, and security
 
 ### 15.1 Founder access
+
+**Target state (REQUIRED); not built.** The bullets below describe the target. The current build uses the single shared credential described in the Implementation note above. No login rate limit exists. See the [prioritized follow-ups](./../implementation-status.md#prioritized-open-follow-ups).
 
 - Founder OS requires authentication.
 - Both founders receive identical permissions.
@@ -20,6 +22,8 @@
 - Provide a safe account-recovery method appropriate to the chosen identity system.
 
 ### 15.2 Public input controls
+
+**Current build:** only the 180-character order-note limit is enforced server-side. Other field length limits, input type and bounds checks, and order-creation rate limiting are not built. See the [prioritized follow-ups](./../implementation-status.md#prioritized-open-follow-ups).
 
 - Validate and length-limit all fields server-side.
 - Enforce the 180-character order-note limit both in the UI and server-side, counting Unicode characters consistently.

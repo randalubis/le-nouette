@@ -167,7 +167,7 @@ Only an authenticated active founder may generate the workbook. Generate it as a
 
 ### 17.2 Invoice PDF (Founder OS)
 
-**Implementation: 🚧 PARTIAL** — built, including edit, mark/undo paid and delete; browser audit at 390/1440 is done (0.19.0, 0.20.3) and reviewer passes 1 and 2 are done (fixes in 0.20.3); the invoice edit page PDF content is not checked, and migrations 0005 and 0006 are not yet on production. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — built, including edit, mark/undo paid and delete; browser audit at 390/1440 is done (0.19.0, 0.20.3) and reviewer passes 1 and 2 are done (fixes in 0.20.3); the invoice edit page PDF content is not checked, and migrations 0005 and 0006 are applied to production (verified 9 October 2026 via Supabase `list_migrations`). See [implementation-status.md](../implementation-status.md).
 
 - Number: `INV/YYYY/NNNN`, per-year sequence allocated from `invoice_counters` under advisory lock key 2. Numbers are never reused: deleting an invoice leaves a gap.
 - Edit: only while unpaid. Number, order link and created time stay; dates and lines are editable; totals are recomputed; company info is re-copied from Pengaturan only if the founder ticks the checkbox.
