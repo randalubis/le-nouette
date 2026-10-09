@@ -57,3 +57,7 @@
 ### 15.5 Auditability
 
 Every status transition, payment, inventory adjustment, availability override, pause/resume action, and reschedule records actor and timestamp.
+
+### 15.6 Reset-data tool guard (0.21.0)
+
+**Implementation: 🚧 PARTIAL.** `resetSeedAction` (`app/src/lib/domain/actions.ts`) wipes app data. On a non-local `DATABASE_URL` (host not localhost, 127.0.0.1 or ::1, per `app/src/lib/db/local-guard.ts`) it requires `RESET_TOOL_SECRET` to be set and equal to the submitted key, regardless of `NODE_ENV`. On a local database it still allows the reset when `NODE_ENV` is not production. The reset also deletes invoices and invoice counters; `company_settings` is kept. Residual, still open: the key is read from the `?key=` query string and compared with `===` (not constant time, not POSTed); see [prioritized follow-ups](../implementation-status.md#prioritized-open-follow-ups). The remote-DB branch has no automated test.

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import type { ItemId, ProductId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
+import { isLocalDb } from "@/lib/db/local-guard";
 import { requireFounder } from "@/lib/founder-session";
 import * as op from "./operations";
 
@@ -161,7 +162,9 @@ export async function setStoreStatusAction(status: op.State["storeStatus"]) {
 export async function resetSeedAction(key?: string) {
   await requireFounder();
   const secret = process.env.RESET_TOOL_SECRET;
-  const authorized = process.env.NODE_ENV !== "production" || (!!secret && key === secret);
+  // Remote (non-localhost) DB: secret + key required regardless of NODE_ENV, so dev tooling can never wipe production.
+  const local = isLocalDb(process.env.DATABASE_URL);
+  const authorized = local ? process.env.NODE_ENV !== "production" || (!!secret && key === secret) : !!secret && key === secret;
   if (!authorized) return { error: "Reset tidak diizinkan." };
   const { db } = await import("@/lib/db/client");
   const schema = await import("@/lib/db/schema");
@@ -174,6 +177,9 @@ export async function resetSeedAction(key?: string) {
     await tx.delete(schema.movements);
     await tx.delete(schema.auditEvents);
     await tx.delete(schema.calendarDates);
+    // Invoices carry a bare orderId (no FK); order ids restart after reset, so clear them and their counters too.
+    await tx.delete(schema.invoices);
+    await tx.delete(schema.invoiceCounters);
     await tx.update(schema.storeStatus).set({ status: "OPEN" });
   });
   revalidateAll();

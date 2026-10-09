@@ -1,4 +1,5 @@
 import { db } from "@/lib/db/client";
+import { assertLocalDb } from "@/lib/db/local-guard";
 import { diffAndWrite } from "@/lib/db/diff-and-write";
 import { loadState } from "@/lib/db/load-state";
 import * as op from "@/lib/domain/operations";
@@ -18,6 +19,7 @@ function seed(now: Date): op.State {
 }
 
 async function main() {
+  assertLocalDb(process.env.DATABASE_URL);
   const empty = await loadState(db);
   if (empty.orders.length > 0) {
     console.log("Database already has orders — skipping seed. Truncate first if you want a fresh seed.");
@@ -29,4 +31,4 @@ async function main() {
   console.log("Seeded.");
 }
 
-main().then(() => process.exit(0));
+main().then(() => process.exit(0), (e) => { console.error(e.message); process.exit(1); });

@@ -10,6 +10,8 @@ Domain logic lives in `app/src/lib/domain/`.
 
 E2E (`npm run e2e`) uses a local Postgres `le_nouette_e2e` only, never the production Supabase DB; see `docs/technical/dev-workflow.md` §8.
 
+Local dev uses the local database `le_nouette_dev` via `app/.env.development.local` (`npm run dev:db`; see `docs/technical/dev-workflow.md` §5). Never run tooling against `app/.env.local`, which is production.
+
 Run from `./app`: `npm run dev` · `npm test` · `npm run lint` · `npm run build`
 
 **Design system:** any new or changed Founder OS page, component or feature (`/founder`, `/login`, `app/src/components/ui/`, `founder.module.css`) must follow [`docs/technical/founder-os-design-system.md`](docs/technical/founder-os-design-system.md) — read it before writing UI, reuse its components and tokens (no hard-coded colors), and extend it in the same change if you introduce a new pattern.

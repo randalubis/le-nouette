@@ -3,6 +3,10 @@ import { test } from "node:test";
 import { createOrderAction } from "@/lib/domain/actions";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import * as op from "@/lib/domain/operations";
+import { assertLocalDb } from "@/lib/db/local-guard";
+
+// Writes real rows: fail loudly unless DATABASE_URL is local (npm run test:integration pins le_nouette_dev).
+assertLocalDb(process.env.DATABASE_URL);
 
 // Founder actions need a session cookie (unavailable outside a request), so call the
 // transaction + domain ops directly; createOrderAction is public and runs as-is.

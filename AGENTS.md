@@ -41,6 +41,7 @@ The reviewer's evidence comes from a real browser, not code alone. Kit lives in 
 - `node .claude/playwright/audit.js <outDir>` — 390 mobile + 1440 desktop, light + dark: load/LCP/CLS, contrast, tap targets, small text, overflow, console errors, screenshots.
 - `node .claude/playwright/flow.js <outDir>` — storefront cart to details step.
 - Read-only: never submit orders or press mutating founder buttons; the production-connected DB must not be written.
+- Local dev DB: `le_nouette_dev` via `app/.env.development.local` (`npm run dev:db`). Never run tooling against `app/.env.local` (production). E2E stays on `le_nouette_e2e`.
 - The Playwright MCP browser can be locked by a stale Chrome; the kit drives Chrome directly and avoids that.
 
 ## Design system (mandatory for Founder OS UI)

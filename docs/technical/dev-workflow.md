@@ -94,6 +94,7 @@ From `.claude/startup-check.sh`:
 | Playwright executable | module or Chrome not found | Set `PLAYWRIGHT_PATH`, `CHROME_PATH` if custom install |
 | Next.js bundled docs (1c) | `app/node_modules/next/dist/docs` missing | `cd app && npm install` (app/AGENTS.md requires reading Next docs before writing code) |
 | .env.local exists | Missing local database config | Create `app/.env.local` with `DATABASE_URL=...` |
+| .env.development.local (0.21.0) | Missing: `[warn]`, because `next dev` would fall back to `.env.local` (production). `[RED]` if its `DATABASE_URL` is missing or not local | Create it per §5.1 and run `npm run dev:db` |
 | Dev server info (1d) | Dev server status; does not fail | Run `npm run dev` from `app/` when needed |
 | Database reachable (1d) | Cannot connect to DATABASE_URL or store_status query fails | Check DATABASE_URL in `app/.env.local`, network, `node_modules` |
 | Store status (1d) | Database reachable; store status unknown, PAUSED, or other | `[warn]` if PAUSED (DB shared with production); check Founder OS > Kalender to reopen |
@@ -161,59 +162,53 @@ Always state the reason in the commit message or in a comment. The default is: *
 
 Founder OS (`/founder/*`) is gated by `app/src/proxy.ts` + `app/src/lib/founder-auth.ts`. For local dev, use environment variables — never commit real credentials.
 
-### 5.1 Dev server startup
+### 5.1 Dev server startup (local DB, 0.21.0)
+
+Local development uses the local Postgres database `le_nouette_dev`, set in `app/.env.development.local` (gitignored). `next dev` loads that file before `.env.local`, so the production value in `.env.local` is never used by `npm run dev`. The file also holds the throwaway founder login and a random session secret. Template: `app/.env.example`.
 
 ```bash
 cd app
-ADMIN_EMAIL=dev@test.local \
-ADMIN_PASSWORD=devpass \
-ADMIN_SESSION_SECRET=devsecret \
-npm run dev
+npm run dev:db      # create le_nouette_dev if missing, pgcrypto, apply drizzle/0*.sql, seed (idempotent)
+npm run dev         # http://localhost:3000/founder/
 ```
 
-Then browse `http://localhost:3000/founder/` and log in with `dev@test.local` / `devpass`.
+Log in at `http://localhost:3000/founder/login` with `dev@lenouette.local` / `dev-password` (values from `.env.development.local`).
 
-### 5.2 Why throwaway?
+### 5.2 Seed data and reset
 
-- **Local dev shares production Supabase** (see §6 below).
+- `npm run dev:db` is idempotent: it creates and seeds only when the database has no orders.
+- `npm run dev:db:reset` truncates the app tables and reseeds (`--reset` requires the database name `le_nouette_dev`).
+- Seed contents: 14 fake orders `LN-0001`..`LN-0014` covering every Pesanan card state, 3 invoices (one paid), company settings, low-stock rows, 5 ready-to-sell units and 2 calendar rows.
+- Known gap: the seed has only one unshipped delivery order, so bulk-select of two delivery cards cannot be tested yet (backlog, [implementation-status](../implementation-status.md#prioritized-open-follow-ups)).
+
+### 5.3 Why throwaway?
+
 - Throwaway credentials ensure you never accidentally use a real founder email in dev.
 - Session cookies are HMAC-signed but httpOnly and single-device only.
-
-### 5.3 Change credentials between sessions
-
-Use different throwaway values (e.g., `audit@test.local` for reviewer runs, `dev@test.local` for engineer runs) to keep sessions isolated and avoid confusion.
+- Use different throwaway values for different runs if you need isolated sessions (for example the Playwright kit, §2.1).
 
 ---
 
-## 6. Shared-database warning
+## 6. Production database and local guard
 
-**CRITICAL:** Local dev writes to the same Supabase project as production. There is no separate local database replica.
+`.env.local` points to the production Supabase project `xvbloiuwedrpcrjjusky` (ap-southeast-1). It is shared with the live app. There is no separate production-like replica.
 
-### 6.1 What this means
+### 6.1 Rules (0.21.0)
 
-When you run `npm run dev` from `app/`:
-- `DATABASE_URL` in `.env.local` points to Supabase project `xvbloiuwedrpcrjjusky` (ap-southeast-1).
-- **Any mutation** (order creation, payment record, stock receipt, reschedule, etc.) goes straight to the live database.
-- Tests that call domain actions (e.g., `createOrder`) must **never run against this dev DB**.
+- **Never run tooling against `.env.local`.** Local dev, `db:seed`, `test:integration` and the dev seed all use `le_nouette_dev`. `db:seed` and `test:integration` pin `DATABASE_URL` in `package.json` and do not load `.env.local`.
+- **Local dev uses `.env.development.local`**, which `next dev` loads ahead of `.env.local`. Without that file, `npm run dev` falls back to production. `startup-check.sh` warns in that case (§3.1).
+- **Host guard:** `app/src/lib/db/local-guard.ts` (`isLocalDb` / `assertLocalDb`) accepts only `localhost`, `127.0.0.1` or `::1`. It is used by the dev seed, `db:seed` and the integration test. It never echoes the URL.
+- **Reset tool:** `resetSeedAction` on a non-local database requires `RESET_TOOL_SECRET` to be set and to match, regardless of `NODE_ENV`. The reset also deletes invoices and invoice counters. `company_settings` is kept on purpose. See [security §15.6](./security.md#156-reset-data-tool-guard-0210).
+- The `startup-check.sh` store-status query reads `.env.local` (production) by design. It is read-only.
 
 ### 6.2 Protecting production
 
-**Never run the test suite against the dev database:**
-
-```bash
-# ✗ WRONG: writes test data to production
-cd app && npm test
-
-# If tests need a DB, use a local Supabase instance (not yet configured in this repo).
-```
-
-The current test setup (`app/src/lib/domain/domain.test.ts`) uses in-memory mocks; it does not hit the database. Respect this boundary.
+Do not run any tooling against `.env.local`. Unit tests (`npm test`) use in-memory mocks and do not hit a database.
 
 ### 6.3 If you need persistent test data
 
-- Create it manually via the Founder OS UI (use throwaway credentials).
-- Inspect via `npm run dev` and manually verify logic.
-- Clean up before handing off to reviewer or merging.
+- Use `npm run dev:db` or `npm run dev:db:reset` (local only), then the Founder OS UI with the throwaway login.
+- Clean up before handing off to reviewer or merging. The integration test leaves one cancelled "Integration Test" order behind; run `npm run dev:db:reset` after it.
 - **Do not commit schema changes or DDL statements without understanding their production impact.**
 
 ---
@@ -226,8 +221,8 @@ From the `app/` directory:
 # Unit tests (in-memory domain + export logic; no database)
 npm test
 
-# Integration tests (loads/writes to DATABASE_URL from .env.local, which is the shared production DB).
-# Do NOT run until a local-DB env file exists; no host guard yet. See implementation-status prioritized follow-ups.
+# Integration tests: pinned to le_nouette_dev (local only); refuses a non-local DATABASE_URL.
+# Needs `npm run dev:db` first. Two tests. Leaves one cancelled "Integration Test" order (run dev:db:reset after).
 npm run test:integration
 
 # Linter and build check
@@ -235,7 +230,7 @@ npm run lint
 npm run build
 ```
 
-Integration tests run with Node's `--conditions=react-server` flag so that `server-only` imports resolve. The dev database is shared with production — do not run integration tests against it.
+Integration tests run with Node's `--conditions=react-server` flag so that `server-only` imports resolve. A preload (`scripts/stub-next-cache.cjs`) stubs `next/cache` and `next/navigation` for this test only, which fixes the earlier `React.createContext` failure under `tsx`.
 
 ---
 

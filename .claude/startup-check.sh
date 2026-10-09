@@ -38,6 +38,16 @@ pw="${PLAYWRIGHT_PATH:-/Users/randalubis/.npm/_npx/9833c18b2d85bc59/node_modules
 [ -d "$pw" ] || bad "Playwright module not found at $pw (set PLAYWRIGHT_PATH; kit needs it)"
 [ -x "${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}" ] || bad "Chrome not found for Playwright kit (set CHROME_PATH)"
 [ -f app/.env.local ] || bad "app/.env.local missing (DATABASE_URL etc.)"
+# Local dev must not use the production DB: next dev prefers .env.development.local over .env.local. Never prints values.
+devenv=app/.env.development.local
+if [ ! -f "$devenv" ]; then add "[warn] $devenv missing: next dev would use .env.local (PRODUCTION DB). Create it with DATABASE_URL=postgres://localhost:5432/le_nouette_dev (see app/.env.example, then npm run dev:db)"
+else
+  devurl=$(grep -E '^DATABASE_URL=' "$devenv" | head -1 | cut -d= -f2- | tr -d "\"'")
+  case "$devurl" in
+    postgres://localhost[:/]*|postgresql://localhost[:/]*|postgres://127.0.0.1[:/]*|postgresql://127.0.0.1[:/]*|postgres://\[::1\]*|postgresql://\[::1\]*) add "[ok] app/.env.development.local points at a local database";;
+    *) bad "app/.env.development.local DATABASE_URL is missing or NOT local: next dev could write to production. Point it at postgres://localhost:5432/le_nouette_dev";;
+  esac
+fi
 
 
 # 1b. Plugin LOAD check: installed, install dir present, and it actually ships skills/hooks/MCP/commands
