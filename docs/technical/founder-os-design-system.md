@@ -6,7 +6,7 @@
 
 Scope: the Founder OS back office and the founder login. The public storefront keeps its own wine palette and is **not** covered here.
 
-Provenance: designed in the "Founder OS Redesign" Design canvas (Palette C "Cool Slate"), built in phases 1 to 4 (changelog 0.17.0 to 0.20.0) and refined by the reviewer pass (0.20.1). Where this file and the code disagree, the code in `app/src/components/founder.module.css` wins, then fix this file.
+Provenance: designed in the "Founder OS Redesign" Design canvas (Palette C "Cool Slate"), built in phases 1 to 4 (changelog 0.17.0 to 0.20.0) and refined by the reviewer passes (0.20.1), then by reviewer pass 1 and pass 2 with fixes made after pass 2 and verified without a third pass (0.20.3). Where this file and the code disagree, the code in `app/src/components/founder.module.css` wins, then fix this file.
 
 ## 1. Principles
 
@@ -80,14 +80,14 @@ Rules:
 
 ## 6. Layout and responsive rules
 
-- **Breakpoints:** 900px (shell switches), 560px (single-column and denser cards), 360px (very small tweaks).
+- **Breakpoints:** 900px (shell switches; invoice list switches to card layout), 560px (single-column and denser cards), 360px (very small tweaks). Pengaturan contact fields go to one column at 600px.
 - **Desktop (above 900px):** left sidebar 248px (slate, sage active bar, user card at the bottom), sticky topbar 76px, content grid.
 - **Mobile (900px and below):** sidebar hidden, fixed bottom nav of 6 items (active item gets a chip behind the icon), topbar is title plus avatar only. Secondary actions (export, Pengaturan, logout) live in the avatar menu.
 - Metric grids: `repeat(auto-fit, minmax(170px, 1fr))`; two columns on mobile, with hero and alert tiles spanning the full width (`[data-variant="hero"]`, `[data-alert]`).
 - Dashboard: two columns on desktop (main panel `1.2fr`, side panel `.8fr`), one column on mobile. The next-action panel comes first in the DOM.
 - Cards that list items use `auto-fill` grids (`minmax(290px, 1fr)`), never fixed column counts.
 - Fixed or sticky bars must fit 320px, must not cover the primary control, and must be hidden when there is nothing to act on.
-- No horizontal page scroll at 320px. Wide tables become stacked cards under 600px (see `invoice.module.css` `.list`).
+- No horizontal page scroll at 320px. Wide tables become stacked cards up to 900px (the invoice list; see `invoice.module.css` `.list`, card layout from 900px down, table from 901px up).
 
 ## 7. Components
 
@@ -104,6 +104,8 @@ Reuse before you build. If a pattern appears twice, add it here and to `componen
 - Disabled buttons use the solid dashed `button.btn:disabled` style, **not opacity**.
 - **State-dependent primary:** the primary button is the step that unblocks the order. Example: a ready-for-handover order that is unpaid leads with "Tandai Lunas"; "Tandai Dikirim" / "Tandai Selesai" become quiet until it is paid. Keep button labels stable; change emphasis, not wording.
 - Destructive actions are never the primary button, are text or quiet style, sit at the end of the row, and always confirm inline before acting.
+- **Invoice row actions (`invoice-row-actions.tsx`):** "Tandai Lunas" is the single primary on an unpaid invoice. Unduh and Edit share a compact row; Hapus is quiet at the end. Desktop table buttons (901px and up) are 36px high in one row. Card layout (900px and below) uses 44px.
+- **Locked actions:** when an action is blocked (for example Edit and Hapus on a paid invoice), disable the buttons, show a lock icon with the text "Terkunci", put the reason in a `title`, and link the reason to the buttons with visually hidden text and `aria-describedby`.
 
 ### 7.2 Status chips
 
@@ -152,7 +154,8 @@ Seven-column grid, 44px day buttons, 12px radius. States: **closed** (filled pri
 - Stepper: pill steps (44px high), current step filled primary, horizontally scrollable on mobile.
 - Line groups: bordered fieldset, 18px radius. Summary and totals: canvas background, tabular numbers, bold grand total.
 - Messages: `.error` (danger tokens) and `.ok` (safe tokens), inline, 14px bold.
-- Tables: wrapped in a bordered rounded container, header on `--sunken`, last column right-aligned, numbers tabular. Under 600px render rows as cards.
+- Tables: wrapped in a bordered rounded container, header on `--sunken`, last column right-aligned, numbers tabular. Up to 900px render rows as cards (invoice list).
+- Checkboxes use the `.check` pattern (`invoice.module.css`): the label gets `.check`, and holds a real `<input type="checkbox">` plus an `aria-hidden="true"` `<span class="box">`. The input is stretched over the whole row (at least 44px) at `opacity: 0`, and `.box` draws the 22px control. The `.box` span is required next to the input wherever `.check` is used; without it the checkbox is invisible. Used for "Hapus logo" and the wizard "Perbarui info perusahaan".
 - Native date and file inputs are accepted as-is, but style the file button (`::file-selector-button`).
 
 ### 7.12 Alerts and banners
@@ -169,7 +172,7 @@ Phosphor icons (`@phosphor-icons/react`), 13 to 18px inline, 22 to 24px in nav. 
 
 ## 8. Interaction and accessibility baseline
 
-- Tap targets at least 44 by 44px (including text links and `<summary>`).
+- Tap targets at least 44 by 44px (including text links and `<summary>`). Exception: desktop invoice table row buttons (901px and up) are 36px high; the 44px rule applies to the card layout (900px and below).
 - Every input has a label or `aria-label`. Every button or link has a name.
 - Focus is visible; do not remove outlines.
 - Confirm destructive or stock-affecting actions (`window.confirm` is the current pattern for packing and dispatch; delete uses an inline confirm).
@@ -197,7 +200,7 @@ Phosphor icons (`@phosphor-icons/react`), 13 to 18px inline, 22 to 24px in nav. 
 5. All controls at least 44px; text at least 12px; contrast passes in both modes.
 6. Loading, empty, error and done states exist.
 7. Money, quantity and date formatting use the shared helpers.
-8. Run the Playwright audit (`.claude/playwright/audit.js`) and fix every flag on Founder pages.
+8. Run the Playwright audit (`.claude/playwright/audit.js`) and fix every flag on Founder pages. The audit covers home, orders, stock, availability, finance, invoices, invoices/new, the first invoice's edit page (if any) and settings, at 390 and 1440, light and dark, plus login. Run `npm run build` after any CSS edit: a stray brace can pass dev and e2e and still fail the build.
 9. Docs persona updates `docs/implementation-status.md`, the changelog and this file if a pattern was added or changed.
 
 ## 11. Known open items
@@ -206,3 +209,10 @@ Phosphor icons (`@phosphor-icons/react`), 13 to 18px inline, 22 to 24px in nav. 
 - Native date and file pickers keep the browser's language and look.
 - The invoice list status chip on mobile makes its row slightly taller than needed.
 - Class and token names keep the historical `wine` prefix for the primary color; renaming would also touch the storefront.
+- Keuangan on mobile looks sparse with Rp0 test data; judge it with real data.
+- Pengaturan on desktop leaves an empty strip at the right of the form.
+- The "4. Pratinjau" step pill in the invoice wizard is tight at 390px.
+- Sidebar hover and active colors are literal `rgba` values; they should become tokens.
+- The `--alert-*` and `--danger-*` token families overlap; pick one canonical family.
+- Not viewed by the reviewer: dark theme of the invoice list, Pengaturan and Kalender, and wizard desktop steps 1, 2 and 4.
+- Invoice edit page PDF content is not rendered or checked.

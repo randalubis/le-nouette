@@ -51,6 +51,8 @@ node .claude/playwright/flow.js /tmp/audit-out
 - Overflow, scroll-jank, console errors.
 - Writes `result.json` (metrics + failures) and `shots/` directory (screenshots).
 
+**Pages audited** (as of 0.20.3): home, orders, stock, availability, finance, invoices, invoices/new, first invoice's edit page (if any), settings, and login. Founder pages need the `ADMIN_*` env vars (see §2.1).
+
 **flow.js** — storefront add-to-cart → details step (never submits, read-only).
 
 ### 2.3 Read-only constraint

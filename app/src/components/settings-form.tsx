@@ -24,7 +24,7 @@ export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: str
     <section className={styles.panel}>
       <form action={submit} className={s.form}>
         {f("name", "Nama perusahaan")}
-        <div className={s.row}>{f("phone", "Telepon", false, undefined, "[nomor telepon]")}{f("email", "Email", false, undefined, "[email]")}{f("instagram", "Instagram", false, undefined, "[akun Instagram]")}</div>
+        <div className={s.contactRow}>{f("phone", "Telepon", false, undefined, "[nomor telepon]")}{f("email", "Email", false, undefined, "[email]")}{f("instagram", "Instagram", false, undefined, "[akun Instagram]")}</div>
         {f("address", "Alamat", true, undefined, "[alamat lengkap]")}
         {f("paymentInfo", "Informasi pembayaran", true, "Contoh: nama bank, nomor rekening, atas nama.", "[bank, nomor rekening, atas nama]")}
         {f("footerNote", "Catatan / promo default", true)}
@@ -36,7 +36,7 @@ export function SettingsForm({ initial, logoSrc }: { initial: Text; logoSrc: str
             <input type="file" name="logo" accept="image/png,image/jpeg" />
           </span>
         </label>
-        {logoSrc && <label className={`${s.field} ${s.check}`}><input type="checkbox" name="removeLogo" />Hapus logo</label>}
+        {logoSrc && <label className={`${s.field} ${s.check}`}><input type="checkbox" name="removeLogo" /><span className={s.box} aria-hidden="true" />Hapus logo</label>}
         {msg && <p role="alert" className={msg.ok ? s.ok : s.error}>{msg.text}</p>}
         <button className="btn btn-primary" disabled={pending}>{pending ? "Menyimpan..." : "Simpan"}</button>
       </form>

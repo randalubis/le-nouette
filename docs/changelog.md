@@ -4,6 +4,21 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.20.3 — 9 October 2026
+
+- **Founder OS redesign reviewer pass on phases 2 to 4, and fixes:** Reviewer pass 1 scored 7.5/10; pass 2 scored 6/10 and found regressions. The fixes below were made after pass 2 and verified by engineer measurements and screenshots only; no third reviewer pass was run.
+  - **F1 Invoice list (mobile and desktop):** on mobile/card layout, "Tandai Lunas" is the single primary action, Unduh and Edit share a compact row and Hapus is quiet at the end (`invoice-row-actions.tsx`, `invoice.module.css`). The card layout now applies up to 900px (was 600px) so the Aksi column is never clipped at 700 to 900px. Desktop table (901px and up) buttons are a compact 36px in one row; 44px applies only in the card layout.
+  - **F2 Pengaturan contact fields:** `.contactRow` shows 3 columns on desktop and 1 column at 600px and below.
+  - **F3 Checkboxes:** "Hapus logo" (Pengaturan) and the wizard "Perbarui info perusahaan" checkbox use the custom `.check` pattern: the real input is stretched over a row of at least 44px at opacity 0, and an `aria-hidden` `.box` span draws the 22px box. The `.box` span is required next to the input wherever `.check` is used.
+  - **F4 Kalender "Tutup tanggal" form:** widths of `.closeField` and `.closeBtn` corrected (`founder.module.css`).
+  - **F5 Locked invoice hint:** a lock icon with "Terkunci"; the hint has a `title` and visually hidden text linked to the disabled Edit and Hapus buttons via `aria-describedby`.
+  - **F6 Wizard step pills:** on mobile they show "n. Name" with an `aria-label`.
+  - **F9 Playwright audit:** `.claude/playwright/audit.js` now also visits invoices, invoices/new, invoice edit and settings; `.claude/playwright/README.md` updated.
+  - **Build lesson:** a stray `}` in CSS passed dev and e2e but failed `npm run build`. Always run `npm run build` after CSS edits.
+  - **Verified:** `tsc`, lint, `npm test` (74 passing), `npm run build`, `npm run e2e` 26/26 on local `le_nouette_e2e`.
+  - **Still open (not fixed):** stock and history timestamps use the raw id-ID format; Keuangan on mobile looks sparse with Rp0 test data (judge with real data); Pengaturan desktop form leaves an empty strip at the right; the "4. Pratinjau" step pill is tight at 390px; dark theme of invoice list, Pengaturan and Kalender, and wizard desktop steps 1, 2 and 4, were not viewed by the reviewer; sidebar hover and active `rgba` values should become tokens; the `--alert-*` and `--danger-*` token families overlap (one canonical family should be chosen); invoice edit page PDF content not rendered or checked.
+  - **Design system:** [founder-os-design-system.md](./technical/founder-os-design-system.md) gains the `.check`/`.box` pattern, the 900px invoice card layout and the audit page coverage.
+
 ### 0.20.2 — 9 October 2026
 
 - **Founder OS Design System documented:** new `docs/technical/founder-os-design-system.md` captures the Cool Slate tokens (light and dark), typography, shape and spacing, responsive rules, every shared component and pattern, accessibility baseline, per-screen hierarchy and a new-page checklist. `CLAUDE.md`, `AGENTS.md` (new "Design system" section), the engineer, designer and reviewer agent files, `ui-requirements.md` and the technical spec hub now require developers to read it before building any Founder page or feature. Documentation only; no code change.

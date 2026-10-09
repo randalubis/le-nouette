@@ -296,9 +296,9 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
             </>
           }
         >
-          <input className={styles.search} type="date" min={today()} aria-label="Tanggal" value={date} onChange={(event) => setDate(event.target.value)} />
-          <select className={styles.search} aria-label="Jenis" value={status} onChange={(event) => setStatus(event.target.value as DateStatus)}><option value="HOLIDAY">Libur nasional</option><option value="UNAVAILABLE">Tidak tersedia</option></select>
-          {affected.length === 0 && <button className={`btn btn-primary ${styles.noGrow}`} disabled={!date} onClick={block}>Tutup tanggal</button>}
+          <input className={`${styles.search} ${styles.closeField}`} type="date" min={today()} aria-label="Tanggal" value={date} onChange={(event) => setDate(event.target.value)} />
+          <select className={`${styles.search} ${styles.closeField}`} aria-label="Jenis" value={status} onChange={(event) => setStatus(event.target.value as DateStatus)}><option value="HOLIDAY">Libur nasional</option><option value="UNAVAILABLE">Tidak tersedia</option></select>
+          {affected.length === 0 && <button className={`btn btn-primary ${styles.closeBtn}`} disabled={!date} onClick={block}>Tutup tanggal</button>}
         </ActionCard>
       </div>
       </div>

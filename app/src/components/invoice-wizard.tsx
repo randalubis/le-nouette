@@ -76,7 +76,7 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes, inv
 
   return (
     <section className={styles.panel}>
-      <ol className={s.steps} aria-label="Langkah">{stepNames.map((name, i) => <li key={name} aria-current={i === step ? "step" : undefined}>{i + 1}<span className={s.stepName}>. {name}</span></li>)}</ol>
+      <ol className={s.steps} aria-label="Langkah">{stepNames.map((name, i) => <li key={name} aria-label={`Langkah ${i + 1}: ${name}`} aria-current={i === step ? "step" : undefined}>{i + 1}<span className={s.stepName}>. {name}</span></li>)}</ol>
       <div className={s.form}>
         {step === 0 && <>
           {invoice ? <p className={s.summary}>Invoice <strong>{invoice.number}</strong>{invoice.orderId ? ` · Pesanan ${invoice.orderId}` : ""}</p> : <label className={s.field}>Dari pesanan (opsional)
@@ -122,7 +122,7 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes, inv
             <label className={s.field}>Tgl. jatuh tempo<input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value || issuedAt)} style={{ minWidth: 0 }} /></label>
           </div>
           <label className={s.field}>Keterangan / promo<textarea value={notes} onChange={(e) => setNotes(e.target.value)} /><small>Informasi pembayaran diambil dari halaman Pengaturan.</small></label>
-          {invoice && <label className={`${s.field} ${s.check}`}><input type="checkbox" checked={refreshCompany} onChange={(e) => setRefreshCompany(e.target.checked)} />Perbarui info perusahaan dari Pengaturan</label>}
+          {invoice && <label className={`${s.field} ${s.check}`}><input type="checkbox" checked={refreshCompany} onChange={(e) => setRefreshCompany(e.target.checked)} /><span className={s.box} aria-hidden="true" />Perbarui info perusahaan dari Pengaturan</label>}
         </>}
         {step === 3 && <>
           <p className={s.summary}><strong>{buyer.name}</strong>{buyer.phone ? ` · ${buyer.phone}` : ""}<br />{formatInvoiceDate(issuedAt)} · jatuh tempo {formatInvoiceDate(dueDate)}</p>

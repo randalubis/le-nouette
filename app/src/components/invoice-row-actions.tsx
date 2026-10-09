@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Lock } from "@phosphor-icons/react";
 import { deleteInvoiceAction, markInvoicePaidAction, undoInvoicePaidAction } from "@/lib/domain/invoice-actions";
 import { rupiah } from "@/lib/domain/invoice";
 import type { PaymentMethod } from "@/lib/domain/operations";
@@ -35,6 +36,9 @@ export function InvoiceRowActions({ id, number, total, paid, order, orderPayment
   useEffect(() => { if (mode) ref.current?.scrollIntoView({ block: "center", behavior: "smooth" }); }, [mode]);
   const blocked = !!error && mode === "undo"; // undo rejected (e.g. dispatched): retrying is pointless
 
+  const lockId = `lock-${id}`;
+  const lockText = "Invoice lunas terkunci; batalkan lunas untuk mengedit atau menghapus.";
+
   if (mode) return (
     <div ref={ref} className={s.confirm} role="group" aria-label={`Konfirmasi ${number}`}>
       {mode === "pay" && <>
@@ -62,15 +66,15 @@ export function InvoiceRowActions({ id, number, total, paid, order, orderPayment
     <div className={s.actions}>
       <a className={s.act} href={`/founder/invoices/${id}/pdf`} target="_blank" rel="noopener noreferrer">Unduh</a>
       {paid ? <>
-        <button type="button" className={s.act} disabled>Edit</button>
-        <button type="button" className={`${s.act} ${s.danger}`} disabled>Hapus</button>
-        <button type="button" className="btn btn-quiet" onClick={() => open("undo")}>Batalkan Lunas</button>
-        <small className={s.hint}>Invoice lunas terkunci; batalkan lunas untuk mengedit atau menghapus.</small>
+        <button type="button" className={s.act} disabled aria-describedby={lockId}>Edit</button>
+        <button type="button" className={`${s.act} ${s.danger}`} disabled aria-describedby={lockId}>Hapus</button>
+        <button type="button" className={`btn btn-quiet ${s.lead}`} onClick={() => open("undo")}>Batalkan Lunas</button>
+        <span className={s.lock} title={lockText}><Lock size={14} aria-hidden="true" />Terkunci<span id={lockId} className={s.sr}>{lockText}</span></span>
       </> : <>
         <Link className={s.act} href={`/founder/invoices/${id}/edit`}>Edit</Link>
         <button type="button" className={`${s.act} ${s.danger}`} onClick={() => open("delete")}>Hapus</button>
-        {!cancelled && <button type="button" className="btn btn-quiet" onClick={() => open("pay")}>Tandai Lunas</button>}
-        {cancelled && <small className={s.hint}>Pesanan {order!.id} dibatalkan; tidak bisa ditandai lunas.</small>}
+        {!cancelled && <button type="button" className={`btn btn-primary ${s.lead}`} onClick={() => open("pay")}>Tandai Lunas</button>}
+        {cancelled && <small className={s.hint} title={`Pesanan ${order!.id} dibatalkan; tidak bisa ditandai lunas.`}>Pesanan dibatalkan</small>}
         {!cancelled && order?.paid && <small className={s.hint}>Pesanan sudah lunas</small>}
       </>}
     </div>

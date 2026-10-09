@@ -33,6 +33,11 @@ const analyze = () => {
       await page.fill('input[name=email]','audit@test.local'); await page.fill('input[name=password]','auditpass'); await Promise.all([page.waitForURL(/founder/,{timeout:20000}).catch(()=>{}),page.click('button[type=submit]')]);
       await page.waitForTimeout(1500);
       for (const p of ['','/orders','/stock','/availability','/finance']) await visit('f'+(p.replace('/','-')||'-home'),'/founder'+p);
+      await visit('f-invoices','/founder/invoices');
+      const edit=await page.evaluate(()=>{const a=[...document.querySelectorAll('a')].map(x=>x.getAttribute('href')||'').find(h=>/^\/founder\/invoices\/[^/]+\/edit$/.test(h));return a||null});
+      await visit('f-invoices-new','/founder/invoices/new');
+      if(edit) await visit('f-invoices-edit',edit); else console.warn('no invoice edit link found; skipping edit page');
+      await visit('f-settings','/founder/settings');
       await ctx.close();
     }
   }
