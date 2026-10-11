@@ -42,7 +42,7 @@ test("login, board, WhatsApp link, mark paid, export, logout", async ({ page }) 
   expect(msg).toContain("Halo Budi, ini Le Nouette.");
   expect(msg).toContain(`Pesanan *${orderId}*`);
   expect(msg).toContain("• 1 × Milieu");
-  expect(msg).toContain("Pengambilan di Kantor Mandiri.");
+  expect(msg).toContain("Pengambilan: kami kirim lokasinya lewat chat ini.");
 
   await card.getByRole("button", { name: "Tandai Lunas" }).click();
   await card.getByRole("button", { name: "Transfer" }).click();
@@ -161,5 +161,12 @@ test("delivery order: tracking timeline follows packing and dispatch", async ({ 
   await expect(page.getByText("Siap dikirim", { exact: true })).toBeVisible();
   await expect(list.locator('[aria-current="step"]')).toContainText("Dikemas");
 
-  // ponytail: dispatch is blocked until the ready date, so "Sedang diantar" is covered by domain tests, not e2e.
+  // Dispatch works regardless of ready date: early dispatch shows a native confirm (accepted by the dialog handler above).
+  await page.goto("/founder/orders?tab=READY_FOR_HANDOVER");
+  await page.locator("article").filter({ hasText: id }).getByRole("button", { name: "Tandai Dikirim" }).click();
+  await expect(page.locator("article").filter({ hasText: id }).getByText("Dikirim", { exact: true })).toBeVisible();
+
+  await page.goto("/");
+  await track();
+  await expect(list.locator('[aria-current="step"]')).toContainText("Sedang diantar");
 });

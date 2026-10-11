@@ -88,8 +88,8 @@ No date gate applies. Batch completion later consumes only the remaining `NEEDS_
 
 ### 9.5 Handover and external dispatch
 
-- For Mandiri and BI pickup, a founder explicitly marks the handed-over order `COMPLETED`, sets `completed_at`, and does not automatically mark it paid. If unpaid, surface it in receivables immediately. Completing an unpaid order (pickup or delivery) is allowed with no payment check; it audits `ORDER_COMPLETED:UNPAID`, and the remainder counts as receivable until `recordPayment` settles it.
-- For external delivery, `current_ready_date` is the planned dispatch date. The dispatch command must verify that the order is `READY_FOR_HANDOVER`, the local date in `Asia/Jakarta` is on or after `current_ready_date`, and (unless the caller sets `allowUnpaid`, see §11.4) `payment_status = PAID` in the same transaction before setting `dispatched_at`. An unpaid dispatch audits `ORDER_DISPATCHED:UNPAID`; bulk dispatch audits `ORDERS_DISPATCHED:UNPAID=<ids>` when any selected order is unpaid.
+- For pickup, a founder explicitly marks the handed-over order `COMPLETED`, sets `completed_at`, and does not automatically mark it paid. If unpaid, surface it in receivables immediately. Completing an unpaid order (pickup or delivery) is allowed with no payment check; it audits `ORDER_COMPLETED:UNPAID`, and the remainder counts as receivable until `recordPayment` settles it.
+- For external delivery, `current_ready_date` is the planned dispatch date. The dispatch command must verify that the order is `READY_FOR_HANDOVER`, the local date in `Asia/Jakarta` is on or after `current_ready_date` unless the caller sets `allowEarly` (0.24.0, see §11.4; `current_ready_date` is never changed by dispatch), and (unless the caller sets `allowUnpaid`, see §11.4) `payment_status = PAID` in the same transaction before setting `dispatched_at`. Audit suffixes compose in this order: `ORDER_DISPATCHED[:UNPAID][:EARLY]`; bulk dispatch audits `ORDERS_DISPATCHED[:UNPAID=<ids>][:EARLY=<ids>]`, listing only the orders that were unpaid or early.
 - V1 promises the dispatch date, not a dispatch time. Courier booking and handoff remain manual founder operations.
 - Courier handoff does not itself change payment status. A founder marks the order `COMPLETED` after delivery is confirmed.
 - Do not add a fourth Kanban column for dispatch in V1; show a dispatched indicator on the existing ready-order card until completion.
@@ -236,9 +236,10 @@ Never edit or delete a confirmed payment. Add a reversal/refund record linked to
 - External-delivery orders may be packed and become `READY_FOR_HANDOVER` while unpaid.
 - Dispatch of an unpaid order is confirm-based: the UI shows the remaining amount and that it becomes a receivable, and only then submits with `allowUnpaid = true`. The dispatch action stays enabled while unpaid.
 - The server enforces the gate through the flag: `dispatchOrder` and `dispatchOrders` reject an unpaid order unless `allowUnpaid` is `true`, with "Pengiriman perlu lunas terlebih dahulu.". The server cannot verify that the UI confirm happened; only the flag is checked. Only an explicit `true` counts.
-- Bulk dispatch is atomic: all selected orders are validated before any change. `allowUnpaid` bypasses only the payment check; pickup, not-ready, already-dispatched and date checks still apply to every order.
-- This gate does not apply to Mandiri or BI office pickup.
-- Satisfying the payment gate does not permit dispatch before `current_ready_date` or before packing completion.
+- Bulk dispatch is atomic: all selected orders are validated before any change. `allowUnpaid` bypasses only the payment check; pickup, not-ready and already-dispatched checks still apply to every order, and the date check applies unless `allowEarly` is set.
+- This gate does not apply to pickup.
+- Satisfying the payment gate does not permit dispatch before `current_ready_date` without `allowEarly` (`allowUnpaid` never bypasses the date) or before packing completion.
+- **Early dispatch (0.24.0, owner request; revises the earlier date-only rule in [fulfillment-scheduling §7.1](../product/fulfillment-scheduling.md#71-base-weekday-rule)):** `dispatchOrder` and `dispatchOrders` reject a delivery order dated after today (Asia/Jakarta) with "Pengiriman dijadwalkan <tanggal>." unless `allowEarly` is `true`. The UI shows one confirm ("Jadwal kirim <tanggal>. Kirim sekarang lebih awal?"; bulk: one confirm for the set, merged with the unpaid count) and only then submits with `allowEarly = true`. The server cannot verify the confirm; only the flag is checked. `allowEarly` is separate from `allowUnpaid`, and packing and pickup rules are unchanged. `current_ready_date` is not rewritten, so the original promise stays visible.
 
 ---
 

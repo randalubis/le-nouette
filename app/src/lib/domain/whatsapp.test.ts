@@ -23,7 +23,7 @@ test("waMessage content per kind", () => {
   assert.match(waMessage("confirmation", order), /3 × Cheese Stick/);
   assert.match(waMessage("confirmation", order), /transfer, QRIS/);
   assert.match(waMessage("ready", order), /antar/);
-  assert.match(waMessage("ready", { ...order, fulfillment: "PICKUP_BI" }), /diambil/);
+  assert.match(waMessage("ready", { ...order, fulfillment: "PICKUP" }), /diambil/);
   assert.match(waMessage("rescheduled", order), /Senin, 5 Oktober/);
 });
 
@@ -48,7 +48,7 @@ test("payment-aware lines, place and blank name", () => {
   const pay = (amount: number) => ({ ...order, payments: [{ id: "p", amount, method: "CASH", at: "x" }] }) as unknown as Order;
   assert.match(waMessage("confirmation", order), /Kabari kami/);
   assert.match(waMessage("confirmation", order), /antar ke Jl\. Mawar 1/);
-  assert.match(waMessage("confirmation", { ...order, fulfillment: "PICKUP_BI" }), /Kantor BI/);
+  assert.match(waMessage("confirmation", { ...order, fulfillment: "PICKUP" }), /kami kirim lokasinya lewat chat ini/);
   assert.doesNotMatch(waMessage("confirmation", pay(75000)), /Kabari kami/);
   assert.match(waMessage("confirmation", pay(75000)), /sudah kami terima/);
   assert.match(waMessage("ready", pay(25000)), /Sisa pembayaran Rp50\.000/);

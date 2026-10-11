@@ -44,9 +44,10 @@
 
 Canonical fulfillment options:
 
-1. **Ambil di Kantor — Mandiri** · Gratis
-2. **Ambil di Kantor — BI** · Gratis
-3. **Kirim ke Alamat Saya** · Ongkir dibayar oleh pembeli
+1. **Ambil sendiri** · Gratis — hint: "Gratis, lokasi kami konfirmasi lewat WhatsApp"
+2. **Kirim ke Alamat Saya** · Ongkir dibayar oleh pembeli
+
+**Implementation: ✅ BUILT** (0.23.0) — Two options only (`PICKUP` | `DELIVERY`); the Mandiri and BI pickup options were merged. The pickup location is not named on the storefront; the founder confirms it over WhatsApp (WhatsApp pickup line: "Pengambilan: kami kirim lokasinya lewat chat ini."). Legacy values are migrated by `app/drizzle/0007_pickup_single.sql` (see [data-model](../technical/data-model.md)).
 
 Fields:
 
@@ -107,8 +108,7 @@ Show:
 |---|---|
 | Continue | Lanjutkan |
 | How would you like to receive your order? | Bagaimana kamu ingin menerima pesanan? |
-| Pick up at the office — Mandiri | Ambil di Kantor — Mandiri |
-| Pick up at the office — BI | Ambil di Kantor — BI |
+| Pick up (location confirmed over WhatsApp) | Ambil sendiri |
 | Deliver to my address | Kirim ke Alamat Saya |
 | Delivery fee paid by buyer | Ongkir dibayar oleh pembeli |
 | Name | Nama |

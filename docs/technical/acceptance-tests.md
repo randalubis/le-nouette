@@ -19,7 +19,7 @@
 9. A founder-entered Indonesian national holiday is unavailable by default.
 10. A founder can add multiple holiday dates in one initial batch.
 11. Editing or removing a holiday with affected confirmed orders invokes the explicit resolution workflow.
-12. Adding a future holiday leaves the store open and moves new orders past the blocked date; only an explicit Pause Orders command rejects new orders. Mandiri and BI return the same date-validity result from this shared calendar.
+12. Adding a future holiday leaves the store open and moves new orders past the blocked date; only an explicit Pause Orders command rejects new orders. Pickup returns the same date-validity result from this shared calendar.
 
 ### 19.2 Ordering and reservations
 
@@ -63,10 +63,12 @@
 33. A payment reversal restores the correct receivable.
 34. A founder can record bank transfer, QRIS, or cash, and no catch-all payment method is offered.
 35. An unpaid or partially paid external-delivery order is rejected ("Pengiriman perlu lunas terlebih dahulu.") unless dispatch is submitted with `allowUnpaid = true`; a fully paid one can be dispatched without changing its payment status.
-35a. A dispatch with `allowUnpaid = true` on an unpaid order succeeds, audits `ORDER_DISPATCHED:UNPAID`, and still fails before `current_ready_date`.
-35b. Bulk dispatch is atomic: if any selected order fails a check (pickup, not ready, already dispatched, date, or unpaid without `allowUnpaid`), no order is dispatched; with `allowUnpaid`, unpaid orders in the set dispatch and the audit lists their ids.
+35a. A dispatch with `allowUnpaid = true` on an unpaid order succeeds, audits `ORDER_DISPATCHED:UNPAID`, and still fails before `current_ready_date` unless `allowEarly` is also set (35c).
+35b. Bulk dispatch is atomic: if any selected order fails a check (pickup, not ready, already dispatched, date without `allowEarly`, or unpaid without `allowUnpaid`), no order is dispatched; with `allowUnpaid`, unpaid orders in the set dispatch and the audit lists their ids.
+35c. (0.24.0) A dispatch with `allowEarly = true` before `current_ready_date` succeeds, audits `ORDER_DISPATCHED:EARLY` (or `:UNPAID:EARLY` when unpaid too), and leaves `current_ready_date` unchanged. Without `allowEarly` it fails with "Pengiriman dijadwalkan <tanggal>."; `allowUnpaid` alone still fails before the date.
+35d. (0.24.0) Bulk early dispatch with `allowEarly` audits `ORDERS_DISPATCHED:EARLY=<ids>` listing only the early orders; combined with unpaid orders it audits `ORDERS_DISPATCHED:UNPAID=<ids>:EARLY=<ids>`.
 36. Recording payment always captures the authenticated founder and payment time; transaction reference and note may be empty, and no receipt image is required or accepted.
-37. A paid external-delivery order still cannot be dispatched before packing completion or before `current_ready_date`; no dispatch-hour value is required.
+37. A paid external-delivery order still cannot be dispatched before packing completion, and cannot be dispatched before `current_ready_date` unless `allowEarly` is set (0.24.0, see 35c); no dispatch-hour value is required.
 
 ### 19.6 Permissions and history
 

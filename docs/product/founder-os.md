@@ -79,6 +79,7 @@ Rules:
 - On mobile, states appear as horizontally selectable tabs with vertical order cards beneath, rather than squeezed side-by-side columns.
 - Cards show order number, customer, concise item quantities, fulfillment location/date, fulfillment status, and separate payment status.
 - Primary state changes use explicit buttons such as **Tandai Siap Diserahkan** and **Tandai Selesai**.
+- Since 0.24.0, **Tandai Dikirim** on a delivery order before its planned date asks for one confirm ("Jadwal kirim ... Kirim sekarang lebih awal?") and then dispatches. The planned date stays on the card. The confirm is a UI prompt; the server only checks the `allowEarly` flag ([workflows §11.4](../technical/workflows.md#114-payment-gate-for-external-delivery)).
 - Swipe-to-change-status is not a V1 primary action because accidental transitions have operational consequences.
 
 ### 8.5 Independent payment state
@@ -106,7 +107,7 @@ Therefore, `COMPLETED + UNPAID` is valid and represents a receivable. Completed-
 5. The helper repacks, weighs, seals, applies brand stickers and expiration labels, and arranges finished orders for transport.
 6. A founder confirms **Packing Selesai** after the helper reports completion.
 7. The relevant orders move from **Perlu Disiapkan** to **Siap Diserahkan**.
-8. Founders transport office orders during their normal commute or arrange customer-paid external delivery.
+8. Founders hand over pickup orders during their normal commute or arrange customer-paid external delivery.
 9. Handover marks the order **Selesai**; payment may remain unpaid independently.
 
 **Implementation: ✅ BUILT** — all steps including step 8's "allocate from Product Ready to Sell first" behavior (§10.1) are now built. Orders allocate oldest-first from the ready ledger before reserving raw materials. See [implementation-status.md](../implementation-status.md) for test sections §19.8 (items 47–50).

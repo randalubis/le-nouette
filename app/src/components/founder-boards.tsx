@@ -319,7 +319,7 @@ export function AvailabilityBoard({ session }: { session: op.State }) {
       </div>
 
       <section className={`${styles.panel} ${styles.receivables}`}>
-        <div className={styles.panelHeader}><div><h2>Tanggal tertutup</h2><p>Mandiri, BI, dan pengiriman memakai kalender yang sama.</p></div></div>
+        <div className={styles.panelHeader}><div><h2>Tanggal tertutup</h2><p>Pickup dan pengiriman memakai kalender yang sama.</p></div></div>
         {upcoming.length === 0 && <p className={styles.empty}>Belum ada tanggal tertutup.</p>}
         {upcoming.map(([d, s]) => (
           <ListRowCard

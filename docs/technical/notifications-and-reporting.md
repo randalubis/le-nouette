@@ -43,7 +43,7 @@ Potential messages:
   
   Pembayaran sudah kami terima, terima kasih!
   ```
-  — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan di Kantor [BI/Mandiri]." — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima (delivery: saat pesanan diterima). Kabari kami ya kalau sudah transfer."
+  — place: "Pesanan akan kami antar [ke {address}]." or "Pengambilan: kami kirim lokasinya lewat chat ini." (pickup; no office named since 0.23.0) — paymentMsg: "Pembayaran sudah kami terima, terima kasih!" if paid, else "Pembayaran bisa lewat transfer, QRIS, atau tunai saat serah terima (delivery: saat pesanan diterima). Kabari kami ya kalau sudah transfer."
 
 - **ready:**
   ```

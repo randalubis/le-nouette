@@ -25,9 +25,9 @@ A fulfillment date is valid when:
 1. the store may accept orders;
 2. the date is not marked `UNAVAILABLE` or `HOLIDAY`;
 3. the date is operational under the base calendar;
-4. it passes the single shared operational calendar used by both Mandiri and BI pickup.
+4. it passes the single shared operational calendar used by pickup.
 
-**REQUIRED:** V1 has no office-specific availability table, override, or calendar. `PICKUP_MANDIRI` and `PICKUP_BI` remain separate fulfillment method values for routing and reporting, but both use the same date-validity result. External delivery also follows the shared ready-date calendar; dispatch timing remains a separate rule.
+**REQUIRED:** V1 has no office-specific availability table, override, or calendar. Pickup is one fulfillment method value (`PICKUP`, since 0.23.0; previously `PICKUP_MANDIRI` / `PICKUP_BI`) and uses the shared date-validity result. External delivery also follows the shared ready-date calendar; dispatch timing remains a separate rule.
 
 Founder-entered holidays evaluate as unavailable until a founder explicitly changes or removes the date entry.
 

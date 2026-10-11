@@ -33,7 +33,7 @@ test("§8.5 reschedule recommendation: forward ≤3 days, else nearest earlier, 
 });
 
 const order = (overrides: Partial<op.CreateOrderInput> = {}): op.CreateOrderInput => ({
-  idempotencyKey: "k1", publicToken: "tok-"+"k1", name: "Dina", whatsapp: "0812 3456 7890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 }, ...overrides,
+  idempotencyKey: "k1", publicToken: "tok-"+"k1", name: "Dina", whatsapp: "0812 3456 7890", fulfillment: "PICKUP", quantities: { milieu: 2, grande: 1 }, ...overrides,
 });
 
 test("§19.2 order reserves exact recipe quantities without touching on-hand", () => {
@@ -73,6 +73,10 @@ test("§19.5 delivery needs payment and ready date before dispatch; pickup may c
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: false }), /lunas/);
   state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-15"));
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-15")), /dijadwalkan/);
+  const earlyPaid = op.dispatchOrder(state, "LN-0001", wib("2026-09-15"), { allowEarly: true });
+  assert.ok(earlyPaid.orders[0].dispatchedAt);
+  assert.equal(earlyPaid.audit.at(-1)!.action, "ORDER_DISPATCHED:EARLY");
+  assert.equal(earlyPaid.orders[0].currentReadyDate, state.orders[0].currentReadyDate);
   state = op.completeOrder(op.dispatchOrder(state, "LN-0001", wib("2026-09-16")), "LN-0001", wib("2026-09-16"));
   assert.equal(state.orders[0].status, "COMPLETED");
 
@@ -140,7 +144,9 @@ test("unpaid delivery: dispatch needs allowUnpaid, audit marks UNPAID, complete 
   let state = op.createOrder(op.emptyState(), deliveryOrder(1), wib("2026-09-14"));
   state = op.markOrderReady(state, "LN-0001", wib("2026-09-16"));
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16")), /lunas/);
-  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-15"), { allowUnpaid: true }), /dijadwalkan/); // date gate still applies
+  assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-15"), { allowUnpaid: true }), /dijadwalkan/); // allowUnpaid alone never bypasses the date
+  const earlyUnpaid = op.dispatchOrder(state, "LN-0001", wib("2026-09-15"), { allowUnpaid: true, allowEarly: true });
+  assert.equal(earlyUnpaid.audit.at(-1)!.action, "ORDER_DISPATCHED:UNPAID:EARLY");
   state = op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: true });
   assert.equal(state.audit.at(-1)!.action, "ORDER_DISPATCHED:UNPAID");
   assert.throws(() => op.dispatchOrder(state, "LN-0001", wib("2026-09-16"), { allowUnpaid: true }), /sudah dikirim/);
@@ -310,7 +316,7 @@ test("toCustomerView never leaks whatsapp, address, note, or payments", () => {
 });
 
 test("setReferral: valid, trimmed, limited, guarded", () => {
-  const s = op.createOrder(op.emptyState(), { idempotencyKey: "r1", publicToken: "tok-r1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, wib("2026-09-14"));
+  const s = op.createOrder(op.emptyState(), { idempotencyKey: "r1", publicToken: "tok-r1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP", quantities: { milieu: 1 } }, wib("2026-09-14"));
   const id = s.orders[0].id;
   const ok = op.setReferral(s, id, "tok-r1", "TEMAN_KELUARGA", "  Budi  ");
   assert.deepEqual(ok.orders[0].referral, { source: "TEMAN_KELUARGA", name: "Budi" });
@@ -431,4 +437,23 @@ test("formatDateTime renders Jakarta 24h time and omits the current year", () =>
   assert.equal(formatDateTime("2026-10-09T04:20:00Z", now), "9 Okt, 11.20");
   assert.equal(formatDateTime(new Date("2026-10-09T17:30:00Z"), now), "10 Okt, 00.30");
   assert.equal(formatDateTime("2025-12-31T16:59:00Z", now), "31 Des 2025, 23.59");
+});
+
+test("legacy pickup values normalize to PICKUP", () => {
+  assert.equal(op.normalizeFulfillment("PICKUP_MANDIRI"), "PICKUP");
+  assert.equal(op.normalizeFulfillment("PICKUP_BI"), "PICKUP");
+  assert.equal(op.normalizeFulfillment("DELIVERY"), "DELIVERY");
+});
+
+test("bulk dispatch before ready date needs allowEarly; audit composes UNPAID and EARLY", () => {
+  let state = op.createOrder(op.emptyState(), deliveryOrder(1), wib("2026-09-14"));
+  state = op.createOrder(state, deliveryOrder(2), wib("2026-09-14"));
+  state = op.completeBatch(state, "2026-09-16", wib("2026-09-15"));
+  state = op.recordPayment(state, "LN-0001", "QRIS", wib("2026-09-15"));
+  const ids = new Set(["LN-0001", "LN-0002"]);
+  assert.throws(() => op.dispatchOrders(state, ids, wib("2026-09-15"), { allowUnpaid: true }), /dijadwalkan/);
+  assert.ok(state.orders.every((o) => !o.dispatchedAt));
+  const done = op.dispatchOrders(state, ids, wib("2026-09-15"), { allowUnpaid: true, allowEarly: true });
+  assert.ok(done.orders.every((o) => o.dispatchedAt));
+  assert.equal(done.audit.at(-1)!.action, "ORDERS_DISPATCHED:UNPAID=LN-0002:EARLY=LN-0001,LN-0002");
 });

@@ -2,7 +2,7 @@
 
 [← Product spec hub](../product-spec.md)
 
-**Implementation: ✅ BUILT** — weekday mapping, holiday rule, 18:00 WIB cutoff, and reschedule recommendation are implemented and tested in `app/src/lib/domain/schedule.ts`. See [implementation-status.md](../implementation-status.md).
+**Implementation: ✅ BUILT** — weekday mapping, holiday rule, 18:00 WIB cutoff, and reschedule recommendation are implemented and tested in `app/src/lib/domain/schedule.ts`. Early delivery dispatch with confirm (0.24.0, §7.1) is built in `app/src/lib/domain/operations.ts`. See [implementation-status.md](../implementation-status.md).
 
 ## 7. Fulfillment scheduling and availability
 
@@ -22,7 +22,7 @@
 
 This is not a generic "add two business days" algorithm. Thursday through Sunday feed into the next Monday fulfillment batch.
 
-**LOCKED:** For external delivery, `current_ready_date` is also the planned courier-dispatch date. Dispatch may occur on that date only after the order is fully packed and full payment has been verified. Le Nouette does not promise a specific dispatch hour in V1, and courier arrangement remains manual.
+**LOCKED:** For external delivery, `current_ready_date` is also the planned courier-dispatch date. Dispatch may occur on that date after the order is fully packed and full payment has been verified. **Revised 0.24.0 at the owner's explicit request** (previously: dispatch may occur on that date only). A founder may also dispatch earlier, before `current_ready_date`, after an explicit confirm (server flag `allowEarly`). An early dispatch does not change `current_ready_date`, so the original promise stays visible. Payment is still required unless `allowUnpaid` is set; `allowUnpaid` never waives the date. Le Nouette does not promise a specific dispatch hour in V1, and courier arrangement remains manual.
 
 ### 7.2 Holiday rule
 
@@ -69,7 +69,7 @@ Core states:
 - `UNAVAILABLE`
 - public-holiday/closed state
 
-**LOCKED:** Mandiri and BI office pickup use this same operational availability calendar in V1. They remain distinct fulfillment choices on orders, but founders do not maintain separate office calendars or office-specific available dates.
+**LOCKED:** Pickup uses this same operational availability calendar in V1. Founders do not maintain separate office calendars or office-specific available dates. Since 0.23.0 there is one pickup fulfillment value (`PICKUP`); the former Mandiri and BI values were merged.
 
 **LOCKED:** Indonesian national holidays are maintained manually by the founders in Founder OS. Initial dates may be entered individually or in a batch, and future holidays can be added as they become known. A holiday defaults to unavailable for fulfillment but remains editable by either founder. Any change affecting confirmed orders uses the normal explicit rescheduling workflow and never silently changes a promise. V1 has no external holiday-data dependency.
 

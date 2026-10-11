@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, MapPin, Minus, Package, Plus, ProhibitInset, QrCode, ShareNetwork, ShoppingBag, Storefront as StoreIcon, Truck, WhatsappLogo, type Icon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { formatRupiah, products, type ProductId } from "@/lib/domain/catalog";
-import type { CustomerOrderView, Fulfillment, State } from "@/lib/domain/operations";
+import { normalizeFulfillment, type CustomerOrderView, type Fulfillment, type State } from "@/lib/domain/operations";
 import { createOrderAction, saveReferralAction, trackOrdersAction } from "@/lib/domain/actions";
 import { formatDate, promisedReadyDate } from "@/lib/domain/schedule";
 import { useTranslation, type Key } from "@/lib/i18n";
@@ -25,8 +25,7 @@ const whatsappRe = /^(\+62|62|0)8[0-9 \-]{7,14}$/;
 const productImage: Record<ProductId, string> = { milieu: "/le-nouette/milieu.png", grande: "/le-nouette/grande.png" };
 
 const fulfillmentOptions: Option[] = [
-  { id: "PICKUP_MANDIRI", title: "pickupMandiri", sub: "free", icon: StoreIcon },
-  { id: "PICKUP_BI", title: "pickupBi", sub: "free", icon: StoreIcon },
+  { id: "PICKUP", title: "pickup", sub: "pickupHint", icon: StoreIcon },
   { id: "DELIVERY", title: "delivery", sub: "deliveryFee", icon: Truck },
 ];
 
@@ -42,7 +41,7 @@ export function Storefront({ storeStatus, calendar }: { storeStatus: State["stor
     try { await navigator.share({ title: "Le Nouette", text, url }); } catch (e) { if ((e as Error).name !== "AbortError") fallback(); }
   }
   const [qty, setQty] = useState<Record<ProductId, number>>({ milieu: 0, grande: 0 });
-  const [fulfillment, setFulfillment] = useState<Fulfillment>("PICKUP_MANDIRI");
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("PICKUP");
   const [remembered] = useState(() => (typeof window === "undefined" ? null : readRemembered()));
   const [form, setForm] = useState({ name: remembered?.name ?? "", whatsapp: remembered?.whatsapp ?? "", address: "", note: "" });
   const [remember, setRemember] = useState(remembered !== null);
@@ -319,7 +318,7 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
     return () => { stale = true; };
   }, [initial, nonce]);
   const refresh = () => { setState("loading"); setNonce((n) => n + 1); };
-  const fulfillmentKey = { PICKUP_MANDIRI: "pickupMandiri", PICKUP_BI: "pickupBi", DELIVERY: "delivery" } as const;
+  const fulfillmentKey = { PICKUP: "pickup", DELIVERY: "delivery" } as const;
   const waLink = (text: string) => `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
   const statusKey = (o: CustomerOrderView): Key =>
     o.status === "CANCELLED" ? "statusCancelled" : o.status === "COMPLETED" ? "statusCompleted" : o.dispatchedAt ? "statusDispatched" : o.status === "READY_FOR_HANDOVER" ? (o.fulfillment === "DELIVERY" ? "statusReadyDelivery" : "statusReady") : "statusNeedsPreparation";
@@ -360,7 +359,7 @@ function Tracking({ t, locale }: { t: Translate; locale: "ID" | "EN" }) {
               <h2>{v.id}</h2>
               <span className={`${styles.chip} ${v.status === "CANCELLED" ? styles.chipDanger : v.status === "COMPLETED" ? styles.chipNeutral : v.dispatchedAt || v.status === "READY_FOR_HANDOVER" ? styles.chipSafe : styles.chipWarn}`}>{t(statusKey(v))}</span>
             </div>
-            <p className={styles.payNote}>{t(fulfillmentKey[v.fulfillment])}</p>
+            <p className={styles.payNote}>{t(fulfillmentKey[normalizeFulfillment(v.fulfillment)])}</p>
             {v.fulfillment === "DELIVERY" && (v.status === "CANCELLED" ? <p className={styles.payNote}>{t("trackCancelledOn", { date: when(v.cancelledAt) })}</p> : timeline(v))}
             {v.status === "NEEDS_PREPARATION" && <p className={styles.payNote}>{t("readyDate", { date: formatDate(v.currentReadyDate, "long", locale) })}</p>}
             {v.items.map((item) => <div key={item.name}><span>{item.quantity} × {item.name}</span></div>)}

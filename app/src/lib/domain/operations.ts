@@ -5,7 +5,9 @@
 import { inventoryItems, productById, products, type ItemId, type ProductId, type Recipe } from "./catalog.ts";
 import { addMonth, formatDate, isOperational, jakartaNow, promisedReadyDate, type Calendar, type DateStatus } from "./schedule.ts";
 
-export type Fulfillment = "PICKUP_MANDIRI" | "PICKUP_BI" | "DELIVERY";
+export type Fulfillment = "PICKUP" | "DELIVERY";
+/** Any non-DELIVERY value is pickup: covers legacy PICKUP_MANDIRI/PICKUP_BI rows before migration 0007 reaches production. */
+export const normalizeFulfillment = (f: string): Fulfillment => (f === "DELIVERY" ? "DELIVERY" : "PICKUP");
 export type OrderStatus = "NEEDS_PREPARATION" | "READY_FOR_HANDOVER" | "COMPLETED" | "CANCELLED";
 export type PaymentMethod = "TRANSFER" | "QRIS" | "CASH";
 export const referralSources = ["TEMAN_KELUARGA", "INSTAGRAM", "WHATSAPP", "LAINNYA"] as const;
@@ -247,7 +249,8 @@ export function markOrderReady(state: State, id: string, now: Date): State {
 }
 
 // Unpaid delivery dispatch is allowed only with explicit allowUnpaid (the UI confirm); the server enforces it.
-export type DispatchOptions = { allowUnpaid?: boolean };
+// Dispatch before currentReadyDate is allowed only with explicit allowEarly (the UI confirm); allowUnpaid never bypasses the date.
+export type DispatchOptions = { allowUnpaid?: boolean; allowEarly?: boolean };
 
 export function dispatchOrder(state: State, id: string, now: Date, opts: DispatchOptions = {}): State {
   const order = findOrder(state, id);
@@ -256,8 +259,9 @@ export function dispatchOrder(state: State, id: string, now: Date, opts: Dispatc
   if (order.dispatchedAt) fail("Pesanan sudah dikirim.");
   const unpaid = !isPaid(order);
   if (unpaid && !opts.allowUnpaid) fail("Pengiriman perlu lunas terlebih dahulu.");
-  if (jakartaNow(now).date < order.currentReadyDate) fail(`Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
-  return withOrder(state, id, () => ({ dispatchedAt: now.toISOString() }), unpaid ? "ORDER_DISPATCHED:UNPAID" : "ORDER_DISPATCHED", now);
+  const early = jakartaNow(now).date < order.currentReadyDate;
+  if (early && !opts.allowEarly) fail(`Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
+  return withOrder(state, id, () => ({ dispatchedAt: now.toISOString() }), `ORDER_DISPATCHED${unpaid ? ":UNPAID" : ""}${early ? ":EARLY" : ""}`, now);
 }
 
 export function dispatchOrders(state: State, ids: Set<string>, now: Date, opts: DispatchOptions = {}): State {
@@ -268,14 +272,15 @@ export function dispatchOrders(state: State, ids: Set<string>, now: Date, opts: 
     if (order.status !== "READY_FOR_HANDOVER") fail(`${order.id}: belum selesai dipacking.`);
     if (order.dispatchedAt) fail(`${order.id}: sudah dikirim.`);
     if (!isPaid(order) && !opts.allowUnpaid) fail(`${order.id}: pengiriman perlu lunas terlebih dahulu.`);
-    if (jakartaNow(now).date < order.currentReadyDate) fail(`${order.id}: pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
+    if (jakartaNow(now).date < order.currentReadyDate && !opts.allowEarly) fail(`${order.id}: pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.`);
   }
   const at = now.toISOString();
   const unpaid = orders.filter((order) => !isPaid(order)).map((order) => order.id);
+  const early = orders.filter((order) => jakartaNow(now).date < order.currentReadyDate).map((order) => order.id);
   return {
     ...state,
     orders: state.orders.map((order) => (ids.has(order.id) ? { ...order, dispatchedAt: at } : order)),
-    audit: [...state.audit, { at, action: unpaid.length ? `ORDERS_DISPATCHED:UNPAID=${unpaid.join(",")}` : "ORDERS_DISPATCHED", ref: [...ids].join(",") }],
+    audit: [...state.audit, { at, action: `ORDERS_DISPATCHED${unpaid.length ? `:UNPAID=${unpaid.join(",")}` : ""}${early.length ? `:EARLY=${early.join(",")}` : ""}`, ref: [...ids].join(",") }],
   };
 }
 

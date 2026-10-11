@@ -19,7 +19,7 @@ const tabs = [
   { status: "CANCELLED", title: "Dibatalkan" },
 ] as const;
 
-export const placeLabel: Record<op.Fulfillment, string> = { PICKUP_MANDIRI: "Mandiri", PICKUP_BI: "BI", DELIVERY: "Delivery" };
+export const placeLabel: Record<op.Fulfillment, string> = { PICKUP: "Pickup", DELIVERY: "Delivery" };
 const referralLabel: Record<op.ReferralSource, string> = { TEMAN_KELUARGA: "Teman/keluarga", INSTAGRAM: "Instagram", WHATSAPP: "WhatsApp", LAINNYA: "Lainnya" };
 const methodLabel: Record<op.PaymentMethod, string> = { TRANSFER: "Transfer", QRIS: "QRIS", CASH: "Tunai" };
 export const itemsLabel = (order: op.Order) => order.items.map((item) => `${item.quantity} × ${item.name}${item.readyQuantity ? ` (${item.readyQuantity} dari stok siap)` : ""}`).join(", ");
@@ -54,23 +54,26 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
   });
   const today = () => jakartaNow(new Date()).date;
   const bulkDispatch = () => {
-    const early = session.orders.find((o) => selected.has(o.id) && today() < o.currentReadyDate);
-    if (early) { setBulkError(`${early.id}: pengiriman dijadwalkan ${formatDate(early.currentReadyDate)}.`); return; }
+    const early = session.orders.filter((o) => selected.has(o.id) && today() < o.currentReadyDate);
     const unpaid = session.orders.filter((o) => selected.has(o.id) && !op.isPaid(o));
     const owed = unpaid.reduce((sum, o) => sum + op.receivable(o), 0);
-    if (unpaid.length && !window.confirm(`${unpaid.length} dari ${selected.size} pesanan belum lunas (sisa ${formatRupiah(owed)}). Tetap kirim? Sisa menjadi piutang.`)) return;
+    const notes = [
+      early.length ? `${early.length} dari ${selected.size} pesanan dijadwalkan lebih akhir dan akan dikirim lebih awal.` : "",
+      unpaid.length ? `${unpaid.length} dari ${selected.size} pesanan belum lunas (sisa ${formatRupiah(owed)}); sisa menjadi piutang.` : "",
+    ].filter(Boolean);
+    if (notes.length && !window.confirm(`${notes.join(" ")} Tetap kirim?`)) return;
     if (isPending) return;
     setBulkError(null);
     setBusy("bulk");
     startTransition(async () => {
-      const { error } = await dispatchOrdersAction([...selected], true);
+      const { error } = await dispatchOrdersAction([...selected], true, true);
       if (error) setBulkError(error); else setSelected(new Set());
     });
   };
 
   const needle = query.trim().toLowerCase();
   const visible = session.orders
-    .filter((order) => order.status === tab && (fulfillment === "ALL" || order.fulfillment === fulfillment) && (!needle || `${order.id} ${order.customer.name}`.toLowerCase().includes(needle)))
+    .filter((order) => order.status === tab && (fulfillment === "ALL" || op.normalizeFulfillment(order.fulfillment) === fulfillment) && (!needle || `${order.id} ${order.customer.name}`.toLowerCase().includes(needle)))
     .sort((a, b) => (sort === "created" ? b.createdAt.localeCompare(a.createdAt) : a.currentReadyDate.localeCompare(b.currentReadyDate)));
 
   return (
@@ -134,7 +137,7 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
               <h3>{order.customer.name}</h3>
               <p>{itemsLabel(order)}{order.note ? ` · “${order.note}”` : ""}</p>
               <div className={styles.orderMeta}>
-                <span><MapPin size={13} /> {placeLabel[order.fulfillment]}</span>
+                <span><MapPin size={13} /> {placeLabel[op.normalizeFulfillment(order.fulfillment)]}</span>
                 <span><Clock size={13} /> {formatDate(order.currentReadyDate, "short")}</span>
                 {order.dispatchedAt && <span><Truck size={13} /> Dikirim</span>}
               </div>
@@ -156,9 +159,12 @@ export function OrderBoard({ session, initialTab }: { session: op.State; initial
                     <button className="btn btn-primary" disabled={isPending} onClick={() => window.confirm(`Pesanan ${order.id} sudah dipacking? Stok bahan pesanan ini akan dikurangi dan pesanan pindah ke Siap Diserahkan.`) && act(order.id, "ready", () => markOrderReadyAction(order.id))}>{lbl(`${order.id}:ready`, "Selesai Packing")}</button>
                   </>}
                   {order.status === "READY_FOR_HANDOVER" && delivery && !order.dispatchedAt && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} disabled={isPending} onClick={() => {
-                    if (today() < order.currentReadyDate) return setError({ id: order.id, message: `Pengiriman dijadwalkan ${formatDate(order.currentReadyDate)}.` });
-                    if (!paid && !window.confirm(`Pesanan belum lunas (sisa ${formatRupiah(op.receivable(order))}). Tetap kirim? Sisa menjadi piutang.`)) return;
-                    act(order.id, "dispatch", () => dispatchOrderAction(order.id, true));
+                    const notes = [
+                      today() < order.currentReadyDate ? `Jadwal kirim ${formatDate(order.currentReadyDate)}. Kirim sekarang lebih awal?` : "",
+                      !paid ? `Pesanan belum lunas (sisa ${formatRupiah(op.receivable(order))}). Sisa menjadi piutang.` : "",
+                    ].filter(Boolean);
+                    if (notes.length && !window.confirm(`${notes.join(" ")}${paid ? "" : " Tetap kirim?"}`)) return;
+                    act(order.id, "dispatch", () => dispatchOrderAction(order.id, true, true));
                   }}>{lbl(`${order.id}:dispatch`, "Tandai Dikirim")}</button>}
                   {order.status === "READY_FOR_HANDOVER" && (!delivery || order.dispatchedAt) && <button className={`btn ${payFirst ? "btn-quiet" : "btn-primary"}`} disabled={isPending} onClick={() => {
                     if (!paid && !window.confirm(`Belum lunas (sisa ${formatRupiah(op.receivable(order))}). Pesanan tetap selesai dan sisa masuk Piutang.`)) return;

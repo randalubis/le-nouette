@@ -37,7 +37,7 @@ These are the business-side technical constraints founders and product decisions
 | `Customer` | Name and WhatsApp number only in V1 |
 | `Order` | Header, totals, statuses, promised dates, timestamps |
 | `OrderItem` | Product, quantity, captured unit price |
-| `Fulfillment` | Method, office or address, current ready date |
+| `Fulfillment` | Method (`PICKUP` or `DELIVERY`), address (delivery only), current ready date |
 | `Payment` | Amount, method, status, paid time, optional MDR |
 | `InventoryItem` | Cheese and packaging master data |
 | `InventoryMovement` | Receipts, consumption, adjustments, and reasons |
@@ -68,7 +68,7 @@ rescheduled_by
 reschedule_reason
 ```
 
-Customer address belongs to the fulfillment/order record, not the customer profile, because office pickup requires no address and delivery addresses may vary.
+Customer address belongs to the fulfillment/order record, not the customer profile, because pickup requires no address and delivery addresses may vary.
 
 ### 12.4 State-transition rules
 

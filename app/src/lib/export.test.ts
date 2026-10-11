@@ -5,8 +5,8 @@ import * as op from "./domain/operations.ts";
 
 const now = new Date("2026-09-14T10:00:00+07:00");
 let state = op.emptyState();
-state = op.createOrder(state, { idempotencyKey: "a", publicToken: "tok-"+"a", name: 'Sari "Mama", Jr', whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 2, grande: 1 } }, now);
-state = op.createOrder(state, { idempotencyKey: "b", publicToken: "tok-"+"b", name: "Sari", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, now);
+state = op.createOrder(state, { idempotencyKey: "a", publicToken: "tok-"+"a", name: 'Sari "Mama", Jr', whatsapp: "081234567890", fulfillment: "PICKUP", quantities: { milieu: 2, grande: 1 } }, now);
+state = op.createOrder(state, { idempotencyKey: "b", publicToken: "tok-"+"b", name: "Sari", whatsapp: "081234567890", fulfillment: "PICKUP", quantities: { milieu: 1 } }, now);
 
 test("orders export includes referral columns", () => {
   const s = op.setReferral(state, state.orders[0].id, "tok-a", "INSTAGRAM", "@sari");
@@ -46,7 +46,7 @@ test("formula-like names are quoted; negative numbers stay numeric", () => {
 });
 
 test("orders export carries referral_source/referral_name", () => {
-  let s = op.createOrder(op.emptyState(), { idempotencyKey: "x1", publicToken: "tok-x1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, new Date("2026-09-14T03:00:00Z"));
+  let s = op.createOrder(op.emptyState(), { idempotencyKey: "x1", publicToken: "tok-x1", name: "A", whatsapp: "081234567890", fulfillment: "PICKUP", quantities: { milieu: 1 } }, new Date("2026-09-14T03:00:00Z"));
   s = op.setReferral(s, s.orders[0].id, "tok-x1", "INSTAGRAM", "=Budi");
   const [h, r] = datasetTable("orders", s);
   assert.equal(r[h.indexOf("referral_source")], "INSTAGRAM");
@@ -62,7 +62,7 @@ test("phone columns are forced to text; other columns and header untouched", () 
 // --- date-range filter (WIB) ---
 const at = (iso: string) => new Date(iso);
 let r = op.emptyState();
-const mk = (k: string, wa: string, when: string) => { r = op.createOrder(r, { idempotencyKey: k, publicToken: "tok-" + k, name: k, whatsapp: wa, fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 } }, at(when)); };
+const mk = (k: string, wa: string, when: string) => { r = op.createOrder(r, { idempotencyKey: k, publicToken: "tok-" + k, name: k, whatsapp: wa, fulfillment: "PICKUP", quantities: { milieu: 1 } }, at(when)); };
 mk("late", "081111111111", "2026-09-10T23:30:00+07:00"); // 10 Sep WIB
 mk("early", "082222222222", "2026-09-11T00:30:00+07:00"); // 11 Sep WIB (17:30 UTC on 10th)
 mk("later", "081111111111", "2026-09-20T12:00:00+07:00");

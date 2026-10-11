@@ -14,7 +14,7 @@ test("createOrderAction persists an order that a fresh load can see", async () =
   const key = `it-${Date.now()}`;
   const { error, order } = await createOrderAction({
     idempotencyKey: key, name: "Integration Test", whatsapp: "081200000000",
-    fulfillment: "PICKUP_MANDIRI", quantities: { milieu: 1 },
+    fulfillment: "PICKUP", quantities: { milieu: 1 },
   });
   assert.equal(error, null);
   assert.ok(order);

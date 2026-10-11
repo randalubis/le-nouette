@@ -82,16 +82,16 @@ export async function markOrderReadyAction(id: string) {
   return { error };
 }
 
-export async function dispatchOrderAction(id: string, allowUnpaid?: boolean) {
+export async function dispatchOrderAction(id: string, allowUnpaid?: boolean, allowEarly?: boolean) {
   await requireFounder();
-  const { error } = await withDomainTransaction((state, now) => op.dispatchOrder(state, id, now, { allowUnpaid: allowUnpaid === true }));
+  const { error } = await withDomainTransaction((state, now) => op.dispatchOrder(state, id, now, { allowUnpaid: allowUnpaid === true, allowEarly: allowEarly === true }));
   if (!error) revalidateAll();
   return { error };
 }
 
-export async function dispatchOrdersAction(ids: string[], allowUnpaid?: boolean) {
+export async function dispatchOrdersAction(ids: string[], allowUnpaid?: boolean, allowEarly?: boolean) {
   await requireFounder();
-  const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now, { allowUnpaid: allowUnpaid === true }));
+  const { error } = await withDomainTransaction((state, now) => op.dispatchOrders(state, new Set(ids), now, { allowUnpaid: allowUnpaid === true, allowEarly: allowEarly === true }));
   if (!error) revalidateAll();
   return { error };
 }

@@ -123,4 +123,4 @@ Still open:
 - **OPEN — bottom-nav label at 320px:** "Keuangan" truncates to "Keuang…".
 - **OPEN — orders status grid at ≤560px:** the 2x2 grid is uneven because labels differ in length. Cosmetic.
 - **OPEN — bulk-dispatch bar not verified:** the bar needs a selection state to be checked in the browser.
-- **OPEN — delivery dispatch flow not browser-checked:** "Sedang diantar" is covered by domain tests only, because dispatch is blocked until `current_ready_date`.
+- **OPEN — delivery dispatch flow not browser-checked:** "Sedang diantar" is covered by domain tests only. Since 0.24.0 early dispatch (`allowEarly`) exists, but its confirm and card error were not checked in a browser and `npm run e2e` was not run.

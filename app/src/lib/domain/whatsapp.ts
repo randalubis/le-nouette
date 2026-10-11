@@ -20,7 +20,7 @@ export function waKindFor(order: Order): WaKind | null {
 }
 
 const place = (o: Order) =>
-  o.fulfillment === "DELIVERY" ? `Pesanan akan kami antar${o.address ? ` ke ${o.address}` : ""}.` : `Pengambilan di Kantor ${o.fulfillment === "PICKUP_BI" ? "BI" : "Mandiri"}.`;
+  o.fulfillment === "DELIVERY" ? `Pesanan akan kami antar${o.address ? ` ke ${o.address}` : ""}.` : "Pengambilan: kami kirim lokasinya lewat chat ini.";
 
 /** Paragraphs are separated by a blank line so the message reads well in WhatsApp; *x* is WhatsApp bold. */
 export function waMessage(kind: WaKind, order: Order): string {

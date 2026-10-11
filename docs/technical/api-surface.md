@@ -15,7 +15,7 @@ get storefront catalog
 calculate fulfillment promise
 create order
 get order confirmation by short-lived or unguessable token
-track order status (read-only lookup by id + public_token; returns `CustomerOrderView`: id, status, fulfillment, ready dates, items, total, isPaid, `createdAt` (ISO, added 0.16.0), readyAt/dispatchedAt/completedAt/cancelledAt)
+track order status (read-only lookup by id + public_token; returns `CustomerOrderView`: id, status, fulfillment (`PICKUP` | `DELIVERY`, since 0.23.0), ready dates, items, total, isPaid, `createdAt` (ISO, added 0.16.0), readyAt/dispatchedAt/completedAt/cancelledAt)
 save referral source and name (write-once, verified with public_token)
 ```
 
@@ -43,7 +43,7 @@ edit/cancel/reschedule order
 change order fulfillment status
 complete packing batch
 mark one order packed (Selesai Packing, per order)
-dispatch order(s) (`allowUnpaid` only after the UI confirm); complete order (no payment check)
+dispatch order(s) `dispatchOrderAction(id, allowUnpaid?, allowEarly?)` / `dispatchOrdersAction(ids, allowUnpaid?, allowEarly?)` (`allowUnpaid` and `allowEarly`, each only after its UI confirm; `allowEarly` since 0.24.0 permits dispatch before `current_ready_date`, `allowUnpaid` never does); complete order (no payment check)
 receive inventory
 perform stock opname
 record/reverse payment

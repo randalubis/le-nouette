@@ -11,7 +11,7 @@ For a build-status view of these items (what's actually shipped vs still backlog
 - Mobile-first branded storefront.
 - Bahasa Indonesia default with ID/EN switch.
 - Milieu and Grande quantity selection and total calculation.
-- Mandiri office pickup, BI office pickup, and customer-paid delivery.
+- Pickup (location confirmed by the founder over WhatsApp) and customer-paid delivery.
 - Conditional address field.
 - Name and WhatsApp capture, with device-level convenience where appropriate.
 - Optional order note with a 180-character maximum.
@@ -104,8 +104,8 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Round sticker is brand-only; square/portrait sticker is product-specific (one variant per SKU: Milieu 125 g, Grande 225 g); no separate back sticker.
 - Bahasa Indonesia storefront by default with ID/EN switch.
 - Mobile web, no mandatory account or upfront payment.
-- Fulfillment options are Mandiri office pickup, BI office pickup, and customer-paid delivery.
-- Mandiri and BI share one operational availability calendar in V1; no office-specific calendar is maintained.
+- Fulfillment options are pickup and customer-paid delivery (merged from Mandiri and BI pickup in 0.23.0).
+- Pickup uses one operational availability calendar in V1; no office-specific calendar is maintained.
 - Weekday mapping: Mon→Wed, Tue→Thu, Wed→Fri, Thu–Sun→Mon.
 - Daily scheduling cutoff is 18:00 WIB; orders at or after the cutoff use the following calendar day for scheduling.
 - A midweek holiday does not add a day unless the intended fulfillment date itself is unavailable.
@@ -117,8 +117,8 @@ This section is a compact index; detailed rules in the topic spokes above remain
 - Kanban states: Perlu Disiapkan → Siap Diserahkan → Selesai.
 - Payment status is independent; completed and unpaid is a valid receivable.
 - V1 accepts bank transfer, QRIS, and cash, with payment confirmation performed manually by a founder.
-- External delivery should be paid before dispatch; an unpaid dispatch needs explicit confirmation and leaves the remainder as a receivable. Office pickup may remain pay-on-receipt.
-- External delivery is planned for `current_ready_date` after packing and payment verification, without a guaranteed dispatch hour.
+- External delivery should be paid before dispatch; an unpaid dispatch needs explicit confirmation and leaves the remainder as a receivable. Pickup may remain pay-on-receipt.
+- External delivery is planned for `current_ready_date` after packing and payment verification, without a guaranteed dispatch hour. Since 0.24.0 (owner request; revises the earlier date-only rule) a founder may dispatch earlier after an explicit confirm; `current_ready_date` stays unchanged.
 - Confirmed payments record the verifying founder and timestamp; references and notes are optional, and receipt images are not stored.
 - Customer order tracking via unguessable token: customers may track their order status on the storefront using a **Lacak** button in the header. Orders are stored locally on the customer's device (`le-nouette:orders` localStorage, max 20 newest first) as `{id, token}` pairs. Status fetches on-demand only (no polling) when the tracking view opens or customer manually refreshes, returning only customer-safe data (status, fulfillment, ready dates, items, total, payment state, timestamps) — never sensitive founder data like WhatsApp, address, note, or payment details. Bad tokens are uniformly not-found.
 - Remembering customer details is explicit opt-in and device-local; only name, WhatsApp number, and language are eligible for storage.

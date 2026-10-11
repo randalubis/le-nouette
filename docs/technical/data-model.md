@@ -183,10 +183,11 @@ REFUNDED
 Methods:
 
 ```text
-PICKUP_MANDIRI
-PICKUP_BI
+PICKUP
 DELIVERY
 ```
+
+Legacy values `PICKUP_MANDIRI` and `PICKUP_BI` were rewritten to `PICKUP` by migration `app/drizzle/0007_pickup_single.sql`. The column has no DB CHECK; `normalizeFulfillment()` in `app/src/lib/domain/operations.ts` maps any legacy value to `PICKUP` as a fallback until 0007 is applied everywhere (production: pending, see [implementation-status](../implementation-status.md)).
 
 ### 6.9 `payments`
 
@@ -468,7 +469,7 @@ receivable = MAX(total - amount_paid, 0)
 1. Order item quantity is a positive integer.
 2. Every non-cancelled order has at least one item.
 3. Delivery fulfillment requires a non-empty address.
-4. Office pickup must not require an address.
+4. Pickup must not require an address.
 5. Original `promised_ready_date` never changes.
 6. `current_ready_date` changes only through a recorded reschedule.
 7. A completed packing batch cannot be completed twice.

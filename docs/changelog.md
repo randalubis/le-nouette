@@ -4,6 +4,24 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.24.0 — 11 October 2026
+
+- **Early delivery dispatch with one confirm (owner request):** a delivery order can be marked dispatched ("Tandai Dikirim") before its `current_ready_date` after a founder confirm. **This revises the LOCKED rule in [fulfillment-scheduling §7.1](./product/fulfillment-scheduling.md) that dispatch may occur on that date only.** The new server flag `allowEarly` is separate from `allowUnpaid`; `allowUnpaid` still does not bypass the date. `current_ready_date` is unchanged, so the original promise stays visible. The server cannot verify the confirm, same as `allowUnpaid`.
+  - **Audit suffixes:** single `ORDER_DISPATCHED[:UNPAID][:EARLY]`; bulk `ORDERS_DISPATCHED[:UNPAID=<ids>][:EARLY=<ids>]`.
+  - **Files:** `app/src/lib/domain/operations.ts`, `actions.ts`, `app/src/components/order-board.tsx`, `app/src/lib/domain/domain.test.ts`; docs in `docs/product/` and `docs/technical/`.
+  - **Migration:** none.
+  - **Verified:** `tsc --noEmit` clean, 78 unit tests, lint and `npm run build` pass.
+  - **Not verified:** `npm run e2e` (blocked by a stray dev server on port 3000); browser check at 390px and 1440px, light and dark; reviewer pass.
+  - **Uncommitted state:** the 0.23.0 single-pickup work is still uncommitted, and migration `app/drizzle/0007_pickup_single.sql` is still not applied to production. 0.24.0 does not change either.
+
+### 0.23.0 — 11 October 2026
+
+- **Single pickup option (Mandiri and BI merged into "Pickup"; fulfillment values `PICKUP` | `DELIVERY`):** Storefront shows "Ambil sendiri" (hint: "Gratis, lokasi kami konfirmasi lewat WhatsApp") and no office is named. The founder confirms the pickup location over WhatsApp; the WhatsApp pickup line is "Pengambilan: kami kirim lokasinya lewat chat ini." Founder order filter chips derive from the new labels. Migration `app/drizzle/0007_pickup_single.sql` (`UPDATE orders SET fulfillment='PICKUP' WHERE fulfillment IN ('PICKUP_MANDIRI','PICKUP_BI')`, hand-written, with journal entry). `normalizeFulfillment()` in `app/src/lib/domain/operations.ts` maps legacy values to `PICKUP` until 0007 is applied everywhere.
+  - **Migration status:** applied to local `le_nouette_dev` only. **Not yet applied to production** (`xvbloiuwedrpcrjjusky`). It must be applied before or together with the deploy; afterwards confirm with a read-only `SELECT fulfillment, count(*) FROM orders GROUP BY 1`.
+  - No DB CHECK on `orders.fulfillment` (Low, unchanged).
+  - Files: `app/src/lib/domain/operations.ts`, `whatsapp.ts`, `app/src/lib/i18n.ts`, `app/src/components/storefront.tsx`, `order-board.tsx`, `founder-boards.tsx`, `app/drizzle/seed.ts`, `app/drizzle/dev-seed.ts`, `app/drizzle/meta/_journal.json`, `app/drizzle/0007_pickup_single.sql`, and tests `domain.test.ts`, `whatsapp.test.ts`, `export.test.ts`, `actions.integration.test.ts`, `app/e2e/founder.spec.ts`.
+  - Verified: `tsc --noEmit` clean, 77 unit tests, lint and `npm run build` pass; `npm run test:integration` 2/2 on `le_nouette_dev`; `npm run e2e` 26/26 passed before the last wording change but was **not re-run after it** (port 3000 dev server blocked it). Reviewer pass 1 scored 6/10 (legacy-value issues, fixed afterwards; not re-reviewed).
+
 ### 0.22.0 — 9 October 2026
 
 - **Founder OS UI pass on seeded data (responsive fixes, bulk bar, order cards, invoice list, Pengaturan, tokens, pending and route states; no migration):** Closes the 0.21.0 Top UI reviewer rows (except the stock domain gap, now a Medium row). Reviewer pass 1 on `le_nouette_dev` scored 7/10; after the fixes pass 2 scored 8.5/10 (SHIP). Three small fixes after pass 2 (S1 to S3) were measured by the engineer and not re-reviewed.

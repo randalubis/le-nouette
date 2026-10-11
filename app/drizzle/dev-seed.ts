@@ -29,17 +29,17 @@ function buildState(now: Date): op.State {
   const addr = (street: string) => `${street}, Jakarta Selatan`;
 
   // Oldest first.
-  const a = mk("Rizky Mahendra", "PICKUP_BI", { milieu: 1 }, 6 * D);
+  const a = mk("Rizky Mahendra", "PICKUP", { milieu: 1 }, 6 * D);
   s = op.markOrderReady(s, a, ago(5 * D)); s = op.completeOrder(op.recordPayment(s, a, "TRANSFER", ago(5 * D)), a, ago(5 * D));
-  const b = mk("Harry Sofri", "PICKUP_MANDIRI", { milieu: 2, grande: 1 }, 6 * D);
+  const b = mk("Harry Sofri", "PICKUP", { milieu: 2, grande: 1 }, 6 * D);
   s = op.markOrderReady(s, b, ago(5 * D)); s = op.completeOrder(s, b, ago(5 * D)); // completed unpaid = piutang
   const c = mk("Dina Prameswari", "DELIVERY", { grande: 2 }, 5 * D, { address: addr("Jl. Kemang Raya 10") });
   s = op.markOrderReady(s, c, ago(4 * D)); s = op.recordPayment(s, c, "QRIS", ago(4 * D));
   s = op.dispatchOrder(s, c, ago(2 * H)); s = op.completeOrder(s, c, ago(2 * H)); // dispatch guard needs today >= ready date, which varies with weekday/holidays
   s = op.setReferral(s, c, "dev-token-3", "INSTAGRAM", "@dina.p");
-  const d = mk("Maya Anggraini", "PICKUP_BI", { milieu: 2 }, 4 * D);
+  const d = mk("Maya Anggraini", "PICKUP", { milieu: 2 }, 4 * D);
   s = op.cancelOrder(op.recordPayment(s, d, "TRANSFER", ago(4 * D)), d, ago(3 * D)); // refund due
-  const e = mk("Bagus Santoso", "PICKUP_MANDIRI", { grande: 1 }, 4 * D);
+  const e = mk("Bagus Santoso", "PICKUP", { grande: 1 }, 4 * D);
   s = op.cancelOrder(s, e, ago(3 * D));
   const f = mk("Citra Lestari", "DELIVERY", { milieu: 3 }, 4 * D, { address: addr("Jl. Wijaya II No. 7"), note: "Titip di satpam" });
   s = op.markOrderReady(s, f, ago(2 * D)); s = op.recordPayment(s, f, "TRANSFER", ago(2 * D)); s = op.dispatchOrder(s, f, ago(2 * H));
@@ -48,16 +48,16 @@ function buildState(now: Date): op.State {
   s = op.markOrderReady(s, g, ago(2 * D)); s = op.dispatchOrder(s, g, ago(2 * H), { allowUnpaid: true });
   const h = mk("Fitri Handayani", "DELIVERY", { milieu: 2 }, 4 * D, { address: addr("Jl. Tebet Barat IV No. 3") });
   s = op.markOrderReady(s, h, ago(2 * D));
-  const i = mk("Galih Pratama", "PICKUP_BI", { grande: 2 }, 3 * D);
+  const i = mk("Galih Pratama", "PICKUP", { grande: 2 }, 3 * D);
   s = op.markOrderReady(s, i, ago(1 * D));
-  const j = mk("Nadia Putri", "PICKUP_MANDIRI", { milieu: 1 }, 3 * D);
+  const j = mk("Nadia Putri", "PICKUP", { milieu: 1 }, 3 * D);
   s = op.markOrderReady(s, j, ago(1 * D));
-  const k = mk("Yoga Permana", "PICKUP_BI", { milieu: 1, grande: 1 }, 3 * D);
+  const k = mk("Yoga Permana", "PICKUP", { milieu: 1, grande: 1 }, 3 * D);
   s = op.markOrderReady(s, k, ago(1 * D)); s = op.recordPayment(s, k, "QRIS", ago(20 * H));
   s = op.setReferral(s, k, "dev-token-11", "WHATSAPP", "");
-  const l = mk("Sinta Maharani", "PICKUP_BI", { milieu: 2 }, 3 * H);
+  const l = mk("Sinta Maharani", "PICKUP", { milieu: 2 }, 3 * H);
   s = op.recordPayment(s, l, "TRANSFER", ago(2 * H));
-  mk("Dewi Kusuma", "PICKUP_MANDIRI", { grande: 1 }, 2 * H);
+  mk("Dewi Kusuma", "PICKUP", { grande: 1 }, 2 * H);
   mk("Erlangga Putra", "DELIVERY", { milieu: 1, grande: 2 }, 1 * H, { address: addr("Jl. Cipete Raya 15"), note: "Tanpa sambal ya" });
   const h2 = mk("Hendra Gunawan", "DELIVERY", { grande: 1 }, 4 * D, { address: addr("Jl. Pondok Indah 8") });
   s = op.markOrderReady(s, h2, ago(2 * D)); // second unshipped delivery card, ready date reached: two-card bulk select

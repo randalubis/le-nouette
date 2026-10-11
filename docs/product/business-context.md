@@ -41,7 +41,7 @@ The target operating model is:
 4. Finished products are made predominantly to order; the main buffer is held as supplier/raw stock and packaging.
 5. Packing is performed in aggregate by product quantity, not customer by customer.
 6. The helper does not access Founder OS or customer/financial data.
-7. Office fulfillment has zero incremental transport cost because products travel during the founders' normal commute.
+7. Pickup fulfillment has zero incremental transport cost because products travel during the founders' normal commute.
 8. External last-mile delivery is paid by the customer and treated as a pass-through, not product COGS.
 9. When Le Nouette changes availability after accepting an order, the owners absorb the inconvenience rather than pushing it onto the customer.
 

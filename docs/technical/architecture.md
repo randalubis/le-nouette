@@ -13,7 +13,7 @@ The public storefront lets a customer:
 - view the two active products;
 - switch between Bahasa Indonesia and English;
 - select quantities;
-- choose Mandiri pickup, BI pickup, or external delivery;
+- choose pickup (location confirmed over WhatsApp) or external delivery;
 - see the promised ready date before submission;
 - provide name, WhatsApp number, and conditional delivery address;
 - place an order without an account or mandatory payment;
