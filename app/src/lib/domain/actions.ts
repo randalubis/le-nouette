@@ -2,11 +2,13 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import type { ItemId, ProductId } from "@/lib/domain/catalog";
 import type { DateStatus } from "@/lib/domain/schedule";
 import { isLocalDb } from "@/lib/db/local-guard";
 import { requireFounder } from "@/lib/founder-session";
+import { notifyNewOrder } from "@/lib/notify";
 import * as op from "./operations";
 
 // Best-effort cache invalidation: the domain mutation has already committed by the
@@ -35,9 +37,15 @@ const revalidateAll = () => {
 // from this response. Returns customer-safe fields only (no whatsapp/address/note/payments).
 export async function createOrderAction(input: Omit<op.CreateOrderInput, "publicToken">) {
   const publicToken = randomBytes(16).toString("hex");
-  const { error, state } = await withDomainTransaction((current, now) => op.createOrder(current, { ...input, publicToken }, now));
+  let duplicate = false;
+  const { error, state } = await withDomainTransaction((current, now) => {
+    duplicate = current.orders.some((order) => order.idempotencyKey === input.idempotencyKey);
+    return op.createOrder(current, { ...input, publicToken }, now);
+  });
   if (!error) revalidateAll();
   const found = state?.orders.find((order) => order.idempotencyKey === input.idempotencyKey);
+  // Only a newly created order notifies; a retried submit (key already present before) does not.
+  if (!error && found && !duplicate) after(() => notifyNewOrder(found));
   // Duplicate submit returns the existing order, whose stored token differs from the one just generated.
   return { error, order: found ? { ...op.toCustomerView(found), publicToken: found.publicToken } : null };
 }

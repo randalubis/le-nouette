@@ -2,13 +2,17 @@
 
 [← Product spec hub](./product-spec.md) · [← Technical spec hub](./technical-spec.md)
 
-This is the single source of truth for what's actually built versus backlog in the Le Nouette app (`./app`), as of 11 October 2026. It is a separate axis from the decision-confidence labels used throughout the product and technical spokes (`LOCKED`/`ASSUMPTION`/`OPEN`/`DEFERRED` and `REQUIRED`/`PROPOSED`/`OPEN`/`DEFERRED`) — a `LOCKED` business decision or a `REQUIRED` technical rule can still be entirely unbuilt. Spoke docs point back here with a short `**Implementation: ...**` line; the narrative and evidence live here, not duplicated across spokes.
+This is the single source of truth for what's actually built versus backlog in the Le Nouette app (`./app`), as of 14 October 2026. It is a separate axis from the decision-confidence labels used throughout the product and technical spokes (`LOCKED`/`ASSUMPTION`/`OPEN`/`DEFERRED` and `REQUIRED`/`PROPOSED`/`OPEN`/`DEFERRED`) — a `LOCKED` business decision or a `REQUIRED` technical rule can still be entirely unbuilt. Spoke docs point back here with a short `**Implementation: ...**` line; the narrative and evidence live here, not duplicated across spokes.
 
 **Database note:** The app's runtime database connection uses Supabase project `xvbloiuwedrpcrjjusky` (`ordering-system-sg`, ap-southeast-1), not the value previously documented as `birojajosbxwkrxzepar`. This is configured via DATABASE_URL (.env.local, app/src/lib/db/schema.ts migrations applied). Vercel production was updated after migration 0000 landed. Production uses this same project: on 9 October 2026, read-only Supabase `list_migrations` on `xvbloiuwedrpcrjjusky` lists all 7 migrations (0000 to 0006), including 0005 and 0006. Migration 0007 (0.23.0, pickup merge) is not applied to production yet. Local development uses `le_nouette_dev` via the gitignored `app/.env.development.local` (0.21.0); see [dev-workflow §5–6](./technical/dev-workflow.md).
 
 Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 
 ## Changelog
+
+### 0.25.0 (14 October 2026)
+
+- **Telegram push notification to the founder on every new customer order:** See [changelog 0.25.0](./changelog.md) and [notifications-and-reporting §16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250). New file `app/src/lib/notify.ts`, hooked in `createOrderAction` via `after()`. Only newly created orders notify. No migration, no DB change. Unit test `app/src/lib/notify.test.ts` added to `npm test` (79 passing, reported). **Not verified against the live Telegram API.** Production needs `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` set in Vercel and a redeploy; until then it is a silent no-op.
 
 ### 0.24.0 (11 October 2026)
 
@@ -119,6 +123,7 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 | Founder OS UI pass 0.22.0 (responsive, bulk bar, order cards, invoice list, Pengaturan, tokens, [design system](./technical/founder-os-design-system.md)) | ✅ BUILT | `app/src/components/founder.module.css` (Beranda grid tracks, `.bulkBar`/`.hasBulk`, `.cardFoot`, `.orderHead` subgrid, `.attention`, `.financeSide`, `.calGrid`), `invoice.module.css` (`.list` cards up to 1279px, `.formWide`, `.filePick`, wizard 2x2 at 360px), `ui/metric-card.module.css` (fluid `cqi` money), `globals.css` (one focus ring, `--danger-*`). Measured on seeded data at 320, 390 and 1440; reviewer pass 2 8.5/10 (SHIP); fixes S1 to S3 measured only. |
 | Pending and route states 0.22.0 ([design system §7.17–7.18](./technical/founder-os-design-system.md#717-route-states)) | ✅ BUILT | "Memproses..." and disabled buttons in `order-board.tsx`, `founder-boards.tsx`, `packing-panel.tsx`, `invoice-row-actions.tsx`, `reset-session.tsx`. Route files `app/src/app/error.tsx`, `founder/error.tsx`, `founder/loading.tsx`, `global-error.tsx`, `not-found.tsx`. Code-reviewed only; rendering is an open item. |
 | Early delivery dispatch 0.24.0 ([§7.1](./product/fulfillment-scheduling.md#71-base-weekday-rule), [workflows §11.4](./technical/workflows.md#114-payment-gate-for-external-delivery)) | ✅ BUILT | `allowEarly` in `DispatchOptions` in `app/src/lib/domain/operations.ts`; `dispatchOrderAction` / `dispatchOrdersAction` in `actions.ts`; one confirm in `order-board.tsx`; audit `:EARLY` suffix. Domain-tested; browser and e2e not yet verified. |
+| Telegram new-order push 0.25.0 ([notifications-and-reporting §16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250)) | ✅ BUILT | `app/src/lib/notify.ts` (`formatNewOrderMessage` pure, `notifyNewOrder` POST to Telegram `sendMessage`, 5s timeout, never throws, no token in logs); hooked in `createOrderAction` (`app/src/lib/domain/actions.ts`) via `after()` for new orders only; `app/src/lib/notify.test.ts`. Silent no-op when either env var is unset. Not exercised against the live Telegram API. |
 | Stock shortage and date-time display 0.22.0 | ✅ BUILT | `app/src/lib/domain/catalog.ts` (`formatAvailable`, `formatShortage`), `app/src/lib/domain/schedule.ts` (`formatDateTime`), unit tests in `domain.test.ts` (76 unit tests). Display only: `createOrder` still reserves beyond stock (Medium row). |
 | Quantity stepper accessibility (real spinbutton semantics) | ✅ BUILT | `app/src/components/storefront.tsx` (quantity stepper) — spinbutton role, aria-valuenow/valuemin/valuemax, keyboard arrow-up/down handlers, aria-live=polite |
 | Product photography (real images deployed) | ✅ BUILT | Remaining production files: `app/public/le-nouette/hero.png`, `milieu.png`, `grande.png`, `qris.jpg`. Unused placeholder images (`ordering-reference.png`, `packaging-concept.png`, ~4.2 MB) removed. Images optimized via next.config.ts `images: { qualities: [60, 75] }` and deployed with explicit `quality={60}` and `sizes` attributes for responsive sizing; Vercel build verified. |
@@ -172,6 +177,7 @@ Status legend: ✅ BUILT · 🚧 PARTIAL · ⏳ BACKLOG
 |---|---|---|
 | 90-day address/note purge ([§19.6 item 43](./technical/acceptance-tests.md)) | ⏳ BACKLOG | Completed orders' delivery address and customer note are never cleared; no job exists. |
 | Customer anonymization ([§19.6 item 44](./technical/acceptance-tests.md)) | ⏳ BACKLOG | No command to strip identifying profile values while keeping history. |
+| Telegram order-push extensions 0.25.0 (out of scope for 0.25.0) | ⏳ BACKLOG | Not built: cancel and payment pings, retry or queue on failed sends, cron reminder for unattended orders, founder link in the message (no site-URL env exists). See [§16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250). |
 | DB CHECK constraints on ready_product_movements | ⏳ BACKLOG | Schema enforces FIFO and expiry logic in domain code; database-level constraints for consistency during concurrent mutations are deferred. |
 
 Open follow-ups from reviews and the 0.20.4 audit (including the 0.15.0 order-flow items) are consolidated in [prioritized open follow-ups](#prioritized-open-follow-ups).
@@ -180,7 +186,7 @@ Open follow-ups from reviews and the 0.20.4 audit (including the 0.15.0 order-fl
 
 Single consolidated list as of 0.22.0 (9 October 2026). Priority follows the audit severity: **High** blocks launch or risks live data now; **Medium** is a real defect or gap to schedule next; **Low** is hardening, polish or a doc gap. Owner: `engineer` (code), `designer` (UI), `docs`, `founder-decision` (needs the founder). Spec-level deferred items stay in [decisions-and-deferred](./technical/decisions-and-deferred.md) §22, and the 0.15.0 order-flow items stay in [§23](./technical/decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150). Only confirmed findings are listed.
 
-As of 0.23.0 there is one High item: migration 0007 (pickup merge) is not yet applied to production. Migrations 0005 and 0006 are verified applied to production. The 0.21.0 seeded-data reviewer findings are closed (0.22.0), except the stock domain gap, which is the first Medium row. Counts: **1 High, 11 Medium, 34 Low (46 open).** Medium rows run from the stock gap to the login limit, backup, Hobby plan and the audit items; Low rows keep audit order, with the 0.22.0 review items after the related rows.
+As of 0.23.0 there is one High item: migration 0007 (pickup merge) is not yet applied to production. Migrations 0005 and 0006 are verified applied to production. The 0.21.0 seeded-data reviewer findings are closed (0.22.0), except the stock domain gap, which is the first Medium row. As of 0.25.0 one Low row was added (Telegram live check). Counts: **1 High, 11 Medium, 35 Low (47 open).** Medium rows run from the stock gap to the login limit, backup, Hobby plan and the audit items; Low rows keep audit order, with the 0.22.0 review items after the related rows.
 
 | Priority | Item | Owner | Where |
 |---|---|---|---|
@@ -231,6 +237,7 @@ As of 0.23.0 there is one High item: migration 0007 (pickup merge) is not yet ap
 | Low | No CI gate before Vercel auto-deploy. The pre-commit hook checks that docs are staged, not tests. No security headers in `next.config.ts`. | engineer | `.githooks/pre-commit`, `app/next.config.ts` |
 | Low | No production env-var table (name, required, set by, build vs runtime). `NEXT_PUBLIC_WHATSAPP_NUMBER` production value unconfirmed. | docs | [dev-workflow](./technical/dev-workflow.md) §5.1 |
 | Low | Phase 5 open items: XLSX export as a pre-migration workflow, concurrency and idempotency verification, founder operating guide. | docs, engineer | [decisions-and-deferred](./technical/decisions-and-deferred.md) Phase 5 |
+| Low | Telegram new-order push (0.25.0) is not verified against the live Telegram API. Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in Vercel, redeploy, then place a test order and confirm the message arrives. | founder-decision, engineer | [notifications-and-reporting §16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250); [changelog 0.25.0](./changelog.md) |
 
 ## How to keep this current
 

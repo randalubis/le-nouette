@@ -4,6 +4,17 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.25.0 — 14 October 2026
+
+- **Telegram push to the founder on every new customer order:** after a new order is created, the founder's Telegram chat receives a short message: order id, customer first name only, item count, total (Rp), pickup or delivery, and ready date. No phone, address or note is sent, because Telegram is a third-party service. No founder link is included (no site-URL env exists). See [notifications-and-reporting §16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250).
+  - **Trigger:** `createOrderAction` (`app/src/lib/domain/actions.ts`) calls `notifyNewOrder` through `after()` from `next/server`, only for a newly created order. A retried submit with a duplicate `idempotencyKey` does not notify again.
+  - **Behaviour:** silent no-op when `TELEGRAM_BOT_TOKEN` or `TELEGRAM_CHAT_ID` is unset. 5-second timeout. Never throws; logs the failure without the token.
+  - **Files:** `app/src/lib/notify.ts` (new; `formatNewOrderMessage` pure, `notifyNewOrder`), `app/src/lib/notify.test.ts` (new), `app/src/lib/domain/actions.ts`, `app/package.json` (`npm test` script), `app/.env.example` (commented `TELEGRAM_*` vars).
+  - **Migration:** none. No DB change.
+  - **Verified:** unit tests (79 passing, reported). **Not verified** against the live Telegram API.
+  - **Deploy:** production needs `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` set in Vercel, then a redeploy. Until both are set the feature does nothing.
+  - **Out of scope (backlog):** cancel and payment pings, retry or queue on failed sends, cron reminder for unattended orders, founder link in the message.
+
 ### 0.24.0 — 11 October 2026
 
 - **Early delivery dispatch with one confirm (owner request):** a delivery order can be marked dispatched ("Tandai Dikirim") before its `current_ready_date` after a founder confirm. **This revises the LOCKED rule in [fulfillment-scheduling §7.1](./product/fulfillment-scheduling.md) that dispatch may occur on that date only.** The new server flag `allowEarly` is separate from `allowUnpaid`; `allowUnpaid` still does not bypass the date. `current_ready_date` is unchanged, so the original promise stays visible. The server cannot verify the confirm, same as `allowUnpaid`.

@@ -174,6 +174,8 @@ npm run dev         # http://localhost:3000/founder/
 
 Log in at `http://localhost:3000/founder/login` with `dev@lenouette.local` / `dev-password` (values from `.env.development.local`).
 
+Optional `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` (0.25.0, [notifications §16.3](./notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250)): leave them unset in dev. Unset means no message is sent. Setting them locally makes every test order ping the founder's Telegram chat.
+
 ### 5.2 Seed data and reset
 
 - `npm run dev:db` is idempotent: it creates and seeds only when the database has no orders.

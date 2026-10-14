@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for all 6 message kinds (confirmation, ready, dispatched (0.16.0), rescheduled, cancelled, payment); customer-language selection remains backlog. Open WhatsApp follow-ups are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150). Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is ✅ built in CSV and XLSX formats with optional date-range filtering (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — WhatsApp deep-link generation (§16) is built for all 6 message kinds (confirmation, ready, dispatched (0.16.0), rescheduled, cancelled, payment); customer-language selection remains backlog. Founder-facing Telegram push on new orders (§16.3, 0.25.0) is built but not yet verified against the live Telegram API. Open WhatsApp follow-ups are in [decisions-and-deferred §23](./decisions-and-deferred.md#23-open-follow-ups-from-order-flow-review-0150). Founder OS order board renders **Kirim WhatsApp** link when order is not COMPLETED and customer WhatsApp number is valid; kind selection is automatic via `waKindFor()`. Portable business-data export (§17.1) is ✅ built in CSV and XLSX formats with optional date-range filtering (`app/src/lib/export.ts`, routes at `app/src/app/founder/export/`). See [implementation-status.md](../implementation-status.md).
 
 ## 16. Notifications
 
@@ -105,6 +105,16 @@ Potential messages:
 See [implementation-status.md](../implementation-status.md).
 
 ---
+
+### 16.3 Founder Telegram push (new orders, 0.25.0)
+
+**Implementation: ✅ BUILT** (not yet verified against the live Telegram API). Code: `app/src/lib/notify.ts`, hooked in `createOrderAction` (`app/src/lib/domain/actions.ts`) via `after()`. Status and open items: [implementation-status.md](../implementation-status.md).
+
+- Sent once per newly created order over the Telegram Bot API `sendMessage`. A retried submit with a duplicate `idempotencyKey` does not send again.
+- Message content: order id, customer **first name only**, item count, total (Rp), pickup or delivery, ready date. Never phone, address or customer note (third-party service).
+- No founder link line; the codebase has no site-URL env.
+- Silent no-op unless both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set. Timeout 5 seconds. Failures are logged without the token and never throw, so they cannot block or roll back order creation.
+- No migration and no retry queue. Cancel and payment pings, retries, and a cron reminder are backlog.
 
 ## 17. Reporting definitions
 
