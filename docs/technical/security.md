@@ -44,7 +44,7 @@
 - Treat generated XLSX exports as private files containing customer and business data.
 - The invoice buyer directory (`buyers` table, 0.26.0, [data-model §6.22](./data-model.md#622-buyers)) holds buyer name, phone and address. It is founder-only. RLS is enabled with no policies, so the anon key gets nothing, and the app reaches the table only through founder-authenticated actions. Directory writes are best-effort and never fail an invoice. A failed write logs the Postgres error code only, never the buyer data.
 - Column-level encryption is deliberately not applied to `buyers`. `orders` and `invoices` hold the same fields in plain text, so encrypting only the directory would not raise overall protection. Doing it properly covers all three tables and is a separate change.
-- Status: built in 0.26.0. Migration `0008_buyers.sql` is applied to local databases only, so production has no directory table yet.
+- Status: built in 0.26.0. Migration `0008_buyers.sql` is applied to the local databases and to production (19 November 2026).
 
 ### 15.4 Retention and anonymization
 

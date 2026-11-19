@@ -440,7 +440,7 @@ Amount due ("Jumlah Tertagih") is derived as `total − paid`, not stored. Edit 
 
 ### 6.22 `buyers`
 
-**Implementation: 🚧 PARTIAL** (0.26.0; migration `0008_buyers.sql`, RLS enabled, no policies). Directory of earlier invoice buyers, used to autofill the wizard's buyer step. Read and written by `app/src/lib/db/buyers.ts` (`upsertBuyer`, `searchBuyers`); outside the `loadState`/`diffAndWrite` model. Applied to local `le_nouette_dev` and `le_nouette_e2e` only. Production has no table yet, so the directory is empty there until 0008 is applied. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** (0.26.0; migration `0008_buyers.sql`, RLS enabled, no policies). Directory of earlier invoice buyers, used to autofill the wizard's buyer step. Read and written by `app/src/lib/db/buyers.ts` (`upsertBuyer`, `searchBuyers`); outside the `loadState`/`diffAndWrite` model. Applied to local `le_nouette_dev` and `le_nouette_e2e`, and to production on 19 November 2026 (9 buyers backfilled). See [implementation-status.md](../implementation-status.md).
 
 | Field | Type | Notes |
 |---|---|---|
