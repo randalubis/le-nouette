@@ -96,7 +96,7 @@ async function main() {
   const reset = process.argv.includes("--reset");
   if (reset && new URL(process.env.DATABASE_URL!).pathname !== "/le_nouette_dev") throw new Error("--reset only runs against the le_nouette_dev database.");
   if (reset) {
-    await db.execute(sql`truncate table orders, order_items, payments, movements, reservations, calendar_dates, store_status, audit_events, ready_product_movements, invoices, invoice_counters, company_settings restart identity cascade`);
+    await db.execute(sql`truncate table orders, order_items, payments, movements, reservations, calendar_dates, store_status, audit_events, ready_product_movements, invoices, invoice_counters, buyers, company_settings restart identity cascade`);
   } else if ((await loadState(db)).orders.length > 0) {
     console.log("Dev database already has orders - skipping seed (use npm run dev:db:reset for a fresh seed).");
     return;

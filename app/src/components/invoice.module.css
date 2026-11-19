@@ -138,6 +138,13 @@
   .formWide > :global(.btn) { grid-column: 1 / -1; justify-self: start; min-width: 200px; }
 }
 
+/* Buyer search listbox (BuyerCombobox). Tokens only; options are 44px touch targets. */
+.combo { position: relative; }
+.comboList { position: absolute; z-index: 5; inset: calc(100% + 4px) 0 auto 0; margin: 0; padding: 4px; list-style: none; max-height: 280px; overflow-y: auto; background: var(--surface); border: 1px solid var(--control, var(--line)); border-radius: var(--radius-control); box-shadow: var(--shadow); }
+.comboOption { display: grid; gap: 2px; min-height: 44px; align-content: center; padding: 6px 10px; border-radius: calc(var(--radius-control) - 4px); font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.comboOption small { color: var(--muted); font-size: 13px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.comboOption:hover, .comboOption[aria-selected="true"] { background: var(--sunken); }
+
 @media (max-width: 480px) {
   .nav :global(.btn-primary) { margin-left: 0; }
   .table:not(.list) th, .table:not(.list) td { padding: 10px 10px; }

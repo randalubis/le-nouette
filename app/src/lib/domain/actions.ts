@@ -188,6 +188,7 @@ export async function resetSeedAction(key?: string) {
     // Invoices carry a bare orderId (no FK); order ids restart after reset, so clear them and their counters too.
     await tx.delete(schema.invoices);
     await tx.delete(schema.invoiceCounters);
+    await tx.delete(schema.buyers);
     await tx.update(schema.storeStatus).set({ status: "OPEN" });
   });
   revalidateAll();

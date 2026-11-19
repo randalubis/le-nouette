@@ -4,6 +4,18 @@
 
 Merged, deduplicated history from the former `le-nouette-product-operating-specification.md` (§18) and `le-nouette-v1-technical-specification.md` (§23), which tracked the same dated decisions from two angles. Entries below combine both perspectives into one line per decision where they described the same change.
 
+### 0.26.0 — 19 November 2026
+
+- **Invoice buyer directory (owner request):** the invoice wizard's "Pembeli" step suggests earlier buyers as the owner types a name. Picking one fills phone and address. Typing a new name works as before. Creating or editing an invoice saves its buyer to a new `buyers` table when the phone is valid. A known phone keeps its stored name and takes the newest address; an empty address never erases a stored one. Invoices stay immutable snapshots. Founder-only. See [data-model §6.22](./technical/data-model.md#622-buyers) and [security §15.3](./technical/security.md#153-sensitive-data).
+  - **Search:** `searchBuyersAction` (founder-only) starts at 2 characters, debounces 200 ms, prefix-matches the name, and returns at most 8 buyers, newest first. The combobox is documented in [design §7.19](./technical/founder-os-design-system.md#719-buyer-search-combobox).
+  - **Backfill:** migration `app/drizzle/0008_buyers.sql` creates the table with RLS enabled and no policies. It loads buyers once from non-cancelled orders and from invoices, keeping the most recent row per valid phone.
+  - **Migration status:** 0008 is applied to local `le_nouette_dev` and `le_nouette_e2e` only. **It is not applied to production.** Migration 0007 is also still unapplied there. The code is safe to deploy first: search returns an empty list and directory writes are skipped. The directory stays empty until 0008 is applied.
+  - **Reset and seed:** `resetSeedAction` and the dev seed clear `buyers`.
+  - **Files:** `app/drizzle/0008_buyers.sql`, `app/drizzle/meta/_journal.json`, `app/src/lib/db/schema.ts`, `app/src/lib/db/buyers.ts` (new), `app/src/lib/domain/buyers.ts` (new), `app/src/lib/domain/buyers.test.ts` (new), `app/src/lib/domain/invoice-actions.ts`, `app/src/lib/domain/actions.ts`, `app/src/lib/db/actions.integration.test.ts`, `app/src/components/buyer-combobox.tsx` (new), `app/src/components/invoice-wizard.tsx`, `app/src/components/invoice.module.css`, `app/drizzle/dev-seed.ts`.
+  - **Verified:** `tsc` clean, 82 unit tests pass, lint clean, `npm run build` ok, `npm run e2e` 26/26 on `le_nouette_e2e`. Browser-checked at 390px and 1440px, light and dark.
+  - **Review:** reviewer pass scored 6/10 with 12 findings. All engineer and designer findings are fixed except one deferred minor: no loading state and no visible search-error state.
+  - **Not passing:** `npm run test:integration` runs 6 tests, 5 pass and 1 fails. The failing case is the `createOrderAction` persistence test, "after was called outside a request scope". It comes from 0.25.0 and is unrelated to the directory. It is listed as Medium in the [prioritized follow-ups](./implementation-status.md#prioritized-open-follow-ups).
+
 ### 0.25.0 — 14 October 2026
 
 - **Telegram push to the founder on every new customer order:** after a new order is created, the founder's Telegram chat receives a short message: order id, customer first name only, item count, total (Rp), pickup or delivery, and ready date. No phone, address or note is sent, because Telegram is a third-party service. No founder link is included (no site-URL env exists). See [notifications-and-reporting §16.3](./technical/notifications-and-reporting.md#163-founder-telegram-push-new-orders-0250).

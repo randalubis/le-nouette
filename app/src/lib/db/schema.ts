@@ -1,4 +1,5 @@
 import type { InvoiceCompany, InvoiceLine } from "@/lib/domain/invoice";
+import { sql } from "drizzle-orm";
 import { pgTable, text, integer, timestamp, jsonb, serial, date, index } from "drizzle-orm/pg-core";
 
 export const orders = pgTable("orders", {
@@ -135,3 +136,13 @@ export const invoiceCounters = pgTable("invoice_counters", {
   year: integer("year").primaryKey(),
   lastSeq: integer("last_seq").notNull(),
 });
+
+// Buyer directory for invoice autofill. phone = normalised 62... key (toWaNumber), unique; rows without a valid phone are never stored.
+// Invoices copy these values into their own columns and keep no reference here, so edits never touch issued invoices.
+export const buyers = pgTable("buyers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull().unique(),
+  address: text("address").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+}, (table) => [index("buyers_name_prefix_idx").on(sql`lower(${table.name}) text_pattern_ops`)]);

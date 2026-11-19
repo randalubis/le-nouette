@@ -32,9 +32,10 @@ get inventory balances/history/projection
 get receivables/payments/financial summary (`financeSummary` also returns `receivableCompleted` = Piutang and `awaitingPayment` = Menunggu pembayaran, 0.16.0; `receivable` is their sum)
 get availability month
 get invoice list; invoice PDF via GET /founder/invoices/[id]/pdf (same cookie gate as export routes)
+search earlier invoice buyers by name prefix (`searchBuyersAction(query)`, 0.26.0)
 ```
 
-Authenticated server-rendered components; no mutation required.
+Authenticated server-rendered components; no mutation required. The buyer search is the one founder read implemented as a Server Action. It requires at least 2 characters, returns at most 8 buyers newest first, and returns an empty list when the database query fails. An unauthenticated call redirects to `/login` like the other founder actions. See [data-model §6.22](./data-model.md#622-buyers).
 
 ### 14.3 Founder commands
 
@@ -57,7 +58,7 @@ delete unpaid invoice
 save company settings and logo
 ```
 
-All 22 founder command server actions call `requireFounder()` as their first line (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `markOrderReadyAction`, `dispatchOrderAction(id, allowUnpaid?)`, `dispatchOrdersAction(ids, allowUnpaid?)`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `updateInvoiceAction`, `markInvoicePaidAction`, `undoInvoicePaidAction`, `deleteInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`). Mark/undo paid act on the order through the same `recordPayment`/`reversePayment` domain ops as the Pesanan board; see [payments-and-receivables §11.4](../product/payments-and-receivables.md#114-invoice-payment-founder-os).
+All 23 founder server actions call `requireFounder()` as their first line: the 22 commands below, and the buyer search read `searchBuyersAction` (0.26.0, `invoice-actions.ts`) (`app/src/lib/founder-session.ts`), verifying an HMAC-signed `founder_session` cookie and redirecting unauthenticated requests to `/login`. Commands: `cancelOrderAction`, `rescheduleOrderAction`, `completeBatchAction`, `markOrderReadyAction`, `dispatchOrderAction(id, allowUnpaid?)`, `dispatchOrdersAction(ids, allowUnpaid?)`, `completeOrderAction`, `recordPaymentAction`, `reversePaymentAction`, `receiveStockAction`, `stockOpnameAction`, `recordExtraPackedAction`, `adjustReadyAction`, `setDateStatusAction`, `setStoreStatusAction`, `resetSeedAction`, `createInvoiceAction`, `updateInvoiceAction`, `markInvoicePaidAction`, `undoInvoicePaidAction`, `deleteInvoiceAction`, `saveSettingsAction`. Invoice actions live in `app/src/lib/domain/invoice-actions.ts`, not `actions.ts`. `createInvoiceAction` returns `{error, id, number}`; `saveSettingsAction` takes `FormData` (`logo`, `removeLogo`). Mark/undo paid act on the order through the same `recordPayment`/`reversePayment` domain ops as the Pesanan board; see [payments-and-receivables §11.4](../product/payments-and-receivables.md#114-invoice-payment-founder-os).
 
 Use command-specific server actions rather than a generic endpoint that permits arbitrary status or balance mutation.
 

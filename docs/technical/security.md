@@ -2,7 +2,7 @@
 
 [← Technical spec hub](../technical-spec.md)
 
-**Implementation: 🚧 PARTIAL** — Founder server actions are authenticated in-action via `requireFounder()` (`app/src/lib/founder-session.ts`), which verifies an HMAC-signed, httpOnly `founder_session` cookie and redirects to `/login` on failure. All 22 founder-only server actions (16 in `app/src/lib/domain/actions.ts`, 6 in `invoice-actions.ts`) call `requireFounder()` as their first line. Public actions are `createOrderAction`, `saveReferralAction` and `trackOrdersAction`; none calls `requireFounder()`. Authentication uses a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential rather than per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail. Cookie is verified server-side; session lookup does not query Supabase Auth. CSRF protection relies on Next.js Server Actions' built-in origin check. See [implementation-status.md](../implementation-status.md).
+**Implementation: 🚧 PARTIAL** — Founder server actions are authenticated in-action via `requireFounder()` (`app/src/lib/founder-session.ts`), which verifies an HMAC-signed, httpOnly `founder_session` cookie and redirects to `/login` on failure. All 23 founder-only server actions (16 in `app/src/lib/domain/actions.ts`, 7 in `invoice-actions.ts`, including the buyer search `searchBuyersAction`) call `requireFounder()` as their first line. Public actions are `createOrderAction`, `saveReferralAction` and `trackOrdersAction`; none calls `requireFounder()`. Authentication uses a single shared `ADMIN_EMAIL`/`ADMIN_PASSWORD` env credential rather than per-founder Supabase Auth accounts — no individual accounts, no rate-limiting/lockout, no audit trail. Cookie is verified server-side; session lookup does not query Supabase Auth. CSRF protection relies on Next.js Server Actions' built-in origin check. See [implementation-status.md](../implementation-status.md).
 
 ## 15. Authentication, authorization, and security
 
@@ -42,6 +42,9 @@
 - Encrypt network traffic.
 - Avoid writing full customer details to application logs.
 - Treat generated XLSX exports as private files containing customer and business data.
+- The invoice buyer directory (`buyers` table, 0.26.0, [data-model §6.22](./data-model.md#622-buyers)) holds buyer name, phone and address. It is founder-only. RLS is enabled with no policies, so the anon key gets nothing, and the app reaches the table only through founder-authenticated actions. Directory writes are best-effort and never fail an invoice. A failed write logs the Postgres error code only, never the buyer data.
+- Column-level encryption is deliberately not applied to `buyers`. `orders` and `invoices` hold the same fields in plain text, so encrypting only the directory would not raise overall protection. Doing it properly covers all three tables and is a separate change.
+- Status: built in 0.26.0. Migration `0008_buyers.sql` is applied to local databases only, so production has no directory table yet.
 
 ### 15.4 Retention and anonymization
 
@@ -53,6 +56,7 @@
 - Allow an authenticated founder to anonymize a customer. Set name and WhatsApp values to null, set `anonymized_at`, and preserve the customer ID and historical relationships. Enforce WhatsApp uniqueness only for non-null active values.
 - Anonymization must not delete or recalculate orders, payments, inventory movements, packing records, or reports.
 - Device-saved customer details are browser-local and require separate disclosure/consent wording.
+- **OPEN:** the `buyers` directory (0.26.0) has no delete or anonymize path. A founder cannot remove a stored buyer or clear their details yet. Decide its retention rule together with the customer anonymization item above. Status and follow-up: [implementation-status](../implementation-status.md#prioritized-open-follow-ups).
 
 ### 15.5 Auditability
 

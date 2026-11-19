@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createInvoice, deleteInvoice, getInvoice, setInvoicePaid, updateInvoice } from "@/lib/db/invoices";
 import { withDomainTransaction } from "@/lib/db/with-domain-transaction";
 import { getSettings, saveSettings } from "@/lib/db/settings";
+import { searchBuyers, upsertBuyer, type BuyerHit } from "@/lib/db/buyers";
 import { getState } from "@/lib/db/get-state";
 import { buildInvoiceFromOrder, canDeleteInvoice, canEditInvoice, normalizeNewlines, planMarkPaid, planUndoPaid, type InvoiceDraft, type InvoiceLine } from "@/lib/domain/invoice";
 import { recordPayment, reversePayment, type PaymentMethod } from "@/lib/domain/operations";
@@ -17,6 +18,20 @@ const isDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{
 
 // Order pages/cards read payments: refresh them after an invoice changed an order payment (same scope as actions.ts revalidateAll).
 const revalidateOrders = () => { revalidatePath("/"); revalidatePath("/founder", "layout"); };
+
+// Buyer directory write. Never fails the caller: the invoice is already saved, and the directory table may be missing
+// (production before migration 0008). Nothing about the buyer goes into the catch.
+// Failures log the Postgres error code only: messages can echo the phone value.
+const errCode = (e: unknown) => { const x = e as { code?: string; cause?: { code?: string } }; return x?.code ?? x?.cause?.code ?? "unknown"; };
+async function saveBuyer(b: { buyerName: string; buyerPhone: string; buyerAddress: string }) {
+  try { await upsertBuyer({ name: b.buyerName, phone: b.buyerPhone, address: b.buyerAddress }); } catch (e) { console.error("buyer directory write failed:", errCode(e)); }
+}
+
+// Name search for the invoice wizard. Founder-only; any failure returns an empty list.
+export async function searchBuyersAction(query: string): Promise<BuyerHit[]> {
+  await requireFounder();
+  try { return await searchBuyers(str(query, 120)); } catch (e) { console.error("buyer directory search failed:", errCode(e)); return []; }
+}
 
 export type CreateInvoiceInput = Partial<InvoiceDraft> & { orderId?: string | null; issuedAt?: string; dueDate?: string };
 
@@ -34,6 +49,7 @@ export async function createInvoiceAction(input: CreateInvoiceInput): Promise<{ 
   const clean = cleanDraft(draft, input);
   if ("error" in clean) return { error: clean.error, id: null, number: null };
   const row = await createInvoice({ ...clean, orderId, company });
+  await saveBuyer(clean);
   revalidatePath("/founder/invoices");
   return { error: null, id: row.id, number: row.number };
 }
@@ -70,6 +86,7 @@ export async function updateInvoiceAction(id: number, input: Partial<InvoiceDraf
   if ("error" in clean) return { error: clean.error };
   const row = await updateInvoice(inv.id, { ...clean, company: input?.refreshCompany ? await getSettings() : undefined });
   if (!row) return { error: LOCKED };
+  await saveBuyer(clean);
   revalidatePath("/founder/invoices");
   return { error: null };
 }

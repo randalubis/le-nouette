@@ -24,7 +24,7 @@ Provenance: designed in the "Founder OS Redesign" Design canvas (Palette C "Cool
 | Founder tokens, shell (sidebar, topbar, mobile nav), dashboard, orders, stock, finance, calendar | `app/src/components/founder.module.css` |
 | Global tokens and shared `.btn`, `.status`, `.icon-btn` | `app/src/app/globals.css` |
 | Shared cards | `app/src/components/ui/` (`metric-card`, `action-card`, `list-row-card`, each with a `.module.css`) |
-| Invoice and form patterns (fields, steps, lines, table, summary) | `app/src/components/invoice.module.css` |
+| Invoice and form patterns (fields, steps, lines, table, summary, buyer search listbox) | `app/src/components/invoice.module.css` |
 | Login (own scoped copy of the tokens on `.page`, because it sits outside the shell) | `app/src/app/login/login.module.css` |
 
 Tokens are overridden on the `.app` wrapper, so anything rendered inside the Founder shell re-themes automatically. A new page inside the shell needs no theming work if it only uses tokens and the shared components.
@@ -161,6 +161,7 @@ Seven-column grid, 44px day buttons, 12px radius. States: **closed** (filled pri
 - Stepper: pill steps (44px high), current step filled primary, horizontally scrollable on mobile.
 - Line groups: bordered fieldset, 18px radius. Summary and totals: canvas background, tabular numbers, bold grand total.
 - Messages: `.error` (danger tokens) and `.ok` (safe tokens), inline, 14px bold.
+- Name fields that suggest earlier records (the wizard buyer name) use the buyer search combobox in §7.19.
 - Tables: wrapped in a bordered rounded container, header on `--sunken`, last column right-aligned, numbers tabular. Up to 900px render rows as cards (invoice list).
 - Checkboxes use the `.check` pattern (`invoice.module.css`): the label gets `.check`, and holds a real `<input type="checkbox">` plus an `aria-hidden="true"` `<span class="box">`. The input is stretched over the whole row (at least 44px) at `opacity: 0`, and `.box` draws the 22px control. The `.box` span is required next to the input wherever `.check` is used; without it the checkbox is invisible. Used for "Hapus logo" and the wizard "Perbarui info perusahaan".
 - Native date inputs are accepted as-is. The Pengaturan logo uses the `.filePick` pattern (0.22.0): a `.fileBtn` labelled "Pilih berkas" is the visible button, the native file input sits over it (`pointer-events: none` on the button) and takes the click and focus, and `.fileName` shows the chosen file name in muted 13px text. The focus ring is drawn on `.fileBtn` with `:has(input:focus-visible)`.
@@ -205,6 +206,18 @@ A three-column grid row (0.22.0): a 36px icon chip on the left (`.attnIcon`, 12p
 - Founder mutations run through a shared thunk-based `act` that keeps `isPending`. While a write runs, the pressed button reads "Memproses..." (its label is keyed on the busy action) and the buttons in that control are disabled.
 - Used by the order board, Stok, Kalender, store status, packing panel, invoice row actions and the reset tool. The reset tool shows an inline `role="alert"` error when the reset fails.
 - Keep the action's wording and change only the pending label. Never leave a double-tappable write button enabled while it runs.
+
+### 7.19 Buyer search combobox
+
+`BuyerCombobox` (`app/src/components/buyer-combobox.tsx`, styles `.combo`, `.comboList`, `.comboOption` in `invoice.module.css`) is the name box of the invoice wizard's "Pembeli" step (0.26.0). It searches earlier buyers on the server. Picking a result fills phone and address in the wizard; that behaviour is in [data-model §6.22](./data-model.md#622-buyers).
+
+- Search starts at 2 characters, debounces 200 ms, and returns at most 8 results, newest first. A request counter drops answers to keystrokes that are already out of date.
+- The input is a plain text input with `role="combobox"`, `aria-expanded`, and `aria-autocomplete="list"`. `aria-controls` points at the listbox only while the list is open. `aria-activedescendant` is set only on the highlighted option and cleared on close.
+- The listbox (`role="listbox"`) sits directly under the input. It is absolutely positioned, at most 280px tall, and scrolls. Each option (`role="option"`) is at least 44px high and shows the name, then phone and address in 13px muted text.
+- Keyboard: ArrowDown and ArrowUp move the highlight and wrap at the ends. Enter picks the highlighted option. Escape closes the list. A pointer pick fires on mousedown, so it lands before the input's blur closes the list.
+- Blur or a pick closes the list and drops any pending or in-flight search, so a late answer cannot reopen the list over the next field.
+- No match: an inline `role="status"` note appears under the input. It is not an overlay. Typing a new name works as before.
+- Tokens only: `--surface` (listbox), `--control` (listbox border, with `--line` as the fallback), `--sunken` (highlighted option), `--muted` (secondary text), `--ink` (option name), `--shadow` (listbox), `--radius-control` (listbox).
 
 ## 8. Interaction and accessibility baseline
 
@@ -271,3 +284,4 @@ Open:
 - Order-card and attention-chip states: the Wallet chip on a real payment row and the two-line attention rows are not checked on real production data (the local e2e database has no orders).
 - Negative stock is a display fix only; `createOrder` reserves beyond stock (Medium backlog row).
 - S1 to S3, the fixes made after reviewer pass 2, were measured by the engineer and not re-reviewed.
+- Buyer search combobox (§7.19, 0.26.0): no loading state while a search runs, and a failed search shows no suggestions and no message. Deferred minor from the 0.26.0 reviewer pass.

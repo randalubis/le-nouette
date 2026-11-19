@@ -5,6 +5,7 @@ import Link from "next/link";
 import { products } from "@/lib/domain/catalog";
 import { createInvoiceAction, updateInvoiceAction } from "@/lib/domain/invoice-actions";
 import { catalogLine, computeTotals, formatInvoiceDate, rupiah, type InvoiceDraft, type InvoiceLine } from "@/lib/domain/invoice";
+import { BuyerCombobox } from "./buyer-combobox";
 import styles from "./founder.module.css";
 import s from "./invoice.module.css";
 
@@ -85,7 +86,7 @@ export function InvoiceWizard({ orders, initialOrderId, today, defaultNotes, inv
               {orders.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </label>}
-          <label className={s.field}>Nama pembeli<input value={buyer.name} onChange={(e) => setBuyer({ ...buyer, name: e.target.value })} autoComplete="off" /></label>
+          <BuyerCombobox value={buyer.name} onChange={(name) => setBuyer({ ...buyer, name })} onPick={(b) => setBuyer({ name: b.name, phone: b.phone || buyer.phone, address: b.address || buyer.address })} />
           <label className={s.field}>Nomor telepon<input value={buyer.phone} onChange={(e) => setBuyer({ ...buyer, phone: e.target.value })} inputMode="tel" /></label>
           <label className={s.field}>Alamat<textarea value={buyer.address} onChange={(e) => setBuyer({ ...buyer, address: e.target.value })} /></label>
         </>}

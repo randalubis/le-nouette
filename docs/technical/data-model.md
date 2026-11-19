@@ -438,6 +438,28 @@ Amount due ("Jumlah Tertagih") is derived as `total − paid`, not stored. Edit 
 | `year` | integer | primary key |
 | `last_seq` | integer | not null; incremented under advisory lock key 2 in `createInvoice` |
 
+### 6.22 `buyers`
+
+**Implementation: 🚧 PARTIAL** (0.26.0; migration `0008_buyers.sql`, RLS enabled, no policies). Directory of earlier invoice buyers, used to autofill the wizard's buyer step. Read and written by `app/src/lib/db/buyers.ts` (`upsertBuyer`, `searchBuyers`); outside the `loadState`/`diffAndWrite` model. Applied to local `le_nouette_dev` and `le_nouette_e2e` only. Production has no table yet, so the directory is empty there until 0008 is applied. See [implementation-status.md](../implementation-status.md).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | serial | primary key |
+| `name` | text | not null. A known phone keeps its stored name |
+| `phone` | text | not null, unique. Normalised `62…` key from `toWaNumber()` (`+62 812…`, `0812…` and `62812…` are one row) |
+| `address` | text | not null, default empty. Takes the newest non-empty value |
+| `updated_at` | timestamptz | bumped on every save. Search orders by it, newest first |
+
+Index `buyers_name_prefix_idx` on `lower(name)` (`text_pattern_ops`) serves the prefix search: at least 2 characters, at most 8 results. `%`, `_` and `\` in the query match literally.
+
+Save and backfill rules:
+
+- After an invoice is created or edited, its buyer is upserted. A buyer with an empty name or an empty or invalid phone is skipped, and the invoice still saves.
+- Keep-name rule: a known phone keeps its stored name, so one mistyped digit cannot rename another customer. The address is overwritten by the newest save, but an empty address never erases a stored one.
+- Backfill (migration 0008, run once): distinct buyers from non-cancelled `orders` (customer name and WhatsApp, address when present) and from `invoices`. The phone rule runs in SQL and matches `toWaNumber()` for ordinary numbers. Rows that do not match are skipped. The most recent row per phone wins. Postgres `\s` does not match every Unicode space that JavaScript `\s` matches, so such a number is skipped by the backfill and saved later by the app.
+- `invoices` stay immutable snapshots with no foreign key to `buyers`. Editing a buyer changes no issued invoice.
+- `resetSeedAction` and the dev seed clear the table. No delete or anonymize path exists yet (see [security §15.4](./security.md#154-retention-and-anonymization)).
+
 ---
 
 ## 7. Derived values and invariants
