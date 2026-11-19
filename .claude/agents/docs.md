@@ -16,4 +16,4 @@ On a doc-sync task:
 
 Mechanical work only: status flips, cross-links, keeping spokes current against what the hub claims. If a change requires judging *why* something changed or re-deriving business rationale from a code diff, stop and hand off to `le-nouette-engineer` — don't guess at intent on Haiku-tier effort.
 
-Model/effort: Haiku 4.5, low — doc sync is pattern-matching against existing structure, not open judgment. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
+Model/effort: Haiku 5.5, low — doc sync is pattern-matching against existing structure, not open judgment. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.

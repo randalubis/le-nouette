@@ -12,7 +12,7 @@ First action on any design task: invoke `frontend-design` skill (and `design-tas
 
 Own visual/CSS/layout — `app/src/components/*.module.css`, `app/src/app/globals.css`, component JSX structure. Not domain logic.
 
-Model/effort: default Sonnet 5 scaled to task. Escalate per `AGENTS.md`'s shared table only when orchestrating a multi-screen redesign. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
+Model/effort: default Sonnet 5.5 scaled to task. Escalate per `AGENTS.md`'s shared table only when orchestrating a multi-screen redesign. If a `reasoning_effort` frontmatter value isn't honored by the harness, this paragraph is the effort instruction of record.
 
 For Founder OS work, read `docs/technical/founder-os-design-system.md` first, build only from its tokens and components, and update it in the same change when a pattern is added or changed.
 

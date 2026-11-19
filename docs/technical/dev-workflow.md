@@ -8,10 +8,10 @@ How Le Nouette's dev process works: the persona loop, local setup, code review k
 
 See `AGENTS.md` for the complete flow. In brief:
 
-1. **Engineer** (`le-nouette-engineer`, Sonnet 5) builds/fixes code, then hands off to reviewer.
-2. **Reviewer** (`le-nouette-reviewer`, Fable 5.1) runs the Playwright audit kit (.claude/playwright), reads screenshots, and reports quality and improvement aspects on an end-user POV basis (no code review).
+1. **Engineer** (`le-nouette-engineer`, Sonnet 5.5) builds/fixes code, then hands off to reviewer.
+2. **Reviewer** (`le-nouette-reviewer`, Opus 5.5) runs the Playwright audit kit (.claude/playwright), reads screenshots, and reports quality and improvement aspects on an end-user POV basis (no code review).
 3. **Designer** and **Engineer** iterate together on reviewer feedback — max 2 review rounds per feature.
-4. **Docs** (`le-nouette-docs`, Haiku 4.5) syncs all documentation against the code; runs after EVERY change (code, UI, config, tooling, agent workflow). A commit does not land until docs pass.
+4. **Docs** (`le-nouette-docs`, Haiku 5.5) syncs all documentation against the code; runs after EVERY change (code, UI, config, tooling, agent workflow). A commit does not land until docs pass.
 
 Registered agent names (use these with Agent-tool calls, not generic personas):
 
